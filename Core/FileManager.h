@@ -116,7 +116,7 @@ namespace file{
 			file.close();
 		}
 		else{
-			logger::log("Could not read file: " + filename, LogLevel::WARNING);
+			logger::warning("Could not read file: " + filename);
 		}
 
 		return content;
@@ -136,7 +136,7 @@ namespace file{
 			file.close();
 		}
 		else{
-			logger::log("Could not write file: " + filename, LogLevel::WARNING);
+			logger::warning("Could not write file: " + filename);
 			return false;
 		}
 

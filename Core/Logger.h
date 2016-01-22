@@ -29,7 +29,19 @@ namespace logger{
 		printf(out.c_str());
 	}
 
-	static const void log(const std::string& message){
+	static const void info(const std::string& message){
 		log(message, INFO);
+	}
+
+	static const void debug(const std::string& message){
+		log(message, DEBUG);
+	}
+
+	static const void warning(const std::string& message){
+		log(message, WARNING);
+	}
+
+	static const void fatal(const std::string& message){
+		log(message, FATAL);
 	}
 }
