@@ -1,8 +1,32 @@
-#include <SFML/Graphics.hpp>
+#include "Editor.h"
+
+#include <string>
+#include <iostream>
 
 using namespace sf;
+using namespace std;
 
-int main(){
+Editor::Editor(){
+	
+}
+
+Editor::~Editor(){
+
+}
+
+void Editor::run(){
+	/*
+		File API test
+	*/
+	File f;
+	cout << f.path() << ' ' << round(f.size() / 1024.0f) << "kB" << endl;
+	for (File c : f.listFiles()){
+		cout << "  " << c.name() << ' ' << round(c.size() / 1024.0f) << "kB" << endl;
+	}
+
+	/*
+		SFML API test
+	*/
 	RenderWindow window(VideoMode(500, 500), "SFML works!");
 	CircleShape shape(100.f);
 	shape.setFillColor(Color::Green);
@@ -29,6 +53,4 @@ int main(){
 		window.draw(shape);
 		window.display();
 	}
-
-	return 0;
 }

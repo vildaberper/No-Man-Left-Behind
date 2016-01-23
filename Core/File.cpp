@@ -32,6 +32,10 @@ const std::string File::extension(){
 	return last == std::string::npos ? "" : name.substr(last + 1);
 }
 
+const long File::size(){
+	return file::size(path());
+}
+
 const bool File::exists(){
 	return file::exists(path());
 }

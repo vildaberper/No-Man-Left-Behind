@@ -16,6 +16,8 @@ public:
 
 	const std::string extension();
 
+	const long size();
+
 	const bool exists();
 
 	const bool hasParent();

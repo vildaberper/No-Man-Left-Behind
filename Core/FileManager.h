@@ -24,10 +24,12 @@ namespace file{
 
 		if ((dir = opendir(path.data())) != NULL){
 			while ((ent = readdir(dir)) != NULL){
-				if (ent->d_name[0] == '.' && ent->d_name[1] == 0)
+				if (ent->d_name[0] == '.' && ent->d_name[1] == 0){
 					continue;
-				if (ent->d_name[0] == '.' && ent->d_name[1] == '.' && ent->d_name[2] == 0)
+				}
+				if (ent->d_name[0] == '.' && ent->d_name[1] == '.' && ent->d_name[2] == 0){
 					continue;
+				}
 				files.push_back(path + FILE_SEPARATOR + ent->d_name);
 			}
 			closedir(dir);
@@ -50,6 +52,25 @@ namespace file{
 		stat(path.data(), &s);
 
 		return (s.st_mode & S_IFDIR) != 0;
+	}
+
+	// File or directory size in bytes
+	static const long size(const std::string& path){
+		long size_ = 0;
+
+		if (isDirectory(path)){
+			for (std::string child : listFiles(path)){
+				size_ += size(child);
+			}
+			return size_;
+		}
+
+		std::ifstream file(path, std::ios_base::binary);
+		file.seekg(0, std::ios_base::end);
+		size_ = long(file.tellg());
+		file.close();
+
+		return size_;
 	}
 
 	// File has parent (C:\parent = true, C:\ = false)
@@ -76,10 +97,12 @@ namespace file{
 
 	// Check if file exists
 	static const bool exists(const std::string& filename){
-		if (isDirectory(filename))
+		if (isDirectory(filename)){
 			return true;
+		}
 
 		std::ifstream file(filename);
+
 		bool good = file.good();
 
 		file.close();
@@ -94,10 +117,12 @@ namespace file{
 
 	// Create directory and all parent directories
 	static const bool mkdirs(const std::string path){
-		if (path.length() < 4)
+		if (path.length() < 4){
 			return false;
-		if (isDirectory(path))
+		}
+		if (isDirectory(path)){
 			return true;
+		}
 
 		return mkdirs(parent(path)) && mkdir(path);
 	}
