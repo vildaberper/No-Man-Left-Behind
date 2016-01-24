@@ -353,7 +353,7 @@ bool parse(ConfigurationNode& root, vector<string> content, unsigned int curLine
 	string line = content[curLine];
 	int curIndent = h(line);
 
-	if (line.at(0) == '#')
+	if (line.length() == 0 || line.at(0) == '#')
 		return parse(root, content, curLine + 1, curPath, indent);
 
 	unsigned int colIndex = line.find_first_of(":");
@@ -379,6 +379,10 @@ bool parse(ConfigurationNode& root, vector<string> content, unsigned int curLine
 	}
 	if (line.length() > colIndex + 2){
 		val = line.substr(colIndex + 2);
+		h(val);
+		if (val.length() == 0 || val.at(0) == '#'){
+			return parse(root, content, curLine + 1, curPath, curIndent);
+		}
 		if (!root.node(curPath).parse(val)){
 			return false;
 		}
