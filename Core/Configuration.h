@@ -32,9 +32,9 @@ public:
 	void set(const std::string& path, const std::string& value);
 	void set(const std::string& path, const float& value);
 	void set(const std::string& path, const int& value);
-	void set(const std::string& path, const std::vector<std::string> &value);
-	void set(const std::string& path, const std::vector<float> &value);
-	void set(const std::string& path, const std::vector<int> &value);
+	void set(const std::string& path, const std::vector<std::string>& value);
+	void set(const std::string& path, const std::vector<float>& value);
+	void set(const std::string& path, const std::vector<int>& value);
 
 	// Get value from a node
 	const std::string stringValue(const std::string& path);

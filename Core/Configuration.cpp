@@ -17,13 +17,11 @@ static const bool isInt(string value){
 static const bool isFloat(string value){
 	size_t index = value.find_first_of('.');
 
-	if (index == string::npos || index == 0 || index == value.length())
-		return false;
-
-	if (!isInt(value.substr(0, index))){
+	if (index == string::npos || index == 0 || index == value.length()){
 		return false;
 	}
-	if (!isInt(value.substr(index + 1))){
+
+	if (!isInt(value.substr(0, index)) || !isInt(value.substr(index + 1))){
 		return false;
 	}
 	return true;
@@ -356,7 +354,7 @@ bool parse(ConfigurationNode& root, vector<string> content, unsigned int curLine
 	if (line.length() == 0 || line.at(0) == '#')
 		return parse(root, content, curLine + 1, curPath, indent);
 
-	unsigned int colIndex = line.find_first_of(":");
+	string::size_type colIndex = line.find_first_of(":");
 	string node = line.substr(0, colIndex);
 	string val;
 
