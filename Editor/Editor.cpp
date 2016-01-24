@@ -3,11 +3,13 @@
 #include <string>
 #include <iostream>
 
+#include "Configuration.h"
+
 using namespace sf;
 using namespace std;
 
 Editor::Editor(){
-	
+
 }
 
 Editor::~Editor(){
@@ -23,6 +25,14 @@ void Editor::run(){
 	for (File c : f.listFiles()){
 		cout << "  " << c.name() << ' ' << round(c.size() / 1024.0f) << "kB" << endl;
 	}
+
+	/*
+		Configuration API test
+	*/
+	Configuration c;
+
+	c.load(File().child("text.txt"));
+	c.save(File().child("text1.txt"));
 
 	/*
 		SFML API test

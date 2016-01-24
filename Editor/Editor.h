@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SFMLI.h"
-#include "File.h"
 
 class Editor{
 public:
