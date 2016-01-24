@@ -227,7 +227,7 @@ public:
 				index = val.find_first_of(',');
 				if (index != string::npos)
 					test = val.substr(0, index);
-				if (isInt(test)){
+				if (isInt(test)){ // TYPEVECTORINT
 					vector<int> vector;
 
 					while ((index = val.find_first_of(',')) != string::npos){
@@ -237,7 +237,7 @@ public:
 					vector.push_back(stoi(val));
 					set(vector);
 				}
-				else if (isFloat(test)){
+				else if (isFloat(test)){ // TYPEVECTORFLOAT
 					vector<float> vector;
 
 					while ((index = val.find_first_of(',')) != string::npos){
