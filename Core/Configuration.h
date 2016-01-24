@@ -13,7 +13,7 @@ public:
 	// Load from file
 	bool load(File& file);
 
-	//Save to file
+	// Save to file
 	const bool save(File& file);
 
 	// Children of a node (parent.child1, parent.child2)
