@@ -6,6 +6,9 @@
 using namespace std;
 
 static const bool isInt(string value){
+	/*
+		TODO NEGATIVE NUMBERS
+	*/
 	for (size_t i = 0; i < value.length(); i++){
 		if (!isdigit(value.at(i))){
 			return false;

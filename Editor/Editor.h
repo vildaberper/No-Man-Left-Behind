@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SFMLI.h"
+#include "Manager.h"
 
 class Editor{
 public:
@@ -8,6 +9,17 @@ public:
 	~Editor();
 
 	void run();
+
+	const void keyboardListener(KeyboardEvent event);
+	const void mouseButtonListener(MouseButtonEvent event);
+	const void mouseMoveListener(MouseMoveEvent event);
+	const void mouseWheelListener(MouseWheelEvent event);
 private:
-	sf::RenderWindow window;
+	sf::RenderWindow* window;
+	Manager* manager;
+
+	unsigned long keyboardListenerId;
+	unsigned long mouseButtonListenerId;
+	unsigned long mouseMoveListenerId;
+	unsigned long mouseWheelListenerId;
 };
