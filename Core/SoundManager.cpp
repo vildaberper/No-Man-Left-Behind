@@ -13,16 +13,16 @@ SoundManager::~SoundManager(){
 }
 
 
-void SoundManager::initialize(RenderWindow*){
+void SoundManager::initialize(RenderWindow* window){
 
 }
 
 
-void SoundManager::finalize(RenderWindow*){
+void SoundManager::finalize(RenderWindow* window){
 
 }
 
 
-void SoundManager::tick(RenderWindow*, clock_t, float dt){
+void SoundManager::tick(RenderWindow* window, clock_t, float dt){
 
 }

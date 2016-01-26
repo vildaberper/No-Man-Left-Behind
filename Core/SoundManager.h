@@ -1,3 +1,4 @@
+//hej
 #pragma once
 
 #include "SFMLI.h"
@@ -5,6 +6,16 @@
 #include "File.h"
 
 #include "Logger.h"
+
+/*class SubSound{
+public:
+	SubSound();
+	~SubSound();
+
+private:
+
+};
+*/
 
 class SoundManager{
 public:
