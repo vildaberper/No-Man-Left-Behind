@@ -52,12 +52,13 @@ const TextureManager::SubTexture* TextureManager::getUndefinedTexture(){
 }
 // Load textures //
 bool TextureManager::loadTextures(){
-	//for (File f; ){
-	//	if (){
-
+	// TODO: Fishish loading of textures //
+	//for (File f = dir.listFiles()){
+	//	if (f.extension() == "png"){
+	//		continue;
 	//	}
-	//	File png = 
-	//	File txt;
+	//	File png = dir.child(f.nameNoExtension() + ".png");
+	//	File txt f;
 	//}
 	return true;
 }
