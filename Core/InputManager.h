@@ -125,7 +125,7 @@ public:
 
 	void finalize(sf::RenderWindow* window);
 
-	void tick(sf::RenderWindow* window, clock_t time, float dt);
+	void tick(sf::RenderWindow* window, const clock_t& time, const float& dt);
 
 	unsigned long registerListener(const keyEventFunc& listener);
 	unsigned long registerListener(const mouseButtonEventFunc& listener);
