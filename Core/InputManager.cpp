@@ -23,7 +23,7 @@ void InputManager::finalize(RenderWindow* window){
 
 }
 
-void InputManager::tick(RenderWindow* window, clock_t time, float dt){
+void InputManager::tick(RenderWindow* window, const clock_t& time, const float& dt){
 	Event event;
 
 	while (window->pollEvent(event)){

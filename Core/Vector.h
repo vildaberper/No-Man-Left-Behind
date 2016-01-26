@@ -13,8 +13,8 @@ public:
 	}
 
 	Vector(){
-		Vector::x = 0;
-		Vector::y = 0;
+		x = 0;
+		y = 0;
 	}
 
 	~Vector(){ }
@@ -45,8 +45,8 @@ public:
 	}
 
 	void operator*=(const float& f){
-		Vector::x = x * f;
-		Vector::y = y * f;
+		x = x * f;
+		y = y * f;
 	}
 
 	const Vector operator/(const float& f){
@@ -54,7 +54,12 @@ public:
 	}
 
 	void operator/=(const float& f){
-		Vector::x = x / f;
-		Vector::y = y / f;
+		x = x / f;
+		y = y / f;
+	}
+
+	void operator +=(const Vector& v){
+		x += v.x;
+		y += v.y;
 	}
 };
