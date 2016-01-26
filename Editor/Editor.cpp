@@ -1,3 +1,4 @@
+// Hej
 #include "Editor.h"
 
 #include <string>
