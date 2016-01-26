@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SFMLI.h"
+#include "World.h"
 #include "Manager.h"
 
 class Editor{
@@ -17,6 +18,8 @@ public:
 private:
 	sf::RenderWindow* window;
 	Manager* manager;
+
+	World* world;
 
 	unsigned long keyboardListenerId;
 	unsigned long mouseButtonListenerId;

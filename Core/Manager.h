@@ -21,7 +21,7 @@ public:
 		inputManager->finalize(window);
 	}
 
-	void tick(sf::RenderWindow* window, clock_t time, float dt){
+	void tick(sf::RenderWindow* window, const clock_t& time, const float& dt){
 		inputManager->tick(window, time, dt);
 	}
 };
