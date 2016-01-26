@@ -36,6 +36,7 @@ void Editor::run(){
 		File API test
 	*/
 	File f;
+	f = f.parent();
 	cout << f.path() << ' ' << round(f.size() / 1024.0f) << "kB" << endl;
 	for (File c : f.listFiles()){
 		cout << "  " << c.name() << ' ' << round(c.size() / 1024.0f) << "kB" << endl;

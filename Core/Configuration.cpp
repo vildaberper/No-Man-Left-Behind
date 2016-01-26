@@ -5,11 +5,25 @@
 
 using namespace std;
 
-static const bool isInt(string value){
-	/*
-		TODO NEGATIVE NUMBERS
-	*/
+static const bool isDigits(string value){
 	for (size_t i = 0; i < value.length(); i++){
+		if (!isdigit(value.at(i))){
+			return false;
+		}
+	}
+	return true;
+}
+
+static const bool isInt(string value){
+	size_t i = 0;
+
+	if (value.length() == 0){
+		return false;
+	}
+	if (value.at(0) == '-'){
+		i = 1;
+	}
+	for (; i < value.length(); i++){
 		if (!isdigit(value.at(i))){
 			return false;
 		}
@@ -24,7 +38,7 @@ static const bool isFloat(string value){
 		return false;
 	}
 
-	if (!isInt(value.substr(0, index)) || !isInt(value.substr(index + 1))){
+	if (!isInt(value.substr(0, index)) || !isDigits(value.substr(index + 1))){
 		return false;
 	}
 	return true;
