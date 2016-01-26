@@ -18,6 +18,7 @@ namespace sm{
 	}
 	const static bool finializeSpriteManager(){
 		if (texMan->textureManagerFinalize()){
+			delete texMan;
 			return true;
 		}
 		else{
