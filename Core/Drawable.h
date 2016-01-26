@@ -1,8 +1,7 @@
 #pragma once
-class Drawable
-{
+
+class Drawable{
 public:
 	Drawable();
 	~Drawable();
 };
-
