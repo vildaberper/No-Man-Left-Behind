@@ -3,6 +3,7 @@
 #include "SFMLI.h"
 #include "World.h"
 #include "Manager.h"
+#include "Constants.h"
 
 class Editor{
 public:

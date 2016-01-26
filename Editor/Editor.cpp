@@ -45,10 +45,10 @@ void Editor::run(){
 	/*
 		Configuration API test
 	*/
-	Configuration c;
-
-	c.load(File().child("text.txt"));
-	c.save(File().child("text1.txt"));
+	c::initialize();
+	printf("\n");
+	printf(c::textureDir.path().data());
+	printf("\n");
 
 	/*
 		SFML & Manager API test
