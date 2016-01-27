@@ -1,6 +1,6 @@
 #pragma once
 // Includeringar //
-#include "SFML\Graphics.hpp"
+#include "SFMLI.h"
 #include "Logger.h"
 #include <string>
 #include <map>

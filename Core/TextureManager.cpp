@@ -1,19 +1,19 @@
 #include "TextureManager.h"
-#include "File.h"
 #include "Logger.h"
+#include "Constants.h"
 // Constructor\Destructor //
 TextureManager::TextureManager(){
 	sf::Texture* t = new sf::Texture();
 	if (!t->loadFromFile("undefined.png")){
-		std::printf("undefined.png failed to load");
+		logger::fatal("Undefined texture not found!");
 	}
 	textures.insert(t);
 	// Load the undefined //
-	undefined.x = 1;
-	undefined.y = 3;
+	undefined.x = 0;
+	undefined.y = 0;
 	undefined.texi = new TexI;
-	undefined.texi->width = 2;
-	undefined.texi->height = 4;
+	undefined.texi->width = 1;
+	undefined.texi->height = 1;
 	undefined.texi->texture= t;
 }
 TextureManager::~TextureManager(){
@@ -34,7 +34,10 @@ const bool TextureManager::textureManagerInitialize(){
 }
 const bool TextureManager::textureManagerFinalize(){
 	// Empty containers //
-	
+	for (sf::Texture* t : textures){
+		delete t;
+	}
+	textures.clear();
 	return true;
 }
 // Functioner //
@@ -52,13 +55,48 @@ const TextureManager::SubTexture* TextureManager::getUndefinedTexture(){
 }
 // Load textures //
 bool TextureManager::loadTextures(){
-	// TODO: Fishish loading of textures //
-	//for (File f = dir.listFiles()){
-	//	if (f.extension() == "png"){
-	//		continue;
-	//	}
-	//	File png = dir.child(f.nameNoExtension() + ".png");
-	//	File txt f;
-	//}
+	for (File txtFile : c::textureDir.listFiles()){
+		if (!txtFile.isFile() || txtFile.extension() != "txt"){
+			continue;
+		}
+
+		File pngFile = c::textureDir.child(txtFile.nameNoExtension() + ".png");
+
+		sf::Texture* localTexture = new sf::Texture();
+		if (!localTexture->loadFromFile(pngFile.name())){
+			delete localTexture;
+			continue;
+		}
+
+		Configuration config;
+		if (!config.load(txtFile)){
+			continue;
+		}
+
+		int w = config.intValue("image.w");
+		int h = config.intValue("image.h");
+
+		TexI* localTexi = new TexI;
+		localTexi->texture = localTexture;
+		localTexi->width = w;
+		localTexi->height = h;
+
+		textures.insert(localTexture);
+
+		for (std::string texid : config.children("textures")){
+			std::vector<int> pos = config.intVector(texid);
+			int x = pos[0];
+			int y = pos[1];
+
+			// Add subtexture (texid, x, y)
+			SubTexture sub;
+			sub.texi = localTexi;
+			sub.x = x;
+			sub.y = y;
+
+			textureMap[pngFile.nameNoExtension()][texid] = sub;
+		}
+	}
+	// All Texture loaded
 	return true;
 }
