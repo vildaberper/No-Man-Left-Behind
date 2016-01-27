@@ -26,6 +26,9 @@ namespace sm{
 			return false;
 		}
 	}
+	void tick(sf::RenderWindow* window, clock_t, float dt){
+
+	}
 
 	static sf::Sprite* getSprite(std::string& catKey, std::string& subKey){
 		TextureManager::SubTexture localSubTex = *texMan->getTextureMap(catKey, subKey);

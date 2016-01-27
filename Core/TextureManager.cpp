@@ -9,11 +9,11 @@ TextureManager::TextureManager(){
 	}
 	textures.insert(t);
 	// Load the undefined //
-	undefined.x = 1;
-	undefined.y = 3;
+	undefined.x = 0;
+	undefined.y = 0;
 	undefined.texi = new TexI;
-	undefined.texi->width = 2;
-	undefined.texi->height = 4;
+	undefined.texi->width = 1;
+	undefined.texi->height = 1;
 	undefined.texi->texture= t;
 }
 TextureManager::~TextureManager(){
@@ -34,7 +34,10 @@ const bool TextureManager::textureManagerInitialize(){
 }
 const bool TextureManager::textureManagerFinalize(){
 	// Empty containers //
-	
+	for (sf::Texture* t : textures){
+		delete t;
+	}
+	textures.clear();
 	return true;
 }
 // Functioner //
@@ -53,7 +56,7 @@ const TextureManager::SubTexture* TextureManager::getUndefinedTexture(){
 // Load textures //
 bool TextureManager::loadTextures(){
 	// TODO: Fishish loading of textures //
-	//for (File f = dir.listFiles()){
+	//for (File f : dir.listFiles()){
 	//	if (f.extension() == "png"){
 	//		continue;
 	//	}
