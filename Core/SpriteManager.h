@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Logger.h"
 #include "TextureManager.h"
 TextureManager* texMan;
 
