@@ -113,6 +113,9 @@ void InputManager::unregisterListener(const unsigned long& id){
 	else if (mouseMoveListeners.count(id) > 0){
 		mouseMoveListeners.erase(id);
 	}
+	else if (mouseWheelListeners.count(id) > 0){
+		mouseWheelListeners.erase(id);
+	}
 }
 
 void InputManager::push(const KeyboardEvent& event){
