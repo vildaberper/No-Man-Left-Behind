@@ -41,17 +41,13 @@ namespace file{
 	static const bool isFile(const std::string& path) {
 		struct stat s;
 
-		stat(path.data(), &s);
-
-		return (s.st_mode & S_IFREG) != 0;
+		return stat(path.data(), &s) == 0 && (s.st_mode & S_IFREG) != 0;
 	}
 
 	static const bool isDirectory(const std::string& path) {
 		struct stat s;
 
-		stat(path.data(), &s);
-
-		return (s.st_mode & S_IFDIR) != 0;
+		return stat(path.data(), &s) == 0 && (s.st_mode & S_IFDIR) != 0;
 	}
 
 	// File or directory size in bytes

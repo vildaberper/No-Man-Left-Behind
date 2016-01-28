@@ -1,8 +1,7 @@
 #pragma once
-class ItemStack
-{
+
+class ItemStack{
 public:
 	ItemStack();
 	~ItemStack();
 };
-

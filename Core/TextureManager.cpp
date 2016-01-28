@@ -1,22 +1,26 @@
 #include "TextureManager.h"
-#include "Logger.h"
 #include "Constants.h"
-// Constructor\Destructor //
+#include "Logger.h"
+
+// Constructor\Destructor
 TextureManager::TextureManager(){
 	
 }
+
 TextureManager::~TextureManager(){
 
 }
-// Initialize\Finalize //
-const bool TextureManager::textureManagerInitialize(){
+
+// Initialize\Finalize
+const bool TextureManager::initialize(){
 	sf::Texture* t = new sf::Texture();
-	if (!t->loadFromFile("undefined.png")){
-		logger::fatal("Undefined texture not found!");
-		return false;
+	File u = c::textureDir.child("undefined.png");
+	if (!u.isFile() || !t->loadFromFile(u.path())){
+		logger::warning("Undefined texture not found!");
+		t->create(512, 512);
 	}
 	textures.insert(t);
-	// Load the undefined //
+	// Load the undefined
 	undefined = new SubTexture();
 	undefined->x = 0;
 	undefined->y = 0;
@@ -27,7 +31,7 @@ const bool TextureManager::textureManagerInitialize(){
 
 	// Load all them textures
 	if (loadTextures()){
-		std::cout << "Textures loaded" << std::endl;
+		logger::info("Textures loaded");
 		return true;
 	}
 	else{
@@ -35,30 +39,39 @@ const bool TextureManager::textureManagerInitialize(){
 		return false;
 	}
 }
-const bool TextureManager::textureManagerFinalize(){
-	// Empty containers //
+
+const bool TextureManager::finalize(){
+	// Empty containers
 	for (sf::Texture* t : textures){
 		delete t;
 	}
 	textures.clear();
+	// TODO Delete subtextures
 	return true;
 }
-// Functioner //
-const TextureManager::SubTexture* TextureManager::getTextureMap(std::string& categoryKey, std::string& subKey){
+
+// Get a SubTexture, used to create sprites in the spritemanager
+const SubTexture* TextureManager::getTextureMap(const std::string& categoryKey, const  std::string& subKey){
 	if (textureMap.count(categoryKey) == 0 || textureMap[categoryKey].count(subKey) == 0){
 		logger::warning("SubTexture not found, key name: " + categoryKey + "." + subKey);
-		return undefined;
+		return getUndefinedTexture();
 	}
 	else{
 		return textureMap[categoryKey][subKey];
 	}
 }
-const TextureManager::SubTexture* TextureManager::getUndefinedTexture(){
+
+const SubTexture* TextureManager::getUndefinedTexture(){
 	return undefined;
 }
-// Load textures //
+
+// Load textures
 bool TextureManager::loadTextures(){
+	if (!c::textureDir.exists() || !c::textureDir.isDirectory()){
+		return false;
+	}
 	for (File txtFile : c::textureDir.listFiles()){
+		printf((txtFile.path() + "\n").data());
 		if (!txtFile.isFile() || txtFile.extension() != "txt"){
 			continue;
 		}
@@ -76,23 +89,19 @@ bool TextureManager::loadTextures(){
 			continue;
 		}
 
-		std::vector<int> dim = config.intVector("textures");
-
-		TexI* localTexi = new TexI;
+		TexI* localTexi = new TexI();
 		localTexi->texture = localTexture;
-		localTexi->width = dim[0];
-		localTexi->height = dim[1];
-
+		int temp;
+		localTexi->width = (temp = config.intVector("texture")[0]) == 0 ? 1 : temp;
+		localTexi->height = (temp = config.intVector("texture")[1]) == 0 ? 1 : temp;
 		textures.insert(localTexture);
 
 		for (std::string texid : config.children("textures")){
-			std::vector<int> pos = config.intVector(texid);
-
 			// Add subtexture (texid, x, y)
 			SubTexture* sub = new SubTexture();
 			sub->texi = localTexi;
-			sub->x = pos[0];
-			sub->y = pos[1];
+			sub->x = config.intVector(texid)[0];
+			sub->y = config.intVector(texid)[1];
 
 			textureMap[pngFile.nameNoExtension()][texid] = sub;
 		}

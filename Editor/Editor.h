@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GI.h"
 #include "SFMLI.h"
 #include "World.h"
 #include "Manager.h"
@@ -18,6 +19,7 @@ public:
 	const void mouseWheelListener(MouseWheelEvent event);
 private:
 	sf::RenderWindow* window;
+
 	Manager* manager;
 
 	World* world;

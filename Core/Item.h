@@ -1,8 +1,7 @@
 #pragma once
-class Item
-{
+
+class Item{
 public:
 	Item();
 	~Item();
 };
-

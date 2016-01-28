@@ -1,8 +1,7 @@
 #pragma once
-class MenuManager
-{
+
+class MenuManager{
 public:
 	MenuManager();
 	~MenuManager();
 };
-

@@ -1,8 +1,7 @@
 #pragma once
-class Inventory
-{
+
+class Inventory{
 public:
 	Inventory();
 	~Inventory();
 };
-

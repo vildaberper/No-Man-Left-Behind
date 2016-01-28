@@ -1,8 +1,7 @@
 #pragma once
-class ProgressBar
-{
+
+class ProgressBar{
 public:
 	ProgressBar();
 	~ProgressBar();
 };
-
