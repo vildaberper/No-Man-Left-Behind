@@ -40,7 +40,7 @@ const bool TextureManager::textureManagerFinalize(){
 	textures.clear();
 	return true;
 }
-// Functioner //
+// Get a SubTexture, used to create sprites in the spritemanager //
 const TextureManager::SubTexture* TextureManager::getTextureMap(std::string& categoryKey, std::string& subKey){
 	if (textureMap.count(categoryKey) == 0 || textureMap[categoryKey].count(subKey) == 0){
 		logger::warning("SubTexture not found, key name: " + categoryKey + "." + subKey);
