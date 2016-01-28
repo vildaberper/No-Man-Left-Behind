@@ -32,10 +32,10 @@ public:
 	const SubTexture* getUndefinedTexture();
 private:
 	// Texture Data //
-	std::map<std::string, std::map<std::string, SubTexture>> textureMap;
-	std::set < sf::Texture* > textures;
+	std::map<std::string, std::map<std::string, SubTexture*>> textureMap;
+	std::set <sf::Texture*> textures;
 	// Undefined sub for undefined textures //
-	SubTexture undefined;
+	SubTexture* undefined;
 	// Texture
 	bool loadTextures();
 };

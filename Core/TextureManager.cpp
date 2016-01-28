@@ -3,25 +3,28 @@
 #include "Constants.h"
 // Constructor\Destructor //
 TextureManager::TextureManager(){
-	sf::Texture* t = new sf::Texture();
-	if (!t->loadFromFile("undefined.png")){
-		logger::fatal("Undefined texture not found!");
-	}
-	textures.insert(t);
-	// Load the undefined //
-	undefined.x = 0;
-	undefined.y = 0;
-	undefined.texi = new TexI;
-	undefined.texi->width = 1;
-	undefined.texi->height = 1;
-	undefined.texi->texture= t;
+	
 }
 TextureManager::~TextureManager(){
-	// Finalize
-	textureManagerFinalize();
+
 }
 // Initialize\Finalize //
 const bool TextureManager::textureManagerInitialize(){
+	sf::Texture* t = new sf::Texture();
+	if (!t->loadFromFile("undefined.png")){
+		logger::fatal("Undefined texture not found!");
+		return false;
+	}
+	textures.insert(t);
+	// Load the undefined //
+	undefined = new SubTexture();
+	undefined->x = 0;
+	undefined->y = 0;
+	undefined->texi = new TexI();
+	undefined->texi->width = 1;
+	undefined->texi->height = 1;
+	undefined->texi->texture = t;
+
 	// Load all them textures
 	if (loadTextures()){
 		std::cout << "Textures loaded" << std::endl;
@@ -44,14 +47,14 @@ const bool TextureManager::textureManagerFinalize(){
 const TextureManager::SubTexture* TextureManager::getTextureMap(std::string& categoryKey, std::string& subKey){
 	if (textureMap.count(categoryKey) == 0 || textureMap[categoryKey].count(subKey) == 0){
 		logger::warning("SubTexture not found, key name: " + categoryKey + "." + subKey);
-		return &undefined;
+		return undefined;
 	}
 	else{
-		return &textureMap[categoryKey][subKey];
+		return textureMap[categoryKey][subKey];
 	}
 }
 const TextureManager::SubTexture* TextureManager::getUndefinedTexture(){
-	return &undefined;
+	return undefined;
 }
 // Load textures //
 bool TextureManager::loadTextures(){
@@ -73,26 +76,23 @@ bool TextureManager::loadTextures(){
 			continue;
 		}
 
-		int w = config.intValue("image.w");
-		int h = config.intValue("image.h");
+		std::vector<int> dim = config.intVector("textures");
 
 		TexI* localTexi = new TexI;
 		localTexi->texture = localTexture;
-		localTexi->width = w;
-		localTexi->height = h;
+		localTexi->width = dim[0];
+		localTexi->height = dim[1];
 
 		textures.insert(localTexture);
 
 		for (std::string texid : config.children("textures")){
 			std::vector<int> pos = config.intVector(texid);
-			int x = pos[0];
-			int y = pos[1];
 
 			// Add subtexture (texid, x, y)
-			SubTexture sub;
-			sub.texi = localTexi;
-			sub.x = x;
-			sub.y = y;
+			SubTexture* sub = new SubTexture();
+			sub->texi = localTexi;
+			sub->x = pos[0];
+			sub->y = pos[1];
 
 			textureMap[pngFile.nameNoExtension()][texid] = sub;
 		}

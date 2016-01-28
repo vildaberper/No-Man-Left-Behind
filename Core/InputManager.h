@@ -4,7 +4,7 @@
 
 #include "SFMLI.h"
 
-static const clock_t DOUBLE_CLICK_TIME = 1000;
+static const sf::Time DOUBLE_CLICK_TIME = sf::milliseconds(300);
 
 class KeyboardEvent{
 private:
@@ -125,7 +125,7 @@ public:
 
 	void finalize(sf::RenderWindow* window);
 
-	void tick(sf::RenderWindow* window, const clock_t& time, const float& dt);
+	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
 
 	unsigned long registerListener(const keyEventFunc& listener);
 	unsigned long registerListener(const mouseButtonEventFunc& listener);
@@ -144,7 +144,7 @@ private:
 
 	int lastX = -1;
 	int lastY = -1;
-	clock_t lastClick = 0;
+	sf::Time lastClick = sf::milliseconds(-DOUBLE_CLICK_TIME.asMilliseconds() - 1);
 
 	unsigned long listenerId = 0;
 
