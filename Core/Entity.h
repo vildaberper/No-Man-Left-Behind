@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Vector.h"
-#include <time.h>
+#include "SFMLI.h"
 
 class Entity{
 public:
@@ -12,7 +12,7 @@ public:
 		position += velocity * dt;
 	}
 
-	virtual void tick(const clock_t& time, const float& dt){
+	virtual void tick(const sf::Time& time, const float& dt){
 		move(dt);
 	};
 

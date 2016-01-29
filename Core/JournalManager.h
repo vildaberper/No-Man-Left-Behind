@@ -1,8 +1,7 @@
 #pragma once
-class JournalManager
-{
+
+class JournalManager{
 public:
 	JournalManager();
 	~JournalManager();
 };
-

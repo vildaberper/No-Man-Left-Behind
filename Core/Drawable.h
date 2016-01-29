@@ -1,12 +1,12 @@
 #pragma once
 
-#include "SFMLI.h"
 #include "Entity.h"
+#include "SFMLI.h"
 
 class Drawable : public Entity{
 public:
 	Drawable();
 	~Drawable();
 
-	sf::Sprite* getSprite();
+	sf::Sprite* getSprite(const sf::Time& time);
 };

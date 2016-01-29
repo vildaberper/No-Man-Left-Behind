@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 static const enum LogLevel{
 	INFO,
 	DEBUG,

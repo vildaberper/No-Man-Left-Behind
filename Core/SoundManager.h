@@ -1,11 +1,8 @@
-//hej
 #pragma once
 
-#include "SFMLI.h"
-
-#include "File.h"
-
 #include "Logger.h"
+#include "SFMLI.h"
+#include "File.h"
 
 /*class SubSound{
 public:
@@ -26,9 +23,5 @@ public:
 
 	void finalize(sf::RenderWindow* window);
 
-	void tick(sf::RenderWindow* window, clock_t, float dt);
-
-
-private:
-
+	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
 };

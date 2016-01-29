@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SFMLI.h"
 #include "Drawable.h"
+#include "SFMLI.h"
 
 namespace gi{
 	static sf::RenderWindow* renderWindow;
@@ -9,37 +9,45 @@ namespace gi{
 	static unsigned long frameCount;
 
 	// Initialize \ Finalize //
-	static bool initalizeGI(sf::RenderWindow*& rw){
-		rw = new sf::RenderWindow(sf::VideoMode(1280, 720), "NMLB");
-		renderWindow = rw;
-		drawCalls = 0;
-		frameCount = 0;
+	static bool initalize(sf::RenderWindow*& rw){
+		renderWindow = rw = new sf::RenderWindow(sf::VideoMode(1280, 720), "NMLB");
+		drawCalls = frameCount = 0;
+
+		return true;
 	}
-	static bool finalizeGI(){
+
+	static bool finalize(){
 		if (renderWindow->isOpen()){
 			renderWindow->close();
 		}
 		delete renderWindow;
+
 		return true;
 	}
+
 	// StartOfFrame //
 	static bool startOfFrame(){
 		frameCount++;
 		renderWindow->clear();
+
 		return true;
 	}
+
 	// Drawcall //
-	static bool drawSprite(Drawable* drawable){
+	static bool draw(Drawable* drawable, const sf::Time& time){
 		drawCalls++;
-		renderWindow->draw(*drawable->getSprite());
+		renderWindow->draw(*drawable->getSprite(time));
+
 		return true;
 	}
+
 	// endOfFrame //
 	static bool endOfFrame(){
 		renderWindow->display();
 		if (frameCount % 60 == 0){
-			// TODO: DrawCalls per 60 frame
+			// TODO: DrawCalls per 60 frame (average
 		}
+
 		return true;
 	}
 }

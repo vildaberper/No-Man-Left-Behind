@@ -23,7 +23,7 @@ void InputManager::finalize(RenderWindow* window){
 
 }
 
-void InputManager::tick(RenderWindow* window, const clock_t& time, const float& dt){
+void InputManager::tick(RenderWindow* window, const Time& time, const float& dt){
 	Event event;
 
 	while (window->pollEvent(event)){
@@ -56,7 +56,7 @@ void InputManager::tick(RenderWindow* window, const clock_t& time, const float& 
 			if (doubleClick){
 				lastX = -1;
 				lastY = -1;
-				lastClick = -50;
+				lastClick = milliseconds(-DOUBLE_CLICK_TIME.asMilliseconds() - 1);
 			}
 			else{
 				lastX = event.mouseButton.x;
@@ -112,6 +112,9 @@ void InputManager::unregisterListener(const unsigned long& id){
 	}
 	else if (mouseMoveListeners.count(id) > 0){
 		mouseMoveListeners.erase(id);
+	}
+	else if (mouseWheelListeners.count(id) > 0){
+		mouseWheelListeners.erase(id);
 	}
 }
 
