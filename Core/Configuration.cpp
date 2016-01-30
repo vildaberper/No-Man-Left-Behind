@@ -418,6 +418,9 @@ const bool Configuration::save(File& file){
 }
 
 const vector<string> Configuration::children(const string& path){
+	return children(path, true);
+}
+const std::vector<std::string> Configuration::children(const std::string& path, const bool& fullPath){
 	vector<string> children = root.children();
 
 	if (root.containsNode(path)){
@@ -425,7 +428,7 @@ const vector<string> Configuration::children(const string& path){
 	}
 	if (path.length() > 0){
 		for (unsigned int i = 0; i < children.size(); i++){
-			children[i] = path + PATH_SEPARATOR + children[i];
+			children[i] = (fullPath ? path + PATH_SEPARATOR : "") + children[i];
 		}
 	}
 	return children;

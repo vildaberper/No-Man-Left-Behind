@@ -16,12 +16,16 @@ public:
 		move(dt);
 	};
 
-	bool isAlive(){
+	const bool isAlive(){
 		return health > 0;
 	}
-private:
+
+	void kill(){
+		health = 0;
+	}
 	Vector position;
+private:
 	Vector velocity;
 
-	float health;
+	float health = 1.0f;
 };

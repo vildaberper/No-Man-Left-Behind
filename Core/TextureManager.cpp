@@ -2,6 +2,9 @@
 #include "Constants.h"
 #include "Logger.h"
 
+using namespace std;
+using namespace sf;
+
 // Constructor\Destructor
 TextureManager::TextureManager(){
 	
@@ -13,7 +16,7 @@ TextureManager::~TextureManager(){
 
 // Initialize\Finalize
 const bool TextureManager::initialize(){
-	sf::Texture* t = new sf::Texture();
+	Texture* t = new Texture();
 	File u = c::textureDir.child("undefined.png");
 	if (!u.isFile() || !t->loadFromFile(u.path())){
 		logger::warning("Undefined texture not found!");
@@ -42,7 +45,7 @@ const bool TextureManager::initialize(){
 
 const bool TextureManager::finalize(){
 	// Empty containers
-	for (sf::Texture* t : textures){
+	for (Texture* t : textures){
 		delete t;
 	}
 	textures.clear();
@@ -67,45 +70,56 @@ const SubTexture* TextureManager::getUndefinedTexture(){
 
 // Load textures
 bool TextureManager::loadTextures(){
-	if (!c::textureDir.exists() || !c::textureDir.isDirectory()){
+	return loadTexturesFromDir(c::textureDir);
+}
+
+bool TextureManager::loadTexturesFromDir(File& dir){
+	if (!dir.exists() || !dir.isDirectory()){
 		return false;
 	}
-	for (File txtFile : c::textureDir.listFiles()){
-		printf((txtFile.path() + "\n").data());
+	bool success = true;
+	for (File txtFile : dir.listFiles()){
+		if (txtFile.isDirectory()){
+			success = !loadTexturesFromDir(txtFile) ? false : success;
+		}
 		if (!txtFile.isFile() || txtFile.extension() != "txt"){
 			continue;
 		}
 
-		File pngFile = c::textureDir.child(txtFile.nameNoExtension() + ".png");
+		File pngFile = dir.child(txtFile.nameNoExtension() + ".png");
 
-		sf::Texture* localTexture = new sf::Texture();
-		if (!localTexture->loadFromFile(pngFile.name())){
+		Texture* localTexture = new Texture();
+		if (!localTexture->loadFromFile(pngFile.path())){
 			delete localTexture;
+			logger::warning("Failed to load texture: " + pngFile.path());
+			success = false;
 			continue;
 		}
 
 		Configuration config;
 		if (!config.load(txtFile)){
+			logger::warning("Failed to load texture configuration: " + txtFile.path());
+			success = false;
 			continue;
 		}
 
 		TexI* localTexi = new TexI();
 		localTexi->texture = localTexture;
 		int temp;
-		localTexi->width = (temp = config.intVector("texture")[0]) == 0 ? 1 : temp;
-		localTexi->height = (temp = config.intVector("texture")[1]) == 0 ? 1 : temp;
+		localTexi->width = (temp = config.intVector("textures")[0]) == 0 ? 1 : temp;
+		localTexi->height = (temp = config.intVector("textures")[1]) == 0 ? 1 : temp;
 		textures.insert(localTexture);
 
-		for (std::string texid : config.children("textures")){
+		for (std::string texid : config.children("textures", false)){
 			// Add subtexture (texid, x, y)
 			SubTexture* sub = new SubTexture();
 			sub->texi = localTexi;
-			sub->x = config.intVector(texid)[0];
-			sub->y = config.intVector(texid)[1];
+			sub->x = config.intVector("textures." + texid)[0];
+			sub->y = config.intVector("textures." + texid)[1];
 
 			textureMap[pngFile.nameNoExtension()][texid] = sub;
 		}
 	}
 	// All Texture loaded
-	return true;
+	return success;
 }

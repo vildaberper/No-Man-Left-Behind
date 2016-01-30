@@ -18,6 +18,7 @@ public:
 
 	// Children of a node (parent.child1, parent.child2)
 	const std::vector<std::string> children(const std::string& path);
+	const std::vector<std::string> children(const std::string& path, const bool& fullPath);
 
 	// Node has a value
 	const bool hasValue(const std::string& path);
