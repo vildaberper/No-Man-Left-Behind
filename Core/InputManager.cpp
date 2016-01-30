@@ -70,10 +70,19 @@ void InputManager::tick(RenderWindow* window, const Time& time, const float& dt)
 		else if (event.type == sf::Event::MouseMoved){
 			lastX = -1;
 			lastY = -1;
-			push(MouseMoveEvent(event.mouseMove.x, event.mouseMove.y));
+			int dx = event.mouseMove.x - lastMoveX;
+			int dy = event.mouseMove.y - lastMoveY;
+
+			if (lastMoveX == -1 || lastMoveY == -1){
+				dx = dy = 0;
+			}
+			push(MouseMoveEvent(lastMoveX = event.mouseMove.x, lastMoveY = event.mouseMove.y, dx, dy));
 		}
 		else if (event.type == sf::Event::MouseWheelScrolled){
 			push(MouseWheelEvent(event.mouseWheelScroll.delta > 0.0f ? 1 : -1));
+		}
+		else if (event.type == sf::Event::Resized){
+			window->setView(sf::View(sf::FloatRect(0.0f, 0.0f, float(event.size.width), float(event.size.height))));
 		}
 	}
 }

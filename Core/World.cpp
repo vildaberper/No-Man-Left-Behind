@@ -1,14 +1,19 @@
 #include "World.h"
 
 World::World(){
-
+	drawables[LAYER0] = std::vector<drawable::Drawable*>();
+	drawables[LAYER1] = std::vector<drawable::Drawable*>();
+	drawables[LAYER2] = std::vector<drawable::Drawable*>();
+	drawables[LAYER3] = std::vector<drawable::Drawable*>();
+	drawables[LAYER4] = std::vector<drawable::Drawable*>();
+	lastTime = clock.getElapsedTime();
 }
 
 World::~World(){
 
 }
 
-void World::tick(sf::RenderWindow* window){
+void World::tick(){
 	sf::Time time = clock.getElapsedTime();
 	dt_ = (time - lastTime).asSeconds();
 
@@ -17,12 +22,15 @@ void World::tick(sf::RenderWindow* window){
 	}
 
 	lastTime = time;
+	cleanAll(false);
 }
 
-void World::render(sf::RenderWindow* window){
-	sf::Time time = lastTime;
-
-	// GI -> render all drawables in order
+const void World::render(){
+	for (const auto &ent : drawables){
+		for (drawable::Drawable* d : ent.second){
+			gi::draw(d, lastTime);
+		}
+	}
 }
 
 const sf::Time World::time(){
@@ -33,11 +41,18 @@ const float World::dt(){
 	return dt_;
 }
 
+void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
+	entities.push_back((Entity*) drawable);
+	drawables[layer].push_back(drawable);
+}
+
 void World::cleanAll(const bool& all){
-	/*drawable.erase(
-		remove_if(drawables.begin(), drawables.end(),
-		[](const Drawable* e) { all || return !((Entity*)e)->isAlive(); }),
-		drawables.end());*/
+	for (auto &ent : drawables){
+		ent.second.erase(
+			remove_if(ent.second.begin(), ent.second.end(),
+			[all](const drawable::Drawable* e){ return all || !((Entity*)e)->isAlive(); }),
+			ent.second.end());
+	}
 
 	for (size_t i = 0; i < entities.size(); i++){
 		if (all || !entities[i]->isAlive()){

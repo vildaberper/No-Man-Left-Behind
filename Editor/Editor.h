@@ -5,6 +5,9 @@
 #include "World.h"
 #include "Manager.h"
 #include "Constants.h"
+#include "MathHelper.h"
+
+static const float SNAP = 5.0f;
 
 class Editor{
 public:
@@ -28,4 +31,8 @@ private:
 	unsigned long mouseButtonListenerId;
 	unsigned long mouseMoveListenerId;
 	unsigned long mouseWheelListenerId;
+
+	bool dragging = false;
+	bool targeting = false;
+	Target* target = NULL;
 };

@@ -80,10 +80,14 @@ class MouseMoveEvent{
 private:
 	int x_;
 	int y_;
+	int dx_;
+	int dy_;
 public:
-	MouseMoveEvent(const int& x, const int& y){
+	MouseMoveEvent(const int& x, const int& y, const int& dx, const int& dy){
 		x_ = x;
 		y_ = y;
+		dx_ = dx;
+		dy_ = dy;
 	}
 	~MouseMoveEvent(){
 
@@ -95,6 +99,14 @@ public:
 
 	int y(){
 		return y_;
+	}
+
+	int dx(){
+		return dx_;
+	}
+
+	int dy(){
+		return dy_;
 	}
 };
 typedef void(*mouseMoveEventFunc)(MouseMoveEvent);
@@ -141,6 +153,9 @@ public:
 private:
 	bool keyStates[sf::Keyboard::KeyCount];
 	bool firstPress[sf::Keyboard::KeyCount];
+
+	int lastMoveX = -1;
+	int lastMoveY = -1;
 
 	int lastX = -1;
 	int lastY = -1;

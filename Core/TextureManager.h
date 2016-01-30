@@ -6,6 +6,7 @@
 
 #include "Logger.h"
 #include "SFMLI.h"
+#include "File.h"
 
 // Help Classes
 class TexI{
@@ -45,4 +46,5 @@ private:
 
 	// Texture
 	bool loadTextures();
+	bool loadTexturesFromDir(File& dir);
 };
