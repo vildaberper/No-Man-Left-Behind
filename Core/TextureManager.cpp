@@ -68,6 +68,25 @@ const SubTexture* TextureManager::getUndefinedTexture(){
 	return undefined;
 }
 
+const std::vector<std::string> TextureManager::categories(){
+	std::vector<std::string> vec;
+
+	for (auto ent : textureMap){
+		vec.push_back(ent.first);
+	}
+
+	return vec;
+}
+const std::vector<std::string> TextureManager::members(const std::string& category){
+	std::vector<std::string> vec;
+
+	for (auto ent : textureMap[category]){
+		vec.push_back(ent.first);
+	}
+
+	return vec;
+}
+
 // Load textures
 bool TextureManager::loadTextures(){
 	return loadTexturesFromDir(c::textureDir);

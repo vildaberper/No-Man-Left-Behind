@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Drawable.h"
+#include "Menu.h"
 #include "SFMLI.h"
 #include "Logger.h"
+#include "Drawable.h"
+#include "Constants.h"
 
 namespace gi{
 	static const float TARGET_WIDTH = 1920;
@@ -14,6 +16,7 @@ namespace gi{
 	extern sf::Time begin;
 	extern float cameraX;
 	extern float cameraY;
+	extern sf::Font menuFont;
 
 	// Initialize \ Finalize
 	bool initalize(sf::RenderWindow*& rw);
@@ -27,7 +30,11 @@ namespace gi{
 	float dy();
 
 	// Drawcall
-	bool draw(drawable::Drawable* drawable, const sf::Time& time);
+	void draw(drawable::Drawable* drawable, const sf::Time& time);
+
+	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h);
+
+	void draw(Menu* menu, const sf::Time& time);
 
 	// endOfFrame
 	bool endOfFrame();

@@ -7,6 +7,7 @@ namespace c{
 
 	extern File dir;
 	extern File textureDir;
+	extern File fontDir;
 
 	const void initialize();
 }

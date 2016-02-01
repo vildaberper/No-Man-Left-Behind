@@ -127,27 +127,31 @@ void InputManager::unregisterListener(const unsigned long& id){
 	}
 }
 
-void InputManager::push(const KeyboardEvent& event){
+void InputManager::push(KeyboardEvent& event){
 	std::map<unsigned long, keyEventFunc> keyListeners = InputManager::keyListeners;
 	for (const auto& elem : keyListeners){
 		elem.second(event);
 	}
 }
-void InputManager::push(const MouseButtonEvent& event){
+void InputManager::push(MouseButtonEvent& event){
 	std::map<unsigned long, mouseButtonEventFunc> mouseButtonListeners = InputManager::mouseButtonListeners;
 	for (const auto& elem : mouseButtonListeners){
 		elem.second(event);
 	}
 }
-void InputManager::push(const MouseMoveEvent& event){
+void InputManager::push(MouseMoveEvent& event){
 	std::map<unsigned long, mouseMoveEventFunc> mouseMoveListeners = InputManager::mouseMoveListeners;
 	for (const auto& elem : mouseMoveListeners){
 		elem.second(event);
 	}
 }
-void InputManager::push(const MouseWheelEvent& event){
+void InputManager::push(MouseWheelEvent& event){
 	std::map<unsigned long, mouseWheelEventFunc> mouseWheelListeners = InputManager::mouseWheelListeners;
 	for (const auto& elem : mouseWheelListeners){
 		elem.second(event);
 	}
+}
+
+bool InputManager::isPressed(const sf::Keyboard::Key& key){
+	return keyStates[key];
 }

@@ -11,11 +11,13 @@ private:
 	sf::Keyboard::Key key_;
 	bool pressed_;
 	bool first_;
+	bool canceled_ = false;
 public:
 	KeyboardEvent(const sf::Keyboard::Key& key, const bool& pressed, const bool& first){
 		key_ = key;
 		pressed_ = pressed;
 		first_ = first;
+		canceled_ = false;
 	}
 	~KeyboardEvent(){
 
@@ -32,8 +34,16 @@ public:
 	bool first(){
 		return first_;
 	}
+
+	bool isCancelled(){
+		return canceled_;
+	}
+
+	void setCancelled(const bool& cancelled){
+		canceled_ = cancelled;
+	}
 };
-typedef void(*keyEventFunc)(KeyboardEvent);
+typedef void(*keyEventFunc)(KeyboardEvent&);
 
 class MouseButtonEvent{
 private:
@@ -42,6 +52,7 @@ private:
 	bool doubleClick_;
 	int x_;
 	int y_;
+	bool canceled_ = false;
 public:
 	MouseButtonEvent(const sf::Mouse::Button& button, const bool& pressed, const bool& doubleClick, const int& x, const int& y){
 		button_ = button;
@@ -49,6 +60,7 @@ public:
 		doubleClick_ = doubleClick;
 		x_ = x;
 		y_ = y;
+		canceled_ = false;
 	}
 	~MouseButtonEvent(){
 
@@ -73,8 +85,16 @@ public:
 	int y(){
 		return y_;
 	}
+
+	bool isCancelled(){
+		return canceled_;
+	}
+
+	void setCancelled(const bool& cancelled){
+		canceled_ = cancelled;
+	}
 };
-typedef void(*mouseButtonEventFunc)(MouseButtonEvent);
+typedef void(*mouseButtonEventFunc)(MouseButtonEvent&);
 
 class MouseMoveEvent{
 private:
@@ -82,12 +102,14 @@ private:
 	int y_;
 	int dx_;
 	int dy_;
+	bool canceled_ = false;
 public:
 	MouseMoveEvent(const int& x, const int& y, const int& dx, const int& dy){
 		x_ = x;
 		y_ = y;
 		dx_ = dx;
 		dy_ = dy;
+		canceled_ = false;
 	}
 	~MouseMoveEvent(){
 
@@ -108,15 +130,25 @@ public:
 	int dy(){
 		return dy_;
 	}
+
+	bool isCancelled(){
+		return canceled_;
+	}
+
+	void setCancelled(const bool& cancelled){
+		canceled_ = cancelled;
+	}
 };
-typedef void(*mouseMoveEventFunc)(MouseMoveEvent);
+typedef void(*mouseMoveEventFunc)(MouseMoveEvent&);
 
 class MouseWheelEvent{
 private:
 	int delta_;
+	bool canceled_ = false;
 public:
 	MouseWheelEvent(const int& delta){
 		delta_ = delta;
+		canceled_ = false;
 	}
 	~MouseWheelEvent(){
 
@@ -125,8 +157,16 @@ public:
 	int delta(){
 		return delta_;
 	}
+
+	bool isCancelled(){
+		return canceled_;
+	}
+
+	void setCancelled(const bool& cancelled){
+		canceled_ = cancelled;
+	}
 };
-typedef void(*mouseWheelEventFunc)(MouseWheelEvent);
+typedef void(*mouseWheelEventFunc)(MouseWheelEvent&);
 
 class InputManager{
 public:
@@ -146,10 +186,12 @@ public:
 
 	void unregisterListener(const unsigned long& id);
 
-	void push(const KeyboardEvent& event);
-	void push(const MouseButtonEvent& event);
-	void push(const MouseMoveEvent& event);
-	void push(const MouseWheelEvent& event);
+	void push(KeyboardEvent& event);
+	void push(MouseButtonEvent& event);
+	void push(MouseMoveEvent& event);
+	void push(MouseWheelEvent& event);
+
+	bool isPressed(const sf::Keyboard::Key& key);
 private:
 	bool keyStates[sf::Keyboard::KeyCount];
 	bool firstPress[sf::Keyboard::KeyCount];

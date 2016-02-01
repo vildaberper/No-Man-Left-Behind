@@ -4,7 +4,7 @@
 using namespace drawable;
 
 Drawable::Drawable(){
-
+	
 }
 
 
@@ -33,7 +33,7 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 	s->scale(1.0f / s->getScale().x, 1.0f / s->getScale().y);
 	s->scale(scale * gi::dx(), scale * gi::dy());
 	if (highlight){
-		s->setColor(sf::Color(255, 255, 255, int(155 + 100 * sin(time.asMilliseconds() / 100.0f))));
+		s->setColor(sf::Color(255, 255, 255, int(205 + 50 * sin(time.asMilliseconds() / 100.0f))));
 	}
 	else{
 		s->setColor(sf::Color(255, 255, 255, 255));
