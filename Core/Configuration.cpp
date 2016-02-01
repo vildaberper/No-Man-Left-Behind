@@ -406,6 +406,7 @@ bool parse(ConfigurationNode& root, vector<string> content, unsigned int curLine
 }
 
 bool Configuration::load(File& file){
+	root = ConfigurationNode();
 	if (!parse(root, file.readTextFile(), 0, "", -1)){
 		logger::fatal("Failed to parse file: " + file.path());
 		return false;
@@ -421,14 +422,14 @@ const vector<string> Configuration::children(const string& path){
 	return children(path, true);
 }
 const std::vector<std::string> Configuration::children(const std::string& path, const bool& fullPath){
-	vector<string> children = root.children();
+	vector<string> children;
 
 	if (root.containsNode(path)){
 		children = root.node(path).children();
 	}
-	if (path.length() > 0){
-		for (unsigned int i = 0; i < children.size(); i++){
-			children[i] = (fullPath ? path + PATH_SEPARATOR : "") + children[i];
+	if (path.length() > 0 && fullPath){
+		for (size_t i = 0; i < children.size(); i++){
+			children[i] = path + PATH_SEPARATOR + children[i];
 		}
 	}
 	return children;

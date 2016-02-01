@@ -13,25 +13,26 @@ using namespace math;
 
 Editor* editor;
 
-void keyboardListenerW(KeyboardEvent event){
+void keyboardListenerW(KeyboardEvent& event){
 	editor->keyboardListener(event);
 }
-void mouseButtonListenerW(MouseButtonEvent event){
+void mouseButtonListenerW(MouseButtonEvent& event){
 	editor->mouseButtonListener(event);
 }
-void mouseMoveListenerW(MouseMoveEvent event){
+void mouseMoveListenerW(MouseMoveEvent& event){
 	editor->mouseMoveListener(event);
 }
-void mouseWheelListenerW(MouseWheelEvent event){
+void mouseWheelListenerW(MouseWheelEvent& event){
 	editor->mouseWheelListener(event);
 }
 
 Editor::Editor(){
 	editor = this;
+	selectedString = new std::string();
 }
 
 Editor::~Editor(){
-
+	delete selectedString;
 }
 
 void Editor::run(){
@@ -41,75 +42,86 @@ void Editor::run(){
 	manager->initialize(window);
 	world = new World();
 
-	CircleShape shape(100.f);
-	shape.setOrigin(100, 100);
+	vector<string> cs = manager->spriteManager->categories();
+	Menu* cm = new Menu();
+	cm->position.x = 0;
+	cm->position.y = 0;
+	cm->size.x = gi::TARGET_WIDTH;
+	cm->size.y = 50;
+	cm->type = HORIZONTAL;
+	cm->hidden = false;
+	for (size_t c = 0; c < cs.size(); c++){
+		Menu* tm = new Menu();
+		MenuItem* mi = new MenuItem();
+		mi->title = cs[c];
+		mi->toggle = tm;
+		cm->items.push_back(mi);
 
-	drawable::Drawable* d = new drawable::Drawable();
-	drawable::Animation a = drawable::Animation();
-	d->position = Vector(500,500);
-	d->scale = 1.0f;
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_downleft"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_left"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_upleft"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_up"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_upright"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_right"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_downright"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_down"));
-	a.timing = milliseconds(170);
-	d->animations["testa"] = a;
-	d->currentAnimation = d->nextAnimation = "testa";
-	world->addDrawable(d, LAYER0);
-
-	drawable::Drawable* d1 = new drawable::Drawable();
-	drawable::Animation a1 = drawable::Animation();
-	d1->position = Vector(520, 520);
-	d1->scale = 1.0f;
-	a1.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_downleft"));
-	a1.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_left"));
-	a1.timing = milliseconds(170);
-	d1->animations["testa"] = a1;
-	d1->currentAnimation = d1->nextAnimation = "testa";
-	world->addDrawable(d1, LAYER1);
-
-	drawable::Drawable* d2 = new drawable::Drawable();
-	drawable::Animation a2 = drawable::Animation();
-	d2->position = Vector(500, 500);
-	d2->scale = 0.7f;
-	a2.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_left"));
-	a2.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_downleft"));
-	a.sprites.push_back(manager->spriteManager->getSprite("Spritesheet_Floor.Dirt_snow_downright"));
-	a2.timing = milliseconds(60);
-	d2->animations["testa"] = a2;
-	d2->currentAnimation = d2->nextAnimation = "testa";
-	world->addDrawable(d2, LAYER1);
-
-	float dx = 0.0f;
-	float dy = 0.0f;
+		float w = cm->size.x / cs.size();
+		tm->position.x = w * c;
+		tm->position.y = 50;
+		tm->size.x = w;
+		tm->size.y = gi::TARGET_HEIGHT - 50 - 70;
+		tm->type = VERTICAL;
+		tm->hidden = true;
+		vector<string> ms = manager->spriteManager->members(mi->title);
+		for (string t : ms){
+			MenuItem* ti = new MenuItem();
+			ti->title = t;
+			ti->type = TEXTURE;
+			ti->sprite = manager->spriteManager->getSprite(mi->title, t);
+			ti->closeOnClick = true;
+			ti->selectedPrefix = cs[c] + '.';
+			ti->selectedString = selectedString;
+			tm->items.push_back(ti);
+		}
+		manager->menuManager->menus["categories." + mi->title] = tm;
+	}
+	manager->menuManager->menus["categories"] = cm;
 
 	keyboardListenerId = manager->inputManager->registerListener(keyboardListenerW);
 	mouseButtonListenerId = manager->inputManager->registerListener(mouseButtonListenerW);
 	mouseMoveListenerId = manager->inputManager->registerListener(mouseMoveListenerW);
 	mouseWheelListenerId = manager->inputManager->registerListener(mouseWheelListenerW);
 
+	file = File().child("world.txt");
+
+	world->load(file, manager);
+
+	Menu* layerM = new Menu();
+	layerM->hidden = false;
+	layerM->position = Vector(10, gi::TARGET_HEIGHT - 50 - 10);
+	layerM->size = Vector(200, 50);
+	layerM->type = HORIZONTAL;
+	layerMenu = new MenuItem();
+	layerMenu->closeOnClick = false;
+	layerMenu->type = TEXT;
+	layerMenu->title = "LAYER0";
+	layerM->items.push_back(layerMenu);
+	manager->menuManager->menus["layer"] = layerM;
+
+	Menu* spriteM = new Menu();
+	spriteM->hidden = false;
+	spriteM->position = Vector(gi::TARGET_WIDTH / 2 - 300, gi::TARGET_HEIGHT - 50 - 10);
+	spriteM->size = Vector(600, 50);
+	spriteM->type = HORIZONTAL;
+	spriteMenu = new MenuItem();
+	spriteMenu->closeOnClick = false;
+	spriteMenu->type = TEXTURE;
+	spriteMenu->title = "NONE";
+	spriteM->items.push_back(spriteMenu);
+	manager->menuManager->menus["sprite"] = spriteM;
+
 	window->setFramerateLimit(60);
 	while (gi::startOfFrame()){
-		d->rotation += 60 * world->dt();
 		world->tick();
 		manager->tick(window, world->time(), world->dt());
 
 		window->clear();
 
-		dx += 2.0f * world->dt();
-		dy += 2.1f * world->dt();
-
-		shape.setPosition(640, 360);
-		shape.rotate(0.01f);
-		shape.setFillColor(Color(int(255 * abs(sin(dx))), int(255 * abs(cos(dy / 2))), int(255 * abs(cos(dy))), int(55 + 200.0f * abs(cos(dy)))));
-		shape.setScale(abs(sin(dx)), abs(cos(dy)));
-		window->draw(shape);
-
 		world->render();
+
+		manager->menuManager->draw(world->time());
 
 		gi::endOfFrame();
 	}
@@ -119,34 +131,88 @@ void Editor::run(){
 	delete world;
 }
 
-const void Editor::keyboardListener(KeyboardEvent event){
-	if (event.key() == Keyboard::Escape)
-		window->close();
-	//cout << (event.pressed() ? "press " : "release ") << event.key() << " " << event.first() << endl;
+const void Editor::keyboardListener(KeyboardEvent& event){
+	if (event.isCancelled()){
+		return;
+	}
+	if (event.pressed()){
+		switch (event.key()){
+		case Keyboard::Escape:
+			world->save(file);
+			window->close();
+			break;
+		case Keyboard::Delete:
+			if (target != NULL){
+				target->drawable->kill();
+				delete target;
+				target = NULL;
+				targeting = false;
+			}
+			break;
+		case Keyboard::S:
+			if (manager->inputManager->isPressed(Keyboard::LControl)){
+				world->save(file);
+			}
+			break;
+		}
+	}
 }
 
-const void Editor::mouseButtonListener(MouseButtonEvent event){
+const void Editor::mouseButtonListener(MouseButtonEvent& event){
+	if (event.isCancelled()){
+		if (event.button() == Mouse::Button::Left && event.pressed() && selectedString->length() > 0){
+			spriteMenu->title = *selectedString;
+			spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
+		}
+		return;
+	}
 	switch (event.button()){
 	case Mouse::Button::Right:
 		dragging = event.pressed();
 		break;
 	case Mouse::Button::Left:
 		targeting = target != NULL && event.pressed();
+
+		if (!targeting && event.pressed() && selectedString->length() > 0){
+			Sprite* s = manager->spriteManager->getSprite(*selectedString);
+			drawable::Drawable* d = new drawable::Drawable();
+			drawable::Animation a = drawable::Animation();
+			d->position = Vector(
+				gi::cameraX - gi::TARGET_WIDTH / 2 + event.x() / gi::dx() - s->getGlobalBounds().width / 2,
+				gi::cameraY - gi::TARGET_HEIGHT / 2 + event.y() / gi::dy() - s->getGlobalBounds().height / 2
+				);
+			d->scale = 1.0f;
+			a.textures.push_back(*selectedString);
+			a.sprites.push_back(s);
+			a.timing = milliseconds(1000);
+			d->animations["default"] = a;
+			d->currentAnimation = d->nextAnimation = "default";
+			world->addDrawable(d, selectedLayer);
+			if (target != NULL){
+				delete target;
+			}
+			targeting = true;
+			d->highlight = true;
+			target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2, s->getGlobalBounds().height / 2);
+		}
 		break;
 	}
-	//cout << (event.pressed() ? "press " : "release ") << event.button() << " " << event.doubleClick() << " " << event.x() << " " << event.y() << endl;
 }
 
-const void Editor::mouseMoveListener(MouseMoveEvent event){
+const void Editor::mouseMoveListener(MouseMoveEvent& event){
+	if (event.isCancelled()){
+		return;
+	}
 	if (dragging){
 		gi::cameraX -= event.dx() / gi::dx();
 		gi::cameraY -= event.dy() / gi::dy();
 	}
 	if (!targeting){
 		Target* nt;
-		if ((nt = world->drawableAt(float(event.x()), float(event.y()))) != NULL){
+		if ((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != NULL){
 			if (target != NULL){
 				target->drawable->highlight = false;
+				delete target;
 			}
 			target = nt;
 			target->drawable->highlight = true;
@@ -154,14 +220,15 @@ const void Editor::mouseMoveListener(MouseMoveEvent event){
 		else{
 			if (target != NULL){
 				target->drawable->highlight = false;
+				delete target;
 			}
 			target = NULL;
 		}
 	}
 	else{
 		if (!dragging){
-			target->drawable->position.x += event.dx() / gi::dx();
-			target->drawable->position.y += event.dy() / gi::dy();
+			target->drawable->position.x = gi::cameraX - gi::TARGET_WIDTH / 2 + event.x() / gi::dx() - target->dx / gi::dx();
+			target->drawable->position.y = gi::cameraY - gi::TARGET_HEIGHT / 2 + event.y() / gi::dy() - target->dy / gi::dy();
 
 			FloatRect tr = target->drawable->getSprite(world->time())->getGlobalBounds();
 			for (drawable::Drawable* d : world->drawables[target->layer]){
@@ -238,9 +305,33 @@ const void Editor::mouseMoveListener(MouseMoveEvent event){
 			}
 		}
 	}
-	//cout << event.x() << " " << event.y() << endl;
 }
 
-const void Editor::mouseWheelListener(MouseWheelEvent event){
-	//cout << event.delta() << endl;
+const void Editor::mouseWheelListener(MouseWheelEvent& event){
+	if (event.isCancelled()){
+		return;
+	}
+	if (event.delta() > 0){
+		selectedLayer = nextLayer(selectedLayer);
+	}
+	else{
+		selectedLayer = previousLayer(selectedLayer);
+	}
+	if (target != NULL && targeting){
+		drawable::Drawable* d = target->drawable;
+
+		world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
+		world->addDrawable(d, selectedLayer);
+		target->layer = selectedLayer;
+	}
+	else{
+		targeting = false;
+		if (target != NULL){
+			target->drawable->highlight = false;
+			delete target;
+			target = NULL;
+		}
+	}
+	layerMenu->title = layerToString(selectedLayer);
+	
 }

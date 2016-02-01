@@ -47,15 +47,23 @@ public:
 			sf::IntRect(
 			int(round(localSubTex.x * dx)),
 			int(round(localSubTex.y * dy)),
-			int(round(dx)),
-			int(round(dy)))
-			);;
+			int(round(dx)) - 1,
+			int(round(dy)) - 1
+			)
+			);
 	}
 
 	sf::Sprite* getSprite(const std::string& key){
 		std::string::size_type index = key.find_first_of('.');
 
 		return getSprite(key.substr(0, index), key.substr(index + 1));
+	}
+
+	const std::vector<std::string> categories(){
+		return texMan->categories();
+	}
+	const std::vector<std::string> members(const std::string& category){
+		return texMan->members(category);
 	}
 private:
 	TextureManager* texMan;

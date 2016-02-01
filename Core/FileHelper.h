@@ -145,15 +145,12 @@ namespace file{
 
 	// Write a file with lines vector<string>
 	static const bool writeTextFile(const std::string& filename, const std::vector<std::string>& content){
-		std::stringstream stream;
-
-		for (std::string line : content){
-			stream << line << '\n';
-		}
-
-		std::ofstream file(filename);
+		std::ofstream file;
+		file.open(filename, std::ofstream::out | std::ofstream::trunc);
 		if (file.is_open()){
-			file << stream.str();
+			for (std::string line : content){
+				file << line << '\n';
+			}
 			file.close();
 		}
 		else{

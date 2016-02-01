@@ -12,12 +12,26 @@ public:
 		Vector::y = y;
 	}
 
+	Vector(const std::vector<float>& fs){
+		Vector::x = fs[0];
+		Vector::y = fs[1];
+	}
+
 	Vector(){
 		x = 0;
 		y = 0;
 	}
 
-	~Vector(){ }
+	~Vector(){
+	
+	}
+
+	const std::vector<float> fv(){
+		std::vector<float> fs;
+		fs.push_back(x);
+		fs.push_back(y);
+		return fs;
+	}
 
 	const float length(){
 		return math::distance(x, y, 0, 0);
