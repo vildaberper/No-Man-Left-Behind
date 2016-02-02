@@ -21,7 +21,7 @@ const bool TextureManager::initialize(){
 	File u = c::textureDir.child("undefined.png");
 	if (!u.isFile() || !t->loadFromFile(u.path())){
 		logger::warning("Undefined texture not found!");
-		t->create(512, 512);
+		t->create(128, 128);
 	}
 	textures.insert(t);
 	// Load the undefined

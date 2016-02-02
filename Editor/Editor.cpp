@@ -168,6 +168,7 @@ void Editor::run(){
 
 		gi::endOfFrame();
 	}
+	world->save(file);
 	manager->finalize(window);
 	delete manager;
 	gi::finalize();
@@ -195,6 +196,16 @@ const void Editor::keyboardListener(KeyboardEvent& event){
 		case Keyboard::S:
 			if (manager->inputManager->isPressed(Keyboard::LControl)){
 				world->save(file);
+			}
+			break;
+		case Keyboard::Add:
+			if (target != NULL){
+				target->drawable->scale *= 1.2f;
+			}
+			break;
+		case Keyboard::Subtract:
+			if (target != NULL){
+				target->drawable->scale *= (5.0f / 6.0f);
 			}
 			break;
 		}
@@ -296,13 +307,11 @@ const void Editor::mouseMoveListener(MouseMoveEvent& event){
 					target->drawable->position.x = x;
 					target->drawable->position.y = y;
 				}
-				/*
-					OLD SNAP
-
+			}
+			else if (manager->inputManager->isPressed(sf::Keyboard::Key::S)){
 				FloatRect tr = target->drawable->getSprite(world->time())->getGlobalBounds();
 				for (drawable::Drawable* d : world->drawables[target->layer]){
 					FloatRect dr = d->getSprite(world->time())->getGlobalBounds();
-
 					if (interv(dr.left + dr.width, tr.left) < SNAP){
 						if (interv(dr.top + dr.height, tr.top) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
@@ -371,7 +380,7 @@ const void Editor::mouseMoveListener(MouseMoveEvent& event){
 							break;
 						}
 					}
-				}*/
+				}
 			}
 		}
 	}

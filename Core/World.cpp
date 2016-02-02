@@ -59,10 +59,16 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	if (drawables[layer].size() > 0){
 		for (size_t i = 0; i < drawables[layer].size(); i++){
-			sf::FloatRect fr = drawables[layer][drawables[layer].size() - i - 1]->getSprite(lastTime)->getGlobalBounds();
+			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
+			sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
 			if (fr.contains(sf::Vector2f(x, y))){
-				return new Target(drawables[layer][drawables[layer].size() - i - 1], layer, x - fr.left, y - fr.top);
-			}
+				return new Target(
+					drawables[layer][drawables[layer].size() - i - 1],
+					layer,
+					x - (d->position.x - (gi::cameraX - gi::TARGET_WIDTH / 2)) * gi::dx(),
+					y - (d->position.y - (gi::cameraY - gi::TARGET_HEIGHT / 2)) * gi::dy()
+					);
+			} 
 		}
 	}
 	return NULL;
@@ -78,7 +84,6 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 		c.set(sub + ".currentAnimation", d.currentAnimation);
 		c.set(sub + ".nextAnimation", d.nextAnimation);
 		c.set(sub + ".scale", d.scale);
-		c.set(sub + ".rotation", d.rotation);
 		c.set(sub + ".health", d.health);
 		c.set(sub + ".position", d.position.fv());
 		c.set(sub + ".velocity", d.velocity.fv());
@@ -118,7 +123,6 @@ void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 		d->currentAnimation = c.stringValue(sub + ".currentAnimation");
 		d->nextAnimation = c.stringValue(sub + ".nextAnimation");
 		d->scale = c.floatValue(sub + ".scale");
-		d->rotation = c.floatValue(sub + ".rotation");
 		d->health = c.floatValue(sub + ".health");
 		d->position = Vector(c.floatVector(sub + ".position"));
 		d->position.x = ceil(d->position.x);

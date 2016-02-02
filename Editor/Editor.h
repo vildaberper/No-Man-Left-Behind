@@ -7,7 +7,7 @@
 #include "Constants.h"
 #include "MathHelper.h"
 
-//static const float SNAP = 20.0f;
+static const float SNAP = 20.0f;
 
 class Editor{
 public:

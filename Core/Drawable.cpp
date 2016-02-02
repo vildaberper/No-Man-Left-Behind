@@ -29,8 +29,6 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 		round((position.x - gi::cameraX + gi::TARGET_WIDTH / 2) * gi::dx()) + 0.375f,
 		round((position.y - gi::cameraY + gi::TARGET_HEIGHT / 2) * gi::dy()) + 0.375f
 		);
-	s->rotate(-s->getRotation());
-	s->rotate(rotation);
 	s->scale(1.0f / s->getScale().x, 1.0f / s->getScale().y);
 	s->scale(scale * gi::dx(), scale * gi::dy());
 	if (highlight){

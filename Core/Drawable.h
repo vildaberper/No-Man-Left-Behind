@@ -21,7 +21,6 @@ namespace drawable{
 		std::string nextAnimation;
 		sf::Time startTime;
 		float scale = 1.0f;
-		float rotation = 0.0f;
 		bool highlight = false;
 
 		Drawable();
