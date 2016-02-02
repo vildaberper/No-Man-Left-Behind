@@ -6,7 +6,8 @@ static const enum LogLevel{
 	INFO,
 	DEBUG,
 	WARNING,
-	FATAL
+	FATAL,
+	TIMING
 };
 
 namespace logger{
@@ -25,6 +26,9 @@ namespace logger{
 			break;
 		case FATAL:
 			out += "[FATAL]";
+			break;
+		case TIMING:
+			out += "[TIMING]";
 			break;
 		}
 		out += ' ' + message + '\n';
@@ -45,5 +49,9 @@ namespace logger{
 
 	static const void fatal(const std::string& message){
 		log(message, FATAL);
+	}
+
+	static const void timing(const std::string& message){
+		log(message, TIMING);
 	}
 }

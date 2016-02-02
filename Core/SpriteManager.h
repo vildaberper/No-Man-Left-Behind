@@ -27,9 +27,8 @@ public:
 
 	sf::Sprite* getSprite(const std::string& catKey, const std::string& subKey){
 		SubTexture localSubTex = *texMan->getTextureMap(catKey, subKey);
-		float dx = float(localSubTex.texi->texture->getSize().x) / float(localSubTex.texi->width);
-		float dy = float(localSubTex.texi->texture->getSize().y) / float(localSubTex.texi->height);
-
+		int dx = int(ceil(localSubTex.texi->texture->getSize().x) / float(localSubTex.texi->width));
+		int dy = int(ceil(localSubTex.texi->texture->getSize().y) / float(localSubTex.texi->height));
 		if (
 			localSubTex.x >= localSubTex.texi->width
 			|| localSubTex.x < 0
@@ -45,10 +44,10 @@ public:
 		return new sf::Sprite(
 			*localSubTex.texi->texture,
 			sf::IntRect(
-			int(round(localSubTex.x * dx)),
-			int(round(localSubTex.y * dy)),
-			int(round(dx)) - 1,
-			int(round(dy)) - 1
+			localSubTex.x * dx,
+			localSubTex.y * dy,
+			dx,
+			dy
 			)
 			);
 	}
@@ -57,6 +56,14 @@ public:
 		std::string::size_type index = key.find_first_of('.');
 
 		return getSprite(key.substr(0, index), key.substr(index + 1));
+	}
+
+	sf::Texture* getBackground(const std::string& name){
+		return texMan->getBackground(name);
+	}
+
+	const std::vector<std::string> backgrounds(){
+		return texMan->backgrounds();
 	}
 
 	const std::vector<std::string> categories(){

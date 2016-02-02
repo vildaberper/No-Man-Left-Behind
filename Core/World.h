@@ -135,6 +135,8 @@ public:
 
 	void load(File& f, Manager* m);
 
+	std::string backgroundName;
+	sf::Texture* background;
 	std::map<Layer, std::vector<drawable::Drawable*>> drawables;
 private:
 	sf::Clock clock;

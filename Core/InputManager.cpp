@@ -155,3 +155,10 @@ void InputManager::push(MouseWheelEvent& event){
 bool InputManager::isPressed(const sf::Keyboard::Key& key){
 	return keyStates[key];
 }
+
+int InputManager::mouseX(){
+	return lastMoveX;
+}
+int InputManager::mouseY(){
+	return lastMoveY;
+}

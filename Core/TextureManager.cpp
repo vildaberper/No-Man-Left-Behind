@@ -16,6 +16,7 @@ TextureManager::~TextureManager(){
 
 // Initialize\Finalize
 const bool TextureManager::initialize(){
+	sf::Clock cl;
 	Texture* t = new Texture();
 	File u = c::textureDir.child("undefined.png");
 	if (!u.isFile() || !t->loadFromFile(u.path())){
@@ -32,9 +33,20 @@ const bool TextureManager::initialize(){
 	undefined->texi->height = 1;
 	undefined->texi->texture = t;
 
+	// Load backgrounds
+	for (File pngFile : c::backgroundDir.listFiles()){
+		Texture* t = new Texture();
+		if (!t->loadFromFile(pngFile.path())){
+			delete t;
+			continue;
+		}
+		t->setRepeated(true);
+		backgrounds_[pngFile.nameNoExtension()] = t;
+	}
+
 	// Load all them textures
 	if (loadTextures()){
-		logger::info("Textures loaded");
+		logger::timing("Textures loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
 		return true;
 	}
 	else{
@@ -66,6 +78,23 @@ const SubTexture* TextureManager::getTextureMap(const std::string& categoryKey, 
 
 const SubTexture* TextureManager::getUndefinedTexture(){
 	return undefined;
+}
+
+Texture* TextureManager::getBackground(const std::string& name){
+	if (backgrounds_.count(name) == 0){
+		return NULL;
+	}
+	return backgrounds_[name];
+}
+
+const std::vector<std::string> TextureManager::backgrounds(){
+	std::vector<std::string> vec;
+
+	for (auto ent : backgrounds_){
+		vec.push_back(ent.first);
+	}
+
+	return vec;
 }
 
 const std::vector<std::string> TextureManager::categories(){
@@ -123,6 +152,7 @@ bool TextureManager::loadTexturesFromDir(File& dir){
 		}
 
 		TexI* localTexi = new TexI();
+		localTexture->setSmooth(false);
 		localTexi->texture = localTexture;
 		int temp;
 		localTexi->width = (temp = config.intVector("textures")[0]) == 0 ? 1 : temp;

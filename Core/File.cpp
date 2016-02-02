@@ -72,10 +72,10 @@ const bool File::mkdirs(){
 	return file::mkdirs(path());
 }
 
-const std::vector<std::string> File::readTextFile(){
+std::vector<std::string>* File::readTextFile(){
 	return file::readTextFile(path());
 }
 
-const bool File::writeTextFile(const std::vector<std::string>& content){
+const bool File::writeTextFile(const std::vector<std::string>* content){
 	return parent().mkdirs() && file::writeTextFile(path(), content);
 }

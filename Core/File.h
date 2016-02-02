@@ -36,9 +36,9 @@ public:
 
 	const bool mkdirs();
 
-	const std::vector<std::string> readTextFile();
+	std::vector<std::string>* readTextFile();
 
-	const bool writeTextFile(const std::vector<std::string>& content);
+	const bool writeTextFile(const std::vector<std::string>* content);
 private:
 	std::string path_;
 };

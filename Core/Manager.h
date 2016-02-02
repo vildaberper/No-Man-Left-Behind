@@ -22,6 +22,7 @@ public:
 		delete inputManager;
 		delete soundManager;
 		delete spriteManager;
+		delete menuManager;
 	};
 
 	void initialize(sf::RenderWindow* window){
