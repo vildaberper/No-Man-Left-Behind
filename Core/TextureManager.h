@@ -42,10 +42,11 @@ public:
 
 	const std::vector<std::string> categories();
 	const std::vector<std::string> members(const std::string& category);
-private:
+
 	// Texture Data //
 	std::map<std::string, std::map<std::string, SubTexture*>> textureMap;
 	std::set<sf::Texture*> textures;
+private:
 	std::map<std::string, sf::Texture*> backgrounds_;
 
 	// Undefined sub for undefined textures

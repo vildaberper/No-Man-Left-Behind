@@ -72,6 +72,6 @@ public:
 	const std::vector<std::string> members(const std::string& category){
 		return texMan->members(category);
 	}
-private:
+
 	TextureManager* texMan;
 };

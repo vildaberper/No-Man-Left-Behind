@@ -4,9 +4,6 @@
 #include <vector>
 #include <iostream>
 
-#include "Configuration.h"
-#include "World.h"
-
 using namespace sf;
 using namespace std;
 using namespace math;

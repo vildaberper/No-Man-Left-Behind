@@ -385,6 +385,11 @@ int h(string& s){
 bool Configuration::load(File& file){
 	delete root;
 	root = new ConfigurationNode();
+
+	if (!file.isFile()){
+		return false;
+	}
+
 	vector<string>* lines = file.readTextFile();
 	int indent = -1;
 	string curPath = "";
