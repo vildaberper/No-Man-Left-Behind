@@ -6,6 +6,7 @@ namespace c{
 	File dir;
 	File textureDir;
 	File fontDir;
+	File backgroundDir;
 
 	const void initialize(){
 		config = Configuration();
@@ -13,5 +14,6 @@ namespace c{
 		config.load(dir.child("config.txt"));
 		textureDir = dir.child(config.stringValue("directories.textureDir"));
 		fontDir = dir.child(config.stringValue("directories.fontDir"));
+		backgroundDir = dir.child(config.stringValue("directories.backgroundDir"));
 	}
 }

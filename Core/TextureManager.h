@@ -37,12 +37,17 @@ public:
 	const SubTexture* getTextureMap(const std::string& categoryKey, const std::string& subKey);
 	const SubTexture* getUndefinedTexture();
 
+	sf::Texture* getBackground(const std::string& name);
+	const std::vector<std::string> backgrounds();
+
 	const std::vector<std::string> categories();
 	const std::vector<std::string> members(const std::string& category);
-private:
+
 	// Texture Data //
 	std::map<std::string, std::map<std::string, SubTexture*>> textureMap;
 	std::set<sf::Texture*> textures;
+private:
+	std::map<std::string, sf::Texture*> backgrounds_;
 
 	// Undefined sub for undefined textures
 	SubTexture* undefined;

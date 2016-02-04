@@ -192,6 +192,9 @@ public:
 	void push(MouseWheelEvent& event);
 
 	bool isPressed(const sf::Keyboard::Key& key);
+
+	int mouseX();
+	int mouseY();
 private:
 	bool keyStates[sf::Keyboard::KeyCount];
 	bool firstPress[sf::Keyboard::KeyCount];

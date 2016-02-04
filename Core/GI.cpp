@@ -2,8 +2,8 @@
 
 namespace gi{
 	sf::RenderWindow* renderWindow;
-	unsigned int drawCalls;
-	unsigned long frameCount;
+	unsigned int drawCalls = 0;
+	unsigned long frameCount = 0;
 	sf::Time begin;
 	float cameraX;
 	float cameraY;
@@ -43,6 +43,10 @@ namespace gi{
 	}
 
 	// Drawcall
+	void draw(sf::Sprite& sprite){
+		renderWindow->draw(sprite);
+	}
+
 	void draw(drawable::Drawable* drawable, const sf::Time& time){
 		drawCalls++;
 
@@ -55,14 +59,14 @@ namespace gi{
 		}
 		if (drawable->highlight){
 			sf::RectangleShape rs = sf::RectangleShape();
-			rs.setPosition(s->getGlobalBounds().left, s->getGlobalBounds().top);
-			rs.setSize(sf::Vector2f(s->getGlobalBounds().width, s->getGlobalBounds().height));
+			rs.setPosition(s->getGlobalBounds().left + 1, s->getGlobalBounds().top + 1);
+			rs.setSize(sf::Vector2f(s->getGlobalBounds().width - 2, s->getGlobalBounds().height - 2));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
 			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
 			rs.setOutlineThickness(1);
 			renderWindow->draw(rs);
 		}
-		renderWindow->draw(*s);
+		draw(*s);
 	}
 
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h){
@@ -70,10 +74,10 @@ namespace gi{
 		rs.setPosition(x, y);
 		rs.setSize(sf::Vector2f(w, h));
 		if (item->toggle != NULL && !item->toggle->hidden){
-			rs.setFillColor(sf::Color(55, 55, 0, 225));
+			rs.setFillColor(sf::Color(55, 55, 0, 255));
 		}
 		else{
-			rs.setFillColor(sf::Color(0, 0, 0, 225));
+			rs.setFillColor(sf::Color(0, 0, 0, 195));
 		}
 		rs.setOutlineColor(sf::Color(255, 255, 0, 255));
 		rs.setOutlineThickness(1);

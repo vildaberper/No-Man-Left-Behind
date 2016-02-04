@@ -7,7 +7,7 @@
 #include "Constants.h"
 #include "MathHelper.h"
 
-static const float SNAP = 5.0f;
+static const float SNAP = 20.0f;
 
 class Editor{
 public:
@@ -38,9 +38,12 @@ private:
 	bool targeting = false;
 	Target* target = NULL;
 
+	std::string* selectedBackground = NULL;
+
 	std::string* selectedString = NULL;
 	Layer selectedLayer = LAYER0;
 	MenuItem* layerMenu;
 
 	MenuItem* spriteMenu;
+	MenuItem* backgroundMenu;
 };

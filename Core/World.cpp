@@ -26,6 +26,16 @@ void World::tick(){
 }
 
 const void World::render(){
+	if (background != NULL){
+		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::TARGET_WIDTH + 3 * background->getSize().x), int(gi::TARGET_HEIGHT + 3 * background->getSize().y)));
+		float x = (-gi::cameraX + gi::TARGET_WIDTH / 2) * gi::dx();
+		float y = (-gi::cameraY + gi::TARGET_HEIGHT / 2) * gi::dy();
+		x = fmod(x, background->getSize().x * gi::dx());
+		y = fmod(y, background->getSize().y * gi::dy());
+		s.setPosition(x - background->getSize().x * gi::dx(), y - background->getSize().y * gi::dy());
+		s.scale(gi::dx(), gi::dy());
+		gi::draw(s);
+	}
 	for (const auto &ent : drawables){
 		for (drawable::Drawable* d : ent.second){
 			gi::draw(d, lastTime);
@@ -49,10 +59,16 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	if (drawables[layer].size() > 0){
 		for (size_t i = 0; i < drawables[layer].size(); i++){
-			sf::FloatRect fr = drawables[layer][drawables[layer].size() - i - 1]->getSprite(lastTime)->getGlobalBounds();
+			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
+			sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
 			if (fr.contains(sf::Vector2f(x, y))){
-				return new Target(drawables[layer][drawables[layer].size() - i - 1], layer, x - fr.left, y - fr.top);
-			}
+				return new Target(
+					drawables[layer][drawables[layer].size() - i - 1],
+					layer,
+					x - (d->position.x - (gi::cameraX - gi::TARGET_WIDTH / 2)) * gi::dx(),
+					y - (d->position.y - (gi::cameraY - gi::TARGET_HEIGHT / 2)) * gi::dy()
+					);
+			} 
 		}
 	}
 	return NULL;
@@ -64,30 +80,29 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 		if (!d.isAlive()){
 			continue;
 		}
-		std::string sub = layer + "." + std::to_string(i);
+		std::string sub = "drawables." + layer + "." + std::to_string(i);
 		c.set(sub + ".currentAnimation", d.currentAnimation);
 		c.set(sub + ".nextAnimation", d.nextAnimation);
 		c.set(sub + ".scale", d.scale);
-		c.set(sub + ".rotation", d.rotation);
 		c.set(sub + ".health", d.health);
 		c.set(sub + ".position", d.position.fv());
 		c.set(sub + ".velocity", d.velocity.fv());
 		sub += ".animations";
 		for (auto &ent : d.animations){
-			drawable::Animation a = d.animations[ent.first];
+			drawable::Animation* a = d.animations[ent.first];
 			std::string suba = sub + "." + ent.first;
-			c.set(suba + ".timing", a.timing.asMilliseconds());
-			c.set(suba + ".textures", a.textures);
+			c.set(suba + ".timing", a->timing.asMilliseconds());
+			c.set(suba + ".textures", a->textures);
 		}
 	}
 }
 
 void World::save(File& f){
+	sf::Clock cl;
 	Configuration c;
 
-	for (std::string s : c.children("")){
-		logger::warning("config error (save) " + s);
-		c.remove(s);
+	if (backgroundName.length() > 0){
+		c.set("background", backgroundName);
 	}
 	save_helper(c, drawables[LAYER0], "LAYER0");
 	save_helper(c, drawables[LAYER1], "LAYER1");
@@ -95,19 +110,19 @@ void World::save(File& f){
 	save_helper(c, drawables[LAYER3], "LAYER3");
 	save_helper(c, drawables[LAYER4], "LAYER4");
 	c.save(f);
-	logger::info("World saved: " + f.path());
+	logger::timing("World configuration saved in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	logger::info("World saved: " + f.parent().name() + "\\" + f.name());
 }
 
 void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
-	std::vector<std::string> cs = c.children(layer);
+	std::vector<std::string> cs = c.children("drawables." + layer);
 	size_t size = cs.size();
 	for (size_t i = 0; i < size; i++){
-		std::string sub = layer + "." + std::to_string(i);
+		std::string sub = "drawables." + layer + "." + std::to_string(i);
 		drawable::Drawable* d = new drawable::Drawable();
 		d->currentAnimation = c.stringValue(sub + ".currentAnimation");
 		d->nextAnimation = c.stringValue(sub + ".nextAnimation");
 		d->scale = c.floatValue(sub + ".scale");
-		d->rotation = c.floatValue(sub + ".rotation");
 		d->health = c.floatValue(sub + ".health");
 		d->position = Vector(c.floatVector(sub + ".position"));
 		d->position.x = ceil(d->position.x);
@@ -115,11 +130,11 @@ void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 		d->velocity = Vector(c.floatVector(sub + ".velocity"));
 		sub += ".animations";
 		for (std::string an : c.children(sub, false)){
-			drawable::Animation a;
-			a.timing = sf::milliseconds(c.intValue(sub + "." + an + ".timing"));
-			a.textures = c.stringVector(sub + "." + an + ".textures");
-			for (std::string t : a.textures){
-				a.sprites.push_back(m->spriteManager->getSprite(t));
+			drawable::Animation* a = new drawable::Animation();
+			a->timing = sf::milliseconds(c.intValue(sub + "." + an + ".timing"));
+			a->textures = c.stringVector(sub + "." + an + ".textures");
+			for (std::string t : a->textures){
+				a->sprites.push_back(m->spriteManager->getSprite(t));
 			}
 			d->animations[an] = a;
 		}
@@ -130,19 +145,20 @@ void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 void World::load(File& f, Manager* m){
 	cleanAll(true);
 
+	sf::Clock cl;
 	Configuration c;
 
-	for (std::string s : c.children("")){
-		logger::warning("config error (load) " + s);
-		c.remove(s);
-	}
 	c.load(f);
+	logger::timing("World configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	cl.restart();
+	backgroundName = c.stringValue("background");
 	load_helper(c, this, "LAYER0", m);
 	load_helper(c, this, "LAYER1", m);
 	load_helper(c, this, "LAYER2", m);
 	load_helper(c, this, "LAYER3", m);
 	load_helper(c, this, "LAYER4", m);
-	logger::info("World loaded: " + f.path());
+	logger::timing("Objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	logger::info("World loaded: " + f.parent().name() + "\\" + f.name());
 }
 
 void World::cleanAll(const bool& all){

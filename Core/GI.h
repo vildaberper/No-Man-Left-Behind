@@ -8,7 +8,7 @@
 
 namespace gi{
 	static const float TARGET_WIDTH = 1920;
-	static const float TARGET_HEIGHT = 1080;
+	static const float TARGET_HEIGHT = 1280;
 
 	extern sf::RenderWindow* renderWindow;
 	extern unsigned int drawCalls;
@@ -30,6 +30,8 @@ namespace gi{
 	float dy();
 
 	// Drawcall
+	void draw(sf::Sprite& sprite);
+
 	void draw(drawable::Drawable* drawable, const sf::Time& time);
 
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h);

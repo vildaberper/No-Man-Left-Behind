@@ -1,11 +1,16 @@
 #pragma once
 
+#include "Logger.h"
 #include "Vector.h"
 #include "SFMLI.h"
 
 class Entity{
 public:
-	Entity(){};
+	Entity(){
+		position = Vector(0, 0);
+		velocity = Vector(0,0);
+		health = 1.0f;
+	};
 	~Entity(){};
 
 	void move(const float& dt){
@@ -25,5 +30,5 @@ public:
 	}
 	Vector velocity;
 	Vector position;
-	float health = 1.0f;
+	float health;
 };

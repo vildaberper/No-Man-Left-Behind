@@ -124,15 +124,15 @@ namespace file{
 	}
 
 	// Returns a vector<string> with lines read from file
-	static const std::vector<std::string> readTextFile(const std::string& filename){
-		std::vector<std::string> content;
+	static std::vector<std::string>* readTextFile(const std::string& filename){
+		std::vector<std::string>* content = new std::vector<std::string>();
 
 		std::string line;
 		std::ifstream file(filename);
 
 		if (file.is_open()){
 			while (std::getline(file, line)){
-				content.push_back(line);
+				content->push_back(line);
 			}
 			file.close();
 		}
@@ -144,11 +144,11 @@ namespace file{
 	}
 
 	// Write a file with lines vector<string>
-	static const bool writeTextFile(const std::string& filename, const std::vector<std::string>& content){
+	static const bool writeTextFile(const std::string& filename, const std::vector<std::string>* content){
 		std::ofstream file;
 		file.open(filename, std::ofstream::out | std::ofstream::trunc);
 		if (file.is_open()){
-			for (std::string line : content){
+			for (std::string line : *content){
 				file << line << '\n';
 			}
 			file.close();

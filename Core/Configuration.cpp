@@ -53,7 +53,6 @@ static const enum Type{
 	TYPEVECTORFLOAT,
 	TYPEVECTORINT
 };
-
 class ConfigurationNode{
 public:
 	static const char SEPARATOR = ',';
@@ -61,15 +60,24 @@ public:
 	Type type = TYPEUNDEFINED;
 	void* value = NULL;
 
-	std::map<std::string, ConfigurationNode> nodes;
+	std::map<std::string, ConfigurationNode*>* nodes = NULL;
 
 	ConfigurationNode(){
-		
+		nodes = new std::map<std::string, ConfigurationNode*>();
 	}
 
 	~ConfigurationNode(){
-		if (type != TYPEUNDEFINED){
-			delete value;
+		unset();
+		if (nodes != NULL){
+			for (auto &ent : *nodes){
+				if (ent.second != NULL){
+					delete ent.second;
+					ent.second = NULL;
+				}
+			}
+			nodes->clear();
+			delete nodes;
+			nodes = NULL;
 		}
 	}
 
@@ -77,35 +85,42 @@ public:
 		if (type != TYPEUNDEFINED){
 			type = TYPEUNDEFINED;
 			delete value;
+			value = NULL;
 		}
 	}
 
 	void ConfigurationNode::set(const string& value){
+		unset();
 		type = TYPESTRING;
 		ConfigurationNode::value = new string(value);
 	}
 
 	void ConfigurationNode::set(const float& value){
+		unset();
 		type = TYPEFLOAT;
 		ConfigurationNode::value = new float(value);
 	}
 
 	void ConfigurationNode::set(const int& value){
+		unset();
 		type = TYPEINT;
 		ConfigurationNode::value = new int(value);
 	}
 
 	void ConfigurationNode::set(const vector<string> &value){
+		unset();
 		type = TYPEVECTORSTRING;
 		ConfigurationNode::value = new vector<string>(value);
 	}
 
 	void ConfigurationNode::set(const vector<float> &value){
+		unset();
 		type = TYPEVECTORFLOAT;
 		ConfigurationNode::value = new vector<float>(value);
 	}
 
 	void ConfigurationNode::set(const vector<int> &value){
+		unset();
 		type = TYPEVECTORINT;
 		ConfigurationNode::value = new vector<int>(value);
 	}
@@ -276,7 +291,7 @@ public:
 	const vector<string> children(){
 		vector<string> children;
 
-		for (auto const &node : nodes){
+		for (auto const &node : *nodes){
 			children.push_back(node.first);
 		}
 		return children;
@@ -288,14 +303,14 @@ public:
 		if ((index = path.find_first_of(Configuration::PATH_SEPARATOR)) != string::npos){
 			string sub = path.substr(0, index);
 
-			if (nodes.count(sub) > 0){
-				return nodes[sub].containsNode(path.substr(index + 1));
+			if (nodes->count(sub) > 0){
+				return (*nodes)[sub]->containsNode(path.substr(index + 1));
 			}
 			else{
 				return false;
 			}
 		}
-		return nodes.count(path) > 0;
+		return nodes->count(path) > 0;
 	}
 
 	ConfigurationNode& node(const string& path){
@@ -303,15 +318,15 @@ public:
 		if ((index = path.find_first_of(Configuration::PATH_SEPARATOR)) != string::npos){
 			string sub = path.substr(0, index);
 
-			if (nodes.count(sub) == 0){
-				nodes[sub] = ConfigurationNode();
+			if (nodes->count(sub) == 0){
+				(*nodes)[sub] = new ConfigurationNode();
 			}
-			return nodes[sub].node(path.substr(index + 1));
+			return (*nodes)[sub]->node(path.substr(index + 1));
 		}
-		if (nodes.count(path) == 0){
-			nodes[path] = ConfigurationNode();
+		if (nodes->count(path) == 0){
+			(*nodes)[path] = new ConfigurationNode();
 		}
-		return nodes[path];
+		return *(*nodes)[path];
 	}
 
 	const void remove(const string& path){
@@ -320,102 +335,117 @@ public:
 		if ((index = path.find_first_of(Configuration::PATH_SEPARATOR)) != string::npos){
 			string sub = path.substr(0, index);
 
-			if (nodes.count(sub) == 0){
+			if (nodes->count(sub) == 0){
 				return;
 			}
-			return nodes[sub].remove(path.substr(index + 1));
+			return (*nodes)[sub]->remove(path.substr(index + 1));
 		}
-		nodes.erase(path);
+		delete (*nodes)[path];
+		(*nodes)[path] = NULL;
+		nodes->erase(path);
 	}
 
-	vector<string> contents(string ind){
-		vector<string> lines;
+	vector<string>* contents(string ind){
+		vector<string>* lines = new vector<string>();
 
 		for (string n : children()){
-			lines.push_back(ind + n + ":" + (node(n).hasValue() ? (" " + node(n).toString()) : ""));
+			lines->push_back(ind + n + ":" + (node(n).hasValue() ? (" " + node(n).toString()) : ""));
 
-			vector<string> next = node(n).contents(ind + "  ");
+			vector<string>* next = node(n).contents(ind + "  ");
 
-			lines.insert(lines.end(), next.begin(), next.end());
+			lines->insert(lines->end(), next->begin(), next->end());
+			delete next;
 		}
 		return lines;
 	}
 };
 
-ConfigurationNode root;
+ConfigurationNode* root = NULL;
 
 Configuration::Configuration(){
-
+	root = new ConfigurationNode();
 }
 
 Configuration::~Configuration(){
+	root->~ConfigurationNode();
+	/*
+		TODO
 
+		WTF FIX PLS
+	*/
+	//delete root;
 }
 
 int h(string& s){
-	int i = 0;
-	while (s.length() > 0 && s.at(0) == ' '){
-		s = s.substr(1);
-		i++;
-	}
+	string::size_type i = s.find_first_not_of(' ');
+	s = s.substr(i);
 	return i / Configuration::INDENT_WIDTH;
 }
 
-bool parse(ConfigurationNode& root, vector<string> content, unsigned int curLine, string curPath, int indent){
-	if (curLine >= content.size())
-		return true;
+bool Configuration::load(File& file){
+	delete root;
+	root = new ConfigurationNode();
 
-	string line = content[curLine];
-	int curIndent = h(line);
-
-	if (line.length() == 0 || line.at(0) == '#')
-		return parse(root, content, curLine + 1, curPath, indent);
-
-	string::size_type colIndex = line.find_first_of(":");
-	string node = line.substr(0, colIndex);
-	string val;
-
-	if (indent < curIndent){
-		curPath += (curPath.length() > 0 ? "." : "") + node;
+	if (!file.isFile()){
+		return false;
 	}
-	else{
-		for (int s = 0; s <= indent - curIndent; s++){
-			string::size_type index = curPath.find_last_of('.');
 
-			if (index != string::npos){
-				curPath = curPath.substr(0, index);
+	vector<string>* lines = file.readTextFile();
+	int indent = -1;
+	string curPath = "";
+	bool success = true;
+	for (size_t i = 0; i < lines->size(); i++){
+		string line = (*lines)[i];
+		int curIndent = h(line);
+
+		if (line.length() == 0 || line.at(0) == '#'){
+			continue;
+		}
+
+		string::size_type colIndex = line.find_first_of(":");
+		string node = line.substr(0, colIndex);
+		string val;
+
+		if (indent < curIndent){
+			curPath += (curPath.length() > 0 ? "." : "") + node;
+		}
+		else{
+			for (int s = 0; s <= indent - curIndent; s++){
+				string::size_type index = curPath.find_last_of('.');
+
+				if (index != string::npos){
+					curPath = curPath.substr(0, index);
+				}
+				else{
+					curPath = "";
+					break;
+				}
 			}
-			else{
-				curPath = "";
+			curPath += (curPath.length() > 0 ? "." : "") + node;
+		}
+		if (line.length() > colIndex + 1){
+			val = line.substr(colIndex + 1);
+			h(val);
+			if (val.length() == 0 || val.at(0) == '#'){
+				continue;
+			}
+			if (!root->node(curPath).parse(val)){
+				logger::fatal("Failed to parse file (" + file.parent().name() + "\\" + file.name() + "): line " + to_string(i + 1) + " - " + line);
+				success = false;
 				break;
 			}
 		}
-		curPath += (curPath.length() > 0 ? "." : "") + node;
+		indent = curIndent;
 	}
-	if (line.length() > colIndex + 2){
-		val = line.substr(colIndex + 2);
-		h(val);
-		if (val.length() == 0 || val.at(0) == '#'){
-			return parse(root, content, curLine + 1, curPath, curIndent);
-		}
-		if (!root.node(curPath).parse(val)){
-			return false;
-		}
-	}
-	return parse(root, content, curLine + 1, curPath, curIndent);
-}
-
-bool Configuration::load(File& file){
-	root = ConfigurationNode();
-	if (!parse(root, file.readTextFile(), 0, "", -1)){
-		logger::fatal("Failed to parse file: " + file.path());
-		return false;
-	}
-	return true;
+	delete lines;
+	return success;
 }
 
 const bool Configuration::save(File& file){
-	return file.writeTextFile(root.contents(""));
+	vector<string>* lines = root->contents("");
+	bool success =  file.writeTextFile(lines);
+	delete lines;
+	return success;
 }
 
 const vector<string> Configuration::children(const string& path){
@@ -424,8 +454,8 @@ const vector<string> Configuration::children(const string& path){
 const std::vector<std::string> Configuration::children(const std::string& path, const bool& fullPath){
 	vector<string> children;
 
-	if (root.containsNode(path)){
-		children = root.node(path).children();
+	if (root->containsNode(path)){
+		children = root->node(path).children();
 	}
 	if (path.length() > 0 && fullPath){
 		for (size_t i = 0; i < children.size(); i++){
@@ -436,73 +466,73 @@ const std::vector<std::string> Configuration::children(const std::string& path, 
 }
 
 const bool Configuration::hasValue(const string& path){
-	return root.containsNode(path) && root.node(path).hasValue();
+	return root->containsNode(path) && root->node(path).hasValue();
 }
 
 const void Configuration::remove(const std::string& path){
-	if (root.containsNode(path)){
-		root.remove(path);
+	if (root->containsNode(path)){
+		root->remove(path);
 	}
 }
 
 const void Configuration::unset(const std::string& path){
-	if (root.containsNode(path)){
-		root.node(path).unset();
+	if (root->containsNode(path)){
+		root->node(path).unset();
 	}
 }
 
 void Configuration::set(const string& path, const string& value){
-	root.node(path).set(value);
+	root->node(path).set(value);
 }
 void Configuration::set(const string& path, const float& value){
-	root.node(path).set(value);
+	root->node(path).set(value);
 }
 void Configuration::set(const string& path, const int& value){
-	root.node(path).set(value);
+	root->node(path).set(value);
 }
 void Configuration::set(const string& path, const vector<string> &value){
-	root.node(path).set(value);
+	root->node(path).set(value);
 }
 void Configuration::set(const string& path, const vector<float> &value){
-	root.node(path).set(value);
+	root->node(path).set(value);
 }
 void Configuration::set(const string& path, const vector<int> &value){
-	root.node(path).set(value);
+	root->node(path).set(value);
 }
 
 const string Configuration::stringValue(const std::string& path){
-	if (root.containsNode(path)){
-		return root.node(path).stringValue();
+	if (root->containsNode(path)){
+		return root->node(path).stringValue();
 	}
 	return "";
 }
 const float Configuration::floatValue(const string& path){
-	if (root.containsNode(path)){
-		return root.node(path).floatValue();
+	if (root->containsNode(path)){
+		return root->node(path).floatValue();
 	}
 	return 0.0f;
 }
 const int Configuration::intValue(const string& path){
-	if (root.containsNode(path)){
-		return root.node(path).intValue();
+	if (root->containsNode(path)){
+		return root->node(path).intValue();
 	}
 	return 0;
 }
 const vector<string> Configuration::stringVector(const string& path){
-	if (root.containsNode(path)){
-		return root.node(path).stringVector();
+	if (root->containsNode(path)){
+		return root->node(path).stringVector();
 	}
 	return vector<string>();
 }
 const vector<float> Configuration::floatVector(const string& path){
-	if (root.containsNode(path)){
-		return root.node(path).floatVector();
+	if (root->containsNode(path)){
+		return root->node(path).floatVector();
 	}
 	return vector<float>();
 }
 const vector<int> Configuration::intVector(const string& path){
-	if (root.containsNode(path)){
-		return root.node(path).intVector();
+	if (root->containsNode(path)){
+		return root->node(path).intVector();
 	}
 	return vector<int>();
 }
