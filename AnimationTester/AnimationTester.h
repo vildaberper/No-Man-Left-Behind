@@ -21,6 +21,8 @@ public:
 	const void keyboardListener(KeyboardEvent& event);
 	const void mouseWheelListener(MouseWheelEvent& event);
 private:
+	bool repeat = true;
+
 	sf::RenderWindow* window;
 
 	Manager* manager;
