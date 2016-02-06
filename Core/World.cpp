@@ -42,6 +42,55 @@ const void World::render(){
 		}
 	}
 }
+const void World::render(drawable::Drawable* relative){
+	if (background != NULL){
+		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::TARGET_WIDTH + 3 * background->getSize().x), int(gi::TARGET_HEIGHT + 3 * background->getSize().y)));
+		float x = (-gi::cameraX + gi::TARGET_WIDTH / 2) * gi::dx();
+		float y = (-gi::cameraY + gi::TARGET_HEIGHT / 2) * gi::dy();
+		x = fmod(x, background->getSize().x * gi::dx());
+		y = fmod(y, background->getSize().y * gi::dy());
+		s.setPosition(x - background->getSize().x * gi::dx(), y - background->getSize().y * gi::dy());
+		s.scale(gi::dx(), gi::dy());
+		gi::draw(s);
+	}
+	std::vector<drawable::Drawable*> under;
+	std::vector<drawable::Drawable*> above;
+
+	sf::FloatRect rel = relative->getSprite(lastTime)->getGlobalBounds();
+	for (drawable::Drawable* d : drawables[LAYER2]){
+		sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
+		if (fr.top + fr.height <= rel.top + rel.height){
+			under.push_back(d);
+		}
+		else{
+			above.push_back(d);
+		}
+	}
+
+	for (const auto &ent : drawables){
+		if (ent.first == LAYER2){
+			break;
+		}
+		for (drawable::Drawable* d : ent.second){
+			gi::draw(d, lastTime);
+		}
+	}
+	for (drawable::Drawable* d : under){
+		gi::draw(d, lastTime);
+	}
+	gi::draw(relative, lastTime);
+	for (drawable::Drawable* d : above){
+		gi::draw(d, lastTime);
+	}
+	for (const auto &ent : drawables){
+		if (ent.first == LAYER0 || ent.first == LAYER1 || ent.first == LAYER2){
+			continue;
+		}
+		for (drawable::Drawable* d : ent.second){
+			gi::draw(d, lastTime);
+		}
+	}
+}
 
 const sf::Time World::time(){
 	return lastTime;

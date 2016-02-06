@@ -2,6 +2,14 @@
 
 #include "MathHelper.h"
 
+enum Direction{
+	YN,
+	YP,
+	XN,
+	XP,
+	ZERO
+};
+
 class Vector{
 public:
 	float x;
@@ -41,8 +49,30 @@ public:
 		return math::angleTo(0, 0, x, y);
 	}
 
+	const Direction direction(){
+		if (length() == 0.0f){
+			return ZERO;
+		}
+
+		float a = math::toDeg(angle());
+
+		if (a < 45.0f || a > 315.0f){
+			return XP;
+		}
+		else if (a <= 135.0f && a >= 45.0f){
+			return YP;
+		}
+		else if (a > 135.0f && a < 225.0f){
+			return XN;
+		}
+		else{
+			return YN;
+		}
+	}
+
 	const Vector norm(){
-		return (*this) / length();
+		float l = length();
+		return (*this) / (l != 0.0f ? l : 1.0f);
 	}
 
 	void operator()(const float& x, const float& y){
@@ -70,6 +100,10 @@ public:
 	void operator/=(const float& f){
 		x = x / f;
 		y = y / f;
+	}
+
+	const Vector operator +(const Vector& v){
+		return Vector(x + v.x, y + v.y);
 	}
 
 	void operator +=(const Vector& v){
