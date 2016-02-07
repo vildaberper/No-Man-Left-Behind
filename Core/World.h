@@ -122,6 +122,7 @@ public:
 	void tick();
 
 	const void render();
+	const void render(drawable::Drawable* relative);
 
 	const sf::Time time();
 

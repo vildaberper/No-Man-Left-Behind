@@ -92,9 +92,12 @@ void AnimationTester::load(){
 	a = new drawable::Animation();
 	a->timing = sf::milliseconds(c.intValue("timing"));
 
+	drawable::Animation* a0 = new drawable::Animation();
+	a0->timing = sf::milliseconds(100);
+
 	int frame = 0;
-	for (unsigned char x = 0; x < ti->width; x++){
-		for (unsigned char y = 0; y < ti->height; y++){
+	for (unsigned char y = 0; y < ti->height; y++){
+		for (unsigned char x = 0; x < ti->width; x++){
 			string f = to_string(frame++);
 			SubTexture* st = new SubTexture();
 			st->texi = ti;
@@ -103,15 +106,25 @@ void AnimationTester::load(){
 			tm->textureMap["animation"][f] = st;
 			a->sprites.push_back(manager->spriteManager->getSprite("animation", f));
 			a->textures.push_back("animation." + f);
+
+			if (x == 0 && y == 0){
+				a0->sprites.push_back(manager->spriteManager->getSprite("animation", f));
+				a0->textures.push_back("animation." + f);
+			}
 		}
 	}
 
 	d = new drawable::Drawable();
 	d->animations["animation"] = a;
+	d->animations["idle"] = a0;
 	d->currentAnimation = d->nextAnimation = "animation";
 	d->position.x = 0;
 	d->position.y = 0;
 	world->addDrawable(d, LAYER1);
+
+	if (!repeat){
+		d->nextAnimation = "idle";
+	}
 }
 
 void AnimationTester::save(){
@@ -148,6 +161,29 @@ const void AnimationTester::keyboardListener(KeyboardEvent& event){
 			break;
 		case Keyboard::F5:
 			load();
+			break;
+		case Keyboard::P:
+			if (d != NULL && event.first()){
+				if (repeat){
+					if (d->nextAnimation == "idle"){
+						d->nextAnimation = "animation";
+					}
+					else{
+						d->nextAnimation = "idle";
+					}
+					logger::info("State: " + d->nextAnimation);
+				}
+				else{
+					d->currentAnimation = "animation";
+					d->startTime = world->time();
+				}
+			}
+			break;
+		case Keyboard::R:
+			if (!(repeat = !repeat)){
+				d->nextAnimation = "idle";
+			}
+			logger::info("Repeating: " + string(repeat ? "yes" : "no"));
 			break;
 		case Keyboard::Add:
 			if (a != NULL){
