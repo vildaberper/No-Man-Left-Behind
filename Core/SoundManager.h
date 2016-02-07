@@ -1,27 +1,25 @@
 #pragma once
 
-#include "Logger.h"
 #include "SFMLI.h"
-#include "File.h"
-
-/*class SubSound{
-public:
-	SubSound();
-	~SubSound();
-
-private:
-
-};
-*/
 
 class SoundManager{
 public:
 	SoundManager();
 	~SoundManager();
 
-	void initialize(sf::RenderWindow* window);
+	bool initialize();
 
-	void finalize(sf::RenderWindow* window);
+	bool finalize();
 
-	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
+	bool tick(const sf::Time& time, const float& dt);
+
+	bool play(const string& category, const string& name);
+
+private:
+	std::map<std::string, std::map<std::string, sf::SoundBuffer*>> soundBoard;
+	std::set<sf::SoundBuffer*> sounds;
+	std::vector<sf::Sound*> channels;
+
+	bool loadSound();
+	bool loadSoundFromDir(File& dir);
 };
