@@ -23,13 +23,13 @@ Game::~Game(){
 void Game::run(){
 	sf::Clock fg;
 	c::initialize();
-	logger::timing("Constants initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
+	logger::timing("Constants initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	fg.restart();
 	gi::initalize(window);
-	logger::timing("Graphics interface initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
+	logger::timing("Graphics interface initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	manager = new Manager();
 	manager->initialize(window);
-	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
+	logger::timing("Manager initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	world = new World();
 	file = File().child("world.txt");
 	world->load(file, manager);
@@ -42,7 +42,7 @@ void Game::run(){
 
 	player->initialize(manager);
 
-	window->setFramerateLimit(60);
+	window->setFramerateLimit(0);
 	while (gi::startOfFrame()){
 		world->tick();
 		manager->tick(window, world->time(), world->dt());
