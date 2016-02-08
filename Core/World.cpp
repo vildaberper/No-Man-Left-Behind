@@ -220,12 +220,7 @@ void World::cleanAll(const bool& all){
 
 	for (size_t i = 0; i < entities.size(); i++){
 		if (all || !entities[i]->isAlive()){
-			/*
-			TODO
-			
-			FIX POTENTIAL MEMORY LEAK
-			*/
-			//delete entities[i];
+			delete entities[i];
 			entities.erase(entities.begin() + (i--));
 		}
 	}

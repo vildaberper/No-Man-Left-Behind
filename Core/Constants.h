@@ -9,6 +9,7 @@ namespace c{
 	extern File textureDir;
 	extern File fontDir;
 	extern File backgroundDir;
+	extern File soundDir;
 
 	const void initialize();
 }
