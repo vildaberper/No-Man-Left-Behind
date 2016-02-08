@@ -5,9 +5,6 @@
 using namespace std;
 using namespace sf;
 
-// 0-100, must be over 0.f
-static float VOLUME_TARGET(100.f);
-
 bool playing = false;
 
 SoundManager::SoundManager(){
@@ -18,8 +15,13 @@ SoundManager::~SoundManager(){
 
 bool SoundManager::initialize(RenderWindow* window){
 	sf::Clock cl;
-	// Members
-	playing = true;
+
+	undefined = new SoundBuffer();
+	File u = c::soundDir.child("undefined.ogg");
+	if (!u.isFile() || !undefined->loadFromFile(u.path())){
+		logger::warning("Undefined sound not found!");
+	}
+	sounds.insert(undefined);
 
 	// Loading sounds
 	if (loadSounds()){
@@ -34,15 +36,16 @@ bool SoundManager::initialize(RenderWindow* window){
 
 bool SoundManager::finalize(RenderWindow* window){
 	// Empty containers
-	for (SoundBuffer* sb : sounds){
-		delete sb;
-	}
 	for (Sound* s : channels){
 		delete s;
 	}
-	sounds.clear();
 	channels.clear();
-	soundBoard.clear(); // Dose this work?
+	for (SoundBuffer* sb : sounds){
+		delete sb;
+	}
+	sounds.clear();
+
+	soundBoard.clear();
 
 	return true;
 }
@@ -50,7 +53,7 @@ bool SoundManager::finalize(RenderWindow* window){
 void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt){
 	// Cleaning stoped sounds
 	for (size_t i = 0; i < channels.size(); i++){
-		if (channels[i]->getStatus() == Sound::Stopped ){
+		if (channels[i]->getStatus() == Sound::Stopped){
 			delete channels[i];
 			channels.erase(channels.begin() + (i--));
 		}
@@ -74,32 +77,29 @@ void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt)
 	}
 }
 
+bool SoundManager::play(const std::string& name){
+	std::string::size_type index = name.find_first_of('.');
+
+	return play(name.substr(0, index), name.substr(index + 1));
+}
 bool SoundManager::play(const string& category, const string& name){
-	bool placing = true;
-	for (Sound* s : channels){
-		if (placing && s->getStatus() == Sound::Stopped){
-			s->setBuffer(*soundBoard[category][name]);
-			s->setVolume(VOLUME_TARGET);
-			s->play();
-			placing = false;
-		}
-	}
 	// can add a cap to how many sounds can play at once
-	if (placing){
-		channels.push_back(new Sound());
-		channels.back()->setBuffer(*soundBoard[category][name]);
-		channels.back()->setVolume(VOLUME_TARGET);
-		channels.back()->play();
-		placing = false;
-	}
-	//TODO: positional sound
-	if (placing){
-		logger::fatal("Failed to find a place for " + category + " " + name + ".");
+	if(channels.size() > 100){
+		logger::warning("All them sounds are playing");
 		return false;
 	}
-	else{
-		return true;
+
+	Sound* s = new Sound();
+	if (soundBoard.count(category) == 0 || soundBoard[category].count(name) == 0){
+		s->setBuffer(*undefined);
 	}
+	else{
+		s->setBuffer(*soundBoard[category][name]);
+	}
+	s->setVolume(c::masterVolume * 100.0f);
+	s->play();
+	channels.push_back(s);
+	return true;
 }
 
 bool SoundManager::loadSounds(){

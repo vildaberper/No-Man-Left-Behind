@@ -12,6 +12,16 @@ namespace drawable{
 		std::vector<std::string> textures;
 		std::vector<sf::Sprite*> sprites;
 		sf::Time timing; // length of each frame in ms
+
+		Animation* clone(){
+			Animation* a = new Animation();
+
+			a->textures = textures;
+			a->sprites = sprites;
+			a->timing = timing;
+
+			return a;
+		}
 	};
 
 	class Drawable : public Entity{

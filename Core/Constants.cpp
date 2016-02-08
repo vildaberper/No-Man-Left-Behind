@@ -8,6 +8,11 @@ namespace c{
 	File fontDir;
 	File backgroundDir;
 	File soundDir;
+	File musicDir;
+	File animationDir;
+
+	float masterVolume;
+	float musicVolume;
 
 	const void initialize(){
 		config = Configuration();
@@ -17,5 +22,10 @@ namespace c{
 		fontDir = dir.child(config.stringValue("directories.fontDir"));
 		backgroundDir = dir.child(config.stringValue("directories.backgroundDir"));
 		soundDir = dir.child(config.stringValue("directories.soundDir"));
+		musicDir = dir.child(config.stringValue("directories.musicDir"));
+		animationDir = dir.child(config.stringValue("directories.animationDir"));
+
+		masterVolume = 1.0f;
+		musicVolume = 1.0f;
 	}
 }

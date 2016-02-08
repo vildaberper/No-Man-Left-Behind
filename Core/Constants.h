@@ -10,6 +10,11 @@ namespace c{
 	extern File fontDir;
 	extern File backgroundDir;
 	extern File soundDir;
+	extern File musicDir;
+	extern File animationDir;
+
+	extern float masterVolume;
+	extern float musicVolume;
 
 	const void initialize();
 }

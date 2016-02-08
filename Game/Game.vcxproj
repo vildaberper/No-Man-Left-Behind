@@ -70,11 +70,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Core\Injured.h" />
+    <ClInclude Include="..\Core\Inventory.h" />
+    <ClInclude Include="..\Core\Item.h" />
+    <ClInclude Include="..\Core\ItemStack.h" />
+    <ClInclude Include="..\Core\JournalManager.h" />
+    <ClInclude Include="..\Core\Level.h" />
+    <ClInclude Include="..\Core\LevelManager.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Core\Injured.cpp" />
+    <ClCompile Include="..\Core\Inventory.cpp" />
+    <ClCompile Include="..\Core\Item.cpp" />
+    <ClCompile Include="..\Core\ItemStack.cpp" />
+    <ClCompile Include="..\Core\JournalManager.cpp" />
+    <ClCompile Include="..\Core\Level.cpp" />
+    <ClCompile Include="..\Core\LevelManager.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />

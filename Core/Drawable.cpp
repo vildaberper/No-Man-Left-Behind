@@ -13,7 +13,13 @@ Drawable::~Drawable(){
 }
 
 sf::Sprite* Drawable::getSprite(const sf::Time& time){
-	Animation* a = animations[currentAnimation];
+	Animation* a;
+	if (animations.count(currentAnimation) == 0){
+		a = animations.begin()->second;
+	}
+	else{
+		a = animations[currentAnimation];
+	}
 	sf::Time elapsed = time - startTime;
 	sf::Time maxDuration = sf::milliseconds(a->timing.asMilliseconds() * (a->sprites.size()));
 	size_t index = size_t(floor((a->sprites.size()) * (elapsed / maxDuration)));

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Manager.h"
-#include "Drawable.h"
+#include "Animatable.h"
 
-class Player : public drawable::Drawable{
+class Player : public Animatable{
 public:
 	Player();
 	~Player();

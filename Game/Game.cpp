@@ -47,30 +47,10 @@ void Game::run(){
 		world->tick();
 		manager->tick(window, world->time(), world->dt());
 
-		player->velocity = controller->movement();
-		player->position += player->velocity * (world->dt() * 400.0f);
+		player->velocity = controller->movement() * 400.0f;
+		player->tick(world->time(), world->dt());
 		gi::cameraX = player->position.x;
 		gi::cameraY = player->position.y;
-
-		switch (player->velocity.direction()){
-		case XN:
-			player->currentAnimation = player->nextAnimation = "left";
-			break;
-		case XP:
-			player->currentAnimation = player->nextAnimation = "right";
-			break;
-		case ZERO:
-			if (player->currentAnimation == "left"){
-				player->currentAnimation = player->nextAnimation = "idleleft";
-			}
-			else if (player->currentAnimation == "right"){
-				player->currentAnimation = player->nextAnimation = "idleright";
-			}
-			break;
-		default:
-			player->currentAnimation = player->nextAnimation = "idleleft";
-			break;
-		}
 
 		window->clear();
 
