@@ -61,7 +61,7 @@ void AnimationManager::loadFromDir(File& dir, SpriteManager* sm){
 
 		Configuration config;
 		if (!config.load(f)){
-			logger::warning("Failed to load texture configuration: " + f.path());
+			logger::warning("Failed to load animation configuration: " + f.path());
 			continue;
 		}
 		TexI* ti = new TexI();

@@ -73,7 +73,7 @@ void AnimationTester::load(){
 		delete world;
 	}
 	if (d != NULL){
-		logger::warning("Reloading");
+		logger::info("Reloading");
 		delete d;
 	}
 	if (a != NULL){
@@ -96,8 +96,9 @@ void AnimationTester::load(){
 	a0->timing = sf::milliseconds(100);
 
 	int frame = 0;
-	for (unsigned char y = 0; y < ti->height; y++){
-		for (unsigned char x = 0; x < ti->width; x++){
+	int maxFrames = ti->width * ti->height - c.intValue("exclude");
+	for (unsigned char y = 0; y < ti->height && frame < maxFrames; y++){
+		for (unsigned char x = 0; x < ti->width && frame < maxFrames; x++){
 			string f = to_string(frame++);
 			SubTexture* st = new SubTexture();
 			st->texi = ti;
