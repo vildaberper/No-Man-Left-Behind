@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Configuration.h"
 
 namespace c{
