@@ -149,6 +149,7 @@ bool MusicManager::archiveMusicFromDir(File& dir){
 	for (File file : dir.listFiles()){
 		if (file.isDirectory()){
 			success = !archiveMusicFromDir(file) ? false : success;
+			continue;
 		}
 
 		if (!Music().openFromFile(file.path())){

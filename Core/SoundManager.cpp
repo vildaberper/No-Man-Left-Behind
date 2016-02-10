@@ -114,6 +114,7 @@ bool SoundManager::loadSoundsFromDir(File& dir){
 	for (File file : dir.listFiles()){
 		if (file.isDirectory()){
 			success = !loadSoundsFromDir(file) ? false : success;
+			continue;
 		}
 
 		SoundBuffer* localBuffer = new SoundBuffer();
