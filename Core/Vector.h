@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "MathHelper.h"
 
 enum Direction{

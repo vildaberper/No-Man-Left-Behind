@@ -42,10 +42,19 @@ void Game::run(){
 
 	player->initialize(manager);
 
+	ProgressBar* progressbar = new ProgressBar();
+	progressbar->position = Vector(100, 100);
+	progressbar->size = Vector(500.0f, 100.0f);
+	progressbar->progress = 0.5f;
+	progressbar->bleft = manager->spriteManager->getSprite("Floortiles.Stone");
+
+	
 	window->setFramerateLimit(0);
 	while (gi::startOfFrame()){
 		world->tick();
 		manager->tick(window, world->time(), world->dt());
+
+		
 
 		player->velocity = controller->movement() * 400.0f;
 		player->tick(world->time(), world->dt());
@@ -55,6 +64,8 @@ void Game::run(){
 		window->clear();
 
 		world->render(player);
+
+		gi::draw(progressbar, world->time());
 
 		manager->menuManager->draw(world->time());
 

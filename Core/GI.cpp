@@ -141,6 +141,37 @@ namespace gi{
 		}
 	}
 
+	void draw(ProgressBar* progressbar, const sf::Time& time){
+		/*sf::RectangleShape rs = sf::RectangleShape();
+		rs.setPosition(progressbar->position.x * dx(), progressbar->position.y* dy());
+		rs.setSize(sf::Vector2f(progressbar->size.x, progressbar->size.y));
+		rs.setFillColor(sf::Color(255, 0, 0, 255));
+		rs.setOutlineColor(sf::Color(255, 0, 0, 255));
+		rs.setOutlineThickness(1);
+		gi::renderWindow->draw(rs);
+		*/
+
+		sf::Sprite* s = progressbar->bleft;
+		s->setPosition(
+			progressbar->position.x * dx(),
+			progressbar->position.y * dy()
+			);
+		sf::FloatRect fl = s->getLocalBounds();
+		s->scale(1.0f / s->getScale().x, 1.0f / s->getScale().y);
+		float sc = (progressbar->size.y * dy()) / fl.height;
+		s->scale(sc, sc);
+		renderWindow->draw(*s);
+		
+		sf::RectangleShape rs = sf::RectangleShape();
+		rs.setPosition(progressbar->position.x * dx(), progressbar->position.y * dy());
+		rs.setSize(sf::Vector2f(progressbar->size.x * progressbar->progress * dx(), progressbar->size.y * dy()));
+		rs.setFillColor(sf::Color(0, 255, 0, 100));
+		rs.setOutlineColor(sf::Color(0, 0, 0, 0));
+		rs.setOutlineThickness(0);
+		renderWindow->draw(rs);
+	}
+
+
 	// endOfFrame
 	bool endOfFrame(){
 		renderWindow->display();

@@ -5,10 +5,11 @@
 #include "Logger.h"
 #include "Drawable.h"
 #include "Constants.h"
+#include "ProgressBar.h"
 
 namespace gi{
 	static const float TARGET_WIDTH = 1920;
-	static const float TARGET_HEIGHT = 1280;
+	static const float TARGET_HEIGHT = 1080;
 
 	extern sf::RenderWindow* renderWindow;
 	extern unsigned int drawCalls;
@@ -37,6 +38,8 @@ namespace gi{
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h);
 
 	void draw(Menu* menu, const sf::Time& time);
+
+	void draw(ProgressBar* progressbar, const sf::Time& time);
 
 	// endOfFrame
 	bool endOfFrame();

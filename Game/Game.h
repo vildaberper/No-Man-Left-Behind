@@ -8,6 +8,7 @@
 #include "Constants.h"
 #include "Controller.h"
 #include "MathHelper.h"
+#include "ProgressBar.h"
 
 class Game{
 public:

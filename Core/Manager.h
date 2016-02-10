@@ -5,7 +5,6 @@
 #include "InputManager.h"
 #include "MusicManager.h"
 #include "SoundManager.h"
-#include "MusicManager.h"
 #include "MenuManager.h"
 
 class Manager{
@@ -15,7 +14,6 @@ public:
 	MusicManager* musicManager;
 	SpriteManager* spriteManager;
 	MenuManager* menuManager;
-	MusicManager* musicManager;
 	AnimationManager* animationManager;
 
 	Manager(){
@@ -24,7 +22,6 @@ public:
 		musicManager = new MusicManager();
 		spriteManager = new SpriteManager();
 		menuManager = new MenuManager(inputManager);
-		musicManager = new MusicManager();
 		animationManager = new AnimationManager();
 	}
 	~Manager(){
@@ -33,7 +30,6 @@ public:
 		delete musicManager;
 		delete spriteManager;
 		delete menuManager;
-		delete musicManager;
 		delete animationManager;
 	};
 
@@ -43,7 +39,6 @@ public:
 		musicManager->initialize(window);
 		spriteManager->initialize(window);
 		menuManager->initialize(window);
-		musicManager->initialize(window);
 		animationManager->initialize(window, spriteManager);
 	}
 
@@ -53,7 +48,6 @@ public:
 		musicManager->finalize(window);
 		spriteManager->finalize(window);
 		menuManager->finalize(window);
-		musicManager->finalize(window);
 		animationManager->finalize(window);
 	}
 
@@ -63,7 +57,6 @@ public:
 		musicManager->tick(window, time, dt);
 		spriteManager->tick(window, time, dt);
 		menuManager->tick(window, time, dt);
-		musicManager->tick(window, time, dt);
 		animationManager->tick(window, time, dt);
 	}
 };
