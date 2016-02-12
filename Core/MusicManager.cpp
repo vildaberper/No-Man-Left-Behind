@@ -71,7 +71,6 @@ void MusicManager::tick(sf::RenderWindow* window, const sf::Time& time, const fl
 			id.second.music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
 		}
 		else{
-			logger::debug(to_string(time.asMilliseconds()));
 			id.second.music->setVolume(c::musicVolume * c::masterVolume * 100.0f);
 		}
 	}
@@ -121,7 +120,6 @@ unsigned long MusicManager::play(const std::string& category, const std::string&
 
 		channels[id] = localMusic;
 
-		logger::debug("derp");
 		return id;
 	}
 }
