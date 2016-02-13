@@ -154,6 +154,13 @@ void Editor::run(){
 
 	window->setFramerateLimit(60);
 	while (gi::startOfFrame()){
+		if (manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
+			gi::zoom(gi::cameraZ + 1.0f * gi::cameraZ * world->dt());
+		}
+		if (manager->inputManager->isPressed(sf::Keyboard::Key::X)){
+			gi::zoom(gi::cameraZ - 1.0f * gi::cameraZ * world->dt());
+		}
+
 		world->tick();
 		manager->tick(window, world->time(), world->dt());
 

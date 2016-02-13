@@ -8,6 +8,17 @@ Animatable::~Animatable(){
 
 }
 
+void Animatable::apply(Manager* m, const std::string& a){
+	animations["leftidle"] = m->animationManager->getAnimation(a + ".leftidle");
+	animations["left"] = m->animationManager->getAnimation(a + ".left");
+	animations["rightidle"] = m->animationManager->getAnimation(a + ".rightidle");
+	animations["right"] = m->animationManager->getAnimation(a + ".right");
+	animations["upidle"] = m->animationManager->getAnimation(a + ".upidle");
+	animations["up"] = m->animationManager->getAnimation(a + ".up");
+	animations["downidle"] = m->animationManager->getAnimation(a + ".downidle");
+	animations["down"] = m->animationManager->getAnimation(a + ".down");
+}
+
 void Animatable::tick(const sf::Time& time, const float& dt){
 	switch (velocity.direction()){
 	case XN:

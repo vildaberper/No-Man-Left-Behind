@@ -42,10 +42,10 @@ const void MenuManager::mouseButtonListener(MouseButtonEvent& event){
 	if (event.pressed() && event.button() == sf::Mouse::Button::Left){
 		for (auto &ent : menus){
 			if (!ent.second->hidden){
-				float x = ent.second->position.x * gi::dx();
-				float y = ent.second->position.y * gi::dy();
-				float w = ent.second->size.x * gi::dx();
-				float h = ent.second->size.y * gi::dy();
+				float x = ent.second->position.x * gi::dxiz();
+				float y = ent.second->position.y * gi::dyiz();
+				float w = ent.second->size.x * gi::dxiz();
+				float h = ent.second->size.y * gi::dyiz();
 				if (event.x() > x && event.x() < x + w){
 					if (event.y() > y && event.y() < y + h){
 						event.setCancelled(true);

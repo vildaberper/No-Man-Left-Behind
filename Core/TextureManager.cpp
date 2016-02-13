@@ -7,7 +7,7 @@ using namespace sf;
 
 // Constructor\Destructor
 TextureManager::TextureManager(){
-	
+
 }
 
 TextureManager::~TextureManager(){
@@ -100,8 +100,17 @@ const std::vector<std::string> TextureManager::backgrounds(){
 const std::vector<std::string> TextureManager::categories(){
 	std::vector<std::string> vec;
 
-	for (auto ent : textureMap){
-		vec.push_back(ent.first);
+	for (auto &ent : textureMap){
+		bool hidden = true;
+		for (auto &sub : ent.second){
+			if (!sub.second->hidden){
+				hidden = false;
+				break;
+			}
+		}
+		if (!hidden){
+			vec.push_back(ent.first);
+		}
 	}
 
 	return vec;
@@ -109,8 +118,10 @@ const std::vector<std::string> TextureManager::categories(){
 const std::vector<std::string> TextureManager::members(const std::string& category){
 	std::vector<std::string> vec;
 
-	for (auto ent : textureMap[category]){
-		vec.push_back(ent.first);
+	for (auto &ent : textureMap[category]){
+		if (!ent.second->hidden){
+			vec.push_back(ent.first);
+		}
 	}
 
 	return vec;

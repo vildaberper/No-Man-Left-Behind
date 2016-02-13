@@ -70,34 +70,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Core\Injured.h" />
-    <ClInclude Include="..\Core\Inventory.h" />
-    <ClInclude Include="..\Core\Item.h" />
-    <ClInclude Include="..\Core\ItemStack.h" />
-    <ClInclude Include="..\Core\JournalManager.h" />
-    <ClInclude Include="..\Core\Level.h" />
-    <ClInclude Include="..\Core\LevelManager.h" />
-    <ClInclude Include="Controller.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="Player.h" />
+    <ProjectReference Include="..\Core\Core.vcxproj">
+      <Project>{ee92df92-0534-46a0-ae31-b24d31c5f95b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Core\Injured.cpp" />
-    <ClCompile Include="..\Core\Inventory.cpp" />
-    <ClCompile Include="..\Core\Item.cpp" />
-    <ClCompile Include="..\Core\ItemStack.cpp" />
-    <ClCompile Include="..\Core\JournalManager.cpp" />
-    <ClCompile Include="..\Core\Level.cpp" />
-    <ClCompile Include="..\Core\LevelManager.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Injured.cpp" />
+    <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="ItemStack.cpp" />
+    <ClCompile Include="JournalManager.cpp" />
+    <ClCompile Include="Level.cpp" />
+    <ClCompile Include="LevelManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.vcxproj">
-      <Project>{ee92df92-0534-46a0-ae31-b24d31c5f95b}</Project>
-    </ProjectReference>
+    <ClInclude Include="Controller.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="Injured.h" />
+    <ClInclude Include="Inventory.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="ItemStack.h" />
+    <ClInclude Include="JournalManager.h" />
+    <ClInclude Include="Level.h" />
+    <ClInclude Include="LevelManager.h" />
+    <ClInclude Include="Player.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

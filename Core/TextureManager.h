@@ -21,6 +21,7 @@ public:
 	TexI* texi;
 	unsigned char x;	// SubTexture width indexing
 	unsigned char y;	// SubTexture hight indexing
+	bool hidden = false;
 };
 
 class TextureManager{

@@ -82,6 +82,7 @@ void AnimationManager::loadFromDir(File& dir, SpriteManager* sm){
 				st->texi = ti;
 				st->x = x;
 				st->y = y;
+				st->hidden = true;
 				sm->texMan->textureMap[category][name] = st;
 				a->sprites.push_back(sm->getSprite(category, name));
 				a->textures.push_back(category + "." + name);

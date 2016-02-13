@@ -17,7 +17,14 @@ namespace gi{
 	extern sf::Time begin;
 	extern float cameraX;
 	extern float cameraY;
+	extern float cameraZ;
+
+	extern float WIDTH;
+	extern float HEIGHT;
+
 	extern sf::Font menuFont;
+
+	void zoom(const float& zoom);
 
 	// Initialize \ Finalize
 	bool initalize(sf::RenderWindow*& rw);
@@ -29,6 +36,9 @@ namespace gi{
 
 	float dx();
 	float dy();
+
+	float dxiz();
+	float dyiz();
 
 	// Drawcall
 	void draw(sf::Sprite& sprite);

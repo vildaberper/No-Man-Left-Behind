@@ -27,9 +27,9 @@ void World::tick(){
 
 const void World::render(){
 	if (background != NULL){
-		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::TARGET_WIDTH + 3 * background->getSize().x), int(gi::TARGET_HEIGHT + 3 * background->getSize().y)));
-		float x = (-gi::cameraX + gi::TARGET_WIDTH / 2) * gi::dx();
-		float y = (-gi::cameraY + gi::TARGET_HEIGHT / 2) * gi::dy();
+		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::WIDTH + 3 * background->getSize().x), int(gi::HEIGHT + 3 * background->getSize().y)));
+		float x = (-gi::cameraX + gi::WIDTH / 2) * gi::dx();
+		float y = (-gi::cameraY + gi::HEIGHT / 2) * gi::dy();
 		x = fmod(x, background->getSize().x * gi::dx());
 		y = fmod(y, background->getSize().y * gi::dy());
 		s.setPosition(x - background->getSize().x * gi::dx(), y - background->getSize().y * gi::dy());
@@ -44,9 +44,9 @@ const void World::render(){
 }
 const void World::render(drawable::Drawable* relative){
 	if (background != NULL){
-		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::TARGET_WIDTH + 3 * background->getSize().x), int(gi::TARGET_HEIGHT + 3 * background->getSize().y)));
-		float x = (-gi::cameraX + gi::TARGET_WIDTH / 2) * gi::dx();
-		float y = (-gi::cameraY + gi::TARGET_HEIGHT / 2) * gi::dy();
+		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::WIDTH + 3 * background->getSize().x), int(gi::HEIGHT + 3 * background->getSize().y)));
+		float x = (-gi::cameraX + gi::WIDTH / 2) * gi::dx();
+		float y = (-gi::cameraY + gi::HEIGHT / 2) * gi::dy();
 		x = fmod(x, background->getSize().x * gi::dx());
 		y = fmod(y, background->getSize().y * gi::dy());
 		s.setPosition(x - background->getSize().x * gi::dx(), y - background->getSize().y * gi::dy());

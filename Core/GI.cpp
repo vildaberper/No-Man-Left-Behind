@@ -7,7 +7,18 @@ namespace gi{
 	sf::Time begin;
 	float cameraX;
 	float cameraY;
+	float cameraZ;
+
+	float WIDTH = TARGET_WIDTH;
+	float HEIGHT = TARGET_HEIGHT;
+
 	sf::Font menuFont;
+
+	void zoom(const float& zoom){
+		cameraZ = zoom > 0.01f ? zoom : 0.01f;
+		WIDTH = TARGET_WIDTH / cameraZ;
+		HEIGHT = TARGET_HEIGHT / cameraZ;
+	}
 
 	bool initalize(sf::RenderWindow*& rw){
 		//renderWindow = rw = new sf::RenderWindow(sf::VideoMode(1920, 1080, 32), "SFML", sf::Style::Fullscreen);
@@ -16,6 +27,7 @@ namespace gi{
 
 		cameraX = TARGET_WIDTH / 2;
 		cameraY = TARGET_HEIGHT / 2;
+		cameraZ = 1.0f;
 
 		return menuFont.loadFromFile(c::fontDir.child("Arial.ttf").path());
 	}
@@ -36,9 +48,16 @@ namespace gi{
 	}
 
 	float dx(){
-		return renderWindow->getSize().x / TARGET_WIDTH;
+		return renderWindow->getSize().x / WIDTH;
 	}
 	float dy(){
+		return renderWindow->getSize().y / HEIGHT;
+	}
+
+	float dxiz(){
+		return renderWindow->getSize().x / TARGET_WIDTH;
+	}
+	float dyiz(){
 		return renderWindow->getSize().y / TARGET_HEIGHT;
 	}
 
@@ -110,16 +129,16 @@ namespace gi{
 		float sc = scx < scy ? scx : scy;
 		title.scale(sc, sc);
 		title.setOrigin(0, float(title.getCharacterSize() / 2));
-		title.setPosition(x + 5 * dx(), y + h / 2 - 5 * dy());
+		title.setPosition(x + 5 * dxiz(), y + h / 2 - 5 * dyiz());
 		renderWindow->draw(title);
 	}
 
 
 	void draw(Menu* menu, const sf::Time& time){
-		float x = menu->position.x * dx();
-		float y = menu->position.y * dy();
-		float dx_ = menu->size.x * dx();
-		float dy_ = menu->size.y * dy();
+		float x = menu->position.x * dxiz();
+		float y = menu->position.y * dyiz();
+		float dx_ = menu->size.x * dxiz();
+		float dy_ = menu->size.y * dyiz();
 
 		switch (menu->type){
 		case VERTICAL:
