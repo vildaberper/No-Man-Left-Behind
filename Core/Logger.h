@@ -2,7 +2,7 @@
 
 #include <string>
 
-static const enum LogLevel{
+const enum LogLevel{
 	INFO,
 	DEBUG,
 	WARNING,

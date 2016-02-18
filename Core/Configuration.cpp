@@ -44,7 +44,7 @@ static const bool isFloat(string value){
 	return true;
 }
 
-static const enum Type{
+const enum Type{
 	TYPEUNDEFINED,
 	TYPESTRING,
 	TYPEFLOAT,
@@ -53,6 +53,7 @@ static const enum Type{
 	TYPEVECTORFLOAT,
 	TYPEVECTORINT
 };
+
 class ConfigurationNode{
 public:
 	static const char SEPARATOR = ',';

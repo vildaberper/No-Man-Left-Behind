@@ -8,7 +8,7 @@
 #include "SFMLI.h"
 #include "GI.h"
 
-static enum Layer{
+enum Layer {
 	LAYER0 = 0,
 	LAYER1 = 1,
 	LAYER2 = 2,
@@ -16,8 +16,8 @@ static enum Layer{
 	LAYER4 = 4
 };
 
-static const Layer nextLayer(const Layer& current){
-	switch (current){
+static const Layer nextLayer(const Layer& current) {
+	switch(current) {
 	case LAYER0:
 		return LAYER1;
 		break;
@@ -37,8 +37,8 @@ static const Layer nextLayer(const Layer& current){
 	return LAYER0;
 }
 
-static const Layer previousLayer(const Layer& current){
-	switch (current){
+static const Layer previousLayer(const Layer& current) {
+	switch(current) {
 	case LAYER0:
 		return LAYER4;
 		break;
@@ -58,63 +58,63 @@ static const Layer previousLayer(const Layer& current){
 	return LAYER0;
 }
 
-static const Layer parseLayer(const std::string& s){
-	if (s == "LAYER0"){
+static const Layer parseLayer(const std::string& s) {
+	if(s == "LAYER0") {
 		return LAYER0;
 	}
-	else if (s == "LAYER1"){
+	else if(s == "LAYER1") {
 		return LAYER1;
 	}
-	else if (s == "LAYER2"){
+	else if(s == "LAYER2") {
 		return LAYER2;
 	}
-	else if (s == "LAYER3"){
+	else if(s == "LAYER3") {
 		return LAYER3;
 	}
-	else if (s == "LAYER4"){
+	else if(s == "LAYER4") {
 		return LAYER4;
 	}
 	return LAYER0;
 }
 
-static const std::string layerToString(const Layer& layer){
-	if (layer == LAYER0){
+static const std::string layerToString(const Layer& layer) {
+	if(layer == LAYER0) {
 		return "LAYER0";
 	}
-	else if (layer == LAYER1){
+	else if(layer == LAYER1) {
 		return "LAYER1";
 	}
-	else if (layer == LAYER2){
+	else if(layer == LAYER2) {
 		return "LAYER2";
 	}
-	else if (layer == LAYER3){
+	else if(layer == LAYER3) {
 		return "LAYER3";
 	}
-	else if (layer == LAYER4){
+	else if(layer == LAYER4) {
 		return "LAYER4";
 	}
 	return "LAYER0";
 }
 
-class Target{
+class Target {
 public:
 	drawable::Drawable* drawable;
 	Layer layer;
 	float dx;
 	float dy;
 
-	Target(drawable::Drawable* drawable, Layer layer, float dx, float dy){
+	Target(drawable::Drawable* drawable, Layer layer, float dx, float dy) {
 		Target::drawable = drawable;
 		Target::layer = layer;
 		Target::dx = dx;
 		Target::dy = dy;
 	}
-	~Target(){
+	~Target() {
 
 	}
 };
 
-class World{
+class World {
 public:
 	World();
 	~World();

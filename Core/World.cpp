@@ -214,13 +214,13 @@ void World::cleanAll(const bool& all){
 	for (auto &ent : drawables){
 		ent.second.erase(
 			remove_if(ent.second.begin(), ent.second.end(),
-			[all](drawable::Drawable* e){ return all || !((Entity*) e)->isAlive(); }),
+			[all](drawable::Drawable* e){ return all || !((Entity*)e)->isAlive(); }),
 			ent.second.end());
 	}
 
 	for (size_t i = 0; i < entities.size(); i++){
 		if (all || !entities[i]->isAlive()){
-			delete entities[i];
+			// delete entities[i]; TODO Fix memory leak
 			entities.erase(entities.begin() + (i--));
 		}
 	}
