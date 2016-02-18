@@ -14,4 +14,6 @@ class Item{
 public:
 	Item();
 	~Item();
+
+	Resource type;
 };

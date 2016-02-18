@@ -1,5 +1,5 @@
-#include "SoundManager.h"
 #include "MusicManager.h"
+#include "SoundManager.h"
 
 namespace si{
 	extern SoundManager* soundManager;

@@ -12,9 +12,6 @@ namespace si {
 	}
 
 	bool finalize() {
-		delete soundManager;
-		delete musicManager;
-
 		return true;
 	}
 

@@ -6,6 +6,7 @@
 #include "MusicManager.h"
 #include "SoundManager.h"
 #include "MenuManager.h"
+#include "SI.h"
 
 class Manager{
 public:
@@ -40,6 +41,7 @@ public:
 		spriteManager->initialize(window);
 		menuManager->initialize(window);
 		animationManager->initialize(window, spriteManager);
+		si::initalize(soundManager, musicManager);
 	}
 
 	void finalize(sf::RenderWindow* window){
@@ -49,6 +51,7 @@ public:
 		spriteManager->finalize(window);
 		menuManager->finalize(window);
 		animationManager->finalize(window);
+		si::finalize();
 	}
 
 	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt){
