@@ -212,6 +212,11 @@ const void Editor::keyboardListener(KeyboardEvent& event){
 				target->drawable->scale *= (5.0f / 6.0f);
 			}
 			break;
+		case Keyboard::C:
+			if(event.first()){
+				gi::collisionBoxes = !gi::collisionBoxes;
+			}
+			break;
 		}
 	}
 }

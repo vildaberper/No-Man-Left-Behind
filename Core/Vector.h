@@ -112,4 +112,13 @@ public:
 		x += v.x;
 		y += v.y;
 	}
+
+	const Vector operator -(const Vector& v){
+		return Vector(x - v.x, y - v.y);
+	}
+
+	void operator -=(const Vector& v){
+		x -= v.x;
+		y -= v.y;
+	}
 };

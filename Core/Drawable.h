@@ -37,5 +37,14 @@ namespace drawable{
 		~Drawable();
 
 		sf::Sprite* getSprite(const sf::Time& time);
+
+		sf::FloatRect bounds(const sf::Time& time);
+
+		bool collidesWith(Drawable* d, const sf::Time& time, const Vector& position);
+		bool collidesWith(Drawable* d, const sf::Time& time);
+
+		Vector offset = Vector(0.0f, 0.0f);
+		Vector size = Vector(1.0f, 1.0f);
+		bool shouldCollide = false;
 	};
 }

@@ -22,6 +22,8 @@ namespace gi{
 	extern float WIDTH;
 	extern float HEIGHT;
 
+	extern bool collisionBoxes;
+
 	extern sf::Font menuFont;
 
 	void zoom(const float& zoom);

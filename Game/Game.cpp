@@ -41,28 +41,25 @@ void Game::run(){
 	player = new Player();
 
 	player->initialize(manager);
+	world->entities.push_back(player);
+	world->collidables.push_back(player);
 
-	ProgressBar* progressbar = new ProgressBar();
-	progressbar->position = Vector(100, 100);
-	progressbar->size = Vector(500.0f, 100.0f);
-	progressbar->progress = 0.5f;
-	progressbar->bleft = manager->spriteManager->getSprite("Floortiles.Stone");
+	gi::collisionBoxes = true;
 
 	window->setFramerateLimit(60);
 	while(gi::startOfFrame()){
+		player->velocity = controller->movement() * (400.0f * (manager->inputManager->isPressed(Keyboard::LShift) ? 10.0f : 1.0f));
+		player->shouldCollide = !manager->inputManager->isPressed(Keyboard::E);
+
 		world->tick();
 		manager->tick(window, world->time(), world->dt());
 
-		player->velocity = controller->movement() * (400.0f * (manager->inputManager->isPressed(Keyboard::LShift) ? 10.0f : 1.0f));
-		player->tick(world->time(), world->dt());
 		gi::cameraX = player->position.x;
 		gi::cameraY = player->position.y;
 
 		window->clear();
 
 		world->render(player);
-
-		gi::draw(progressbar, world->time());
 
 		manager->menuManager->draw(world->time());
 

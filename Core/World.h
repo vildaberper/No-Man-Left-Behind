@@ -138,13 +138,14 @@ public:
 
 	std::string backgroundName;
 	sf::Texture* background;
+
 	std::map<Layer, std::vector<drawable::Drawable*>> drawables;
+	std::vector<drawable::Drawable*> collidables;
+	std::vector<Entity*> entities;
 private:
 	sf::Clock clock;
 	sf::Time lastTime;
 	float dt_;
-
-	std::vector<Entity*> entities;
 
 	void cleanAll(const bool& all);
 };

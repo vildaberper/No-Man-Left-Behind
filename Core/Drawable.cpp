@@ -46,3 +46,26 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 	}
 	return s;
 }
+
+sf::FloatRect Drawable::bounds(const sf::Time& time){
+	sf::FloatRect fr = getSprite(time)->getLocalBounds();
+
+	fr.width *= scale;
+	fr.height *= scale;
+	fr.left += fr.width * offset.x + position.x;
+	fr.top += fr.height * offset.y + position.y;
+	fr.width *= size.x;
+	fr.height *= size.y;
+
+	return fr;
+}
+
+bool Drawable::collidesWith(Drawable* d, const sf::Time& time, const Vector& position){
+	sf::FloatRect fr = bounds(time);
+	fr.left += position.x - Drawable::position.x;
+	fr.top += position.y - Drawable::position.y;
+	return shouldCollide && d->shouldCollide && fr.intersects(d->bounds(time));
+}
+bool Drawable::collidesWith(Drawable* d, const sf::Time& time) {
+	return shouldCollide && d->shouldCollide && bounds(time).intersects(d->bounds(time));
+}

@@ -17,6 +17,40 @@ void World::tick(){
 	sf::Time time = clock.getElapsedTime();
 	dt_ = (time - lastTime).asSeconds();
 
+	bool foundX = false;
+	bool foundY = false;
+	bool foundXY = false;
+	for(drawable::Drawable* d0 : collidables){
+		if(d0->velocity.direction() == ZERO){
+			continue;
+		}
+		foundX = false;
+		foundY = false;
+		foundXY = false;
+
+		for(drawable::Drawable* d1 : collidables){
+			if(d0 == d1){
+				continue;
+			}
+			if(d0->collidesWith(d1, time, d0->position + Vector(d0->velocity.x * dt_, 0.0f))){
+				foundX = true;
+			}
+			if(d0->collidesWith(d1, time, d0->position + Vector(0.0f, d0->velocity.y * dt_))){
+				foundY = true;
+			}
+			if(d0->collidesWith(d1, time, d0->position + (d0->velocity * dt_))){
+				foundXY = true;
+			}
+		}
+
+		if(foundX || (!foundY && foundXY)){
+			d0->velocity.x = 0.0f;
+		}
+		if(foundY || (!foundX && foundXY)){
+			d0->velocity.y = 0.0f;
+		}
+	}
+
 	for (Entity* e : entities){
 		e->tick(time, dt_);
 	}
@@ -103,6 +137,9 @@ const float World::dt(){
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	entities.push_back((Entity*) drawable);
 	drawables[layer].push_back(drawable);
+	if(drawable->shouldCollide = layer != LAYER0){
+		collidables.push_back(drawable);
+	}
 }
 
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){

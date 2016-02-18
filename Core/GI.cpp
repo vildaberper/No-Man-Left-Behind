@@ -12,6 +12,8 @@ namespace gi{
 	float WIDTH = TARGET_WIDTH;
 	float HEIGHT = TARGET_HEIGHT;
 
+	bool collisionBoxes = false;
+
 	sf::Font menuFont;
 
 	void zoom(const float& zoom){
@@ -85,6 +87,21 @@ namespace gi{
 			rs.setOutlineThickness(1);
 			renderWindow->draw(rs);
 		}
+
+		if(collisionBoxes && drawable->shouldCollide){
+			sf::FloatRect fr = drawable->bounds(time);
+			sf::RectangleShape rs = sf::RectangleShape();
+			rs.setPosition(
+				round((fr.left - gi::cameraX + gi::WIDTH / 2) * gi::dx()) + 0.375f,
+				round((fr.top - gi::cameraY + gi::HEIGHT / 2) * gi::dy()) + 0.375f
+				);
+			rs.setSize(sf::Vector2f(fr.width * gi::dx(), fr.height * gi::dy()));
+			rs.setFillColor(sf::Color(0, 0, 0, 0));
+			rs.setOutlineColor(sf::Color(255, 0, 0, 255));
+			rs.setOutlineThickness(1);
+			renderWindow->draw(rs);
+		}
+
 		draw(*s);
 	}
 
