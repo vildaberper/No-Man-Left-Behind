@@ -12,8 +12,8 @@ void Player::initialize(Manager* m){
 	apply(m, "player");
 
 	currentAnimation = nextAnimation = "leftidle";
-	scale = 1.8f;
-	shouldCollide = true;
-	offset = Vector(0.4f, 0.8f);
-	size = Vector(0.2f, 0.1f);
+	scale = 1.0f;
+	cb.shouldCollide = true;
+	cb.offset = Vector(0.3f, 0.75f);
+	cb.size = Vector(0.4f, 0.2f);
 }

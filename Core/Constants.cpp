@@ -11,6 +11,8 @@ namespace c{
 	File musicDir;
 	File animationDir;
 
+	File collisionBoxFile;
+
 	float masterVolume;
 	float musicVolume;
 
@@ -24,6 +26,7 @@ namespace c{
 		soundDir = dir.child(config.stringValue("directories.soundDir"));
 		musicDir = dir.child(config.stringValue("directories.musicDir"));
 		animationDir = dir.child(config.stringValue("directories.animationDir"));
+		collisionBoxFile = dir.child(config.stringValue("files.collisionBoxFile"));
 
 		masterVolume = 1.0f;
 		musicVolume = 1.0f;

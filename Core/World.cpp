@@ -1,12 +1,13 @@
 #include "World.h"
 
-World::World(){
+World::World(Manager* manager){
 	drawables[LAYER0] = std::vector<drawable::Drawable*>();
 	drawables[LAYER1] = std::vector<drawable::Drawable*>();
 	drawables[LAYER2] = std::vector<drawable::Drawable*>();
 	drawables[LAYER3] = std::vector<drawable::Drawable*>();
 	drawables[LAYER4] = std::vector<drawable::Drawable*>();
 	lastTime = clock.getElapsedTime();
+	World::manager = manager;
 }
 
 World::~World(){
@@ -137,7 +138,10 @@ const float World::dt(){
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	entities.push_back((Entity*) drawable);
 	drawables[layer].push_back(drawable);
-	if(drawable->shouldCollide = layer != LAYER0){
+
+	drawable->reference = drawable->animations[drawable->currentAnimation]->textures[0];
+	drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
+	if(drawable->cb.shouldCollide){
 		collidables.push_back(drawable);
 	}
 }
@@ -147,7 +151,12 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 		for (size_t i = 0; i < drawables[layer].size(); i++){
 			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
 			sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
-			if (fr.contains(sf::Vector2f(x, y))){
+			if (
+				fr.left < x
+				&& fr.left + fr.width > x
+				&& fr.top < y
+				&& fr.top + fr.height > y
+				){
 				return new Target(
 					drawables[layer][drawables[layer].size() - i - 1],
 					layer,
@@ -228,7 +237,7 @@ void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 	}
 }
 
-void World::load(File& f, Manager* m){
+void World::load(File& f){
 	cleanAll(true);
 
 	sf::Clock cl;
@@ -238,11 +247,11 @@ void World::load(File& f, Manager* m){
 	logger::timing("World configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
 	cl.restart();
 	backgroundName = c.stringValue("background");
-	load_helper(c, this, "LAYER0", m);
-	load_helper(c, this, "LAYER1", m);
-	load_helper(c, this, "LAYER2", m);
-	load_helper(c, this, "LAYER3", m);
-	load_helper(c, this, "LAYER4", m);
+	load_helper(c, this, "LAYER0", manager);
+	load_helper(c, this, "LAYER1", manager);
+	load_helper(c, this, "LAYER2", manager);
+	load_helper(c, this, "LAYER3", manager);
+	load_helper(c, this, "LAYER4", manager);
 	logger::timing("Objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
 	logger::info("World loaded: " + f.parent().name() + "\\" + f.name());
 }

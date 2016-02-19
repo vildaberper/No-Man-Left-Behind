@@ -12,6 +12,8 @@ namespace c{
 	extern File musicDir;
 	extern File animationDir;
 
+	extern File collisionBoxFile;
+
 	extern float masterVolume;
 	extern float musicVolume;
 

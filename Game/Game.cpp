@@ -30,9 +30,9 @@ void Game::run(){
 	manager = new Manager();
 	manager->initialize(window);
 	logger::timing("Manager initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	world = new World();
+	world = new World(manager);
 	file = File().child("world.txt");
-	world->load(file, manager);
+	world->load(file);
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
 
 	controller = new Controller();
@@ -49,7 +49,7 @@ void Game::run(){
 	window->setFramerateLimit(60);
 	while(gi::startOfFrame()){
 		player->velocity = controller->movement() * (400.0f * (manager->inputManager->isPressed(Keyboard::LShift) ? 10.0f : 1.0f));
-		player->shouldCollide = !manager->inputManager->isPressed(Keyboard::E);
+		player->cb.shouldCollide = !manager->inputManager->isPressed(Keyboard::E);
 
 		world->tick();
 		manager->tick(window, world->time(), world->dt());

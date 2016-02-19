@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 
+#include "CollisionManager.h"
 #include "Entity.h"
 #include "SFMLI.h"
 
@@ -43,8 +44,7 @@ namespace drawable{
 		bool collidesWith(Drawable* d, const sf::Time& time, const Vector& position);
 		bool collidesWith(Drawable* d, const sf::Time& time);
 
-		Vector offset = Vector(0.0f, 0.0f);
-		Vector size = Vector(1.0f, 1.0f);
-		bool shouldCollide = false;
+		std::string reference = "";
+		CollisionBox cb;
 	};
 }

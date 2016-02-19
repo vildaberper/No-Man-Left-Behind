@@ -44,9 +44,9 @@ void Editor::run(){
 	manager = new Manager();
 	manager->initialize(window);
 	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	world = new World();
+	world = new World(manager);
 	file = File().child("world.txt");
-	world->load(file, manager);
+	world->load(file);
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
 
 	vector<string> cs = manager->spriteManager->categories();
@@ -241,6 +241,18 @@ const void Editor::mouseButtonListener(MouseButtonEvent& event){
 	switch (event.button()){
 	case Mouse::Button::Right:
 		dragging = event.pressed();
+		break;
+	case Mouse::Button::Middle:
+		if(event.pressed() && target != NULL){
+			if(selectedString != NULL){
+				delete selectedString;
+			}
+			selectedString = new string(target->drawable->reference);
+			if(selectedString->length() > 0){
+				spriteMenu->title = *selectedString;
+				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
+			}
+		}
 		break;
 	case Mouse::Button::Left:
 		targeting = target != NULL && event.pressed();

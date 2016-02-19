@@ -116,7 +116,7 @@ public:
 
 class World {
 public:
-	World();
+	World(Manager* manager);
 	~World();
 
 	void tick();
@@ -134,7 +134,9 @@ public:
 
 	void save(File& f);
 
-	void load(File& f, Manager* m);
+	void load(File& f);
+
+	Manager* manager;
 
 	std::string backgroundName;
 	sf::Texture* background;

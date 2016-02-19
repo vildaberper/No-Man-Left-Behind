@@ -6,6 +6,7 @@
 #include "Drawable.h"
 #include "Constants.h"
 #include "ProgressBar.h"
+#include "MathHelper.h"
 
 namespace gi{
 	static const float TARGET_WIDTH = 1920;

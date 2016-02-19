@@ -30,6 +30,7 @@ public:
 	const void unset(const std::string& path);
 
 	// Set value to node
+	void set(const std::string& path, const bool& value);
 	void set(const std::string& path, const std::string& value);
 	void set(const std::string& path, const float& value);
 	void set(const std::string& path, const int& value);
@@ -38,6 +39,7 @@ public:
 	void set(const std::string& path, const std::vector<int>& value);
 
 	// Get value from a node
+	const bool boolValue(const std::string& path);
 	const std::string stringValue(const std::string& path);
 	const float floatValue(const std::string& path);
 	const int intValue(const std::string& path);

@@ -51,7 +51,8 @@ const enum Type{
 	TYPEINT,
 	TYPEVECTORSTRING,
 	TYPEVECTORFLOAT,
-	TYPEVECTORINT
+	TYPEVECTORINT,
+	TYPEBOOL
 };
 
 class ConfigurationNode{
@@ -90,6 +91,12 @@ public:
 		}
 	}
 
+	void ConfigurationNode::set(const bool& value){
+		unset();
+		type = TYPEBOOL;
+		ConfigurationNode::value = new bool(value);
+	}
+
 	void ConfigurationNode::set(const string& value){
 		unset();
 		type = TYPESTRING;
@@ -124,6 +131,13 @@ public:
 		unset();
 		type = TYPEVECTORINT;
 		ConfigurationNode::value = new vector<int>(value);
+	}
+
+	const bool ConfigurationNode::boolValue(){
+		if(type != TYPEBOOL){
+			return false;
+		}
+		return *static_cast<bool*>(value);
 	}
 
 	const string ConfigurationNode::stringValue(){
@@ -174,6 +188,8 @@ public:
 
 	const string toString(){
 		switch (type){
+		case TYPEBOOL:
+			return boolValue() ? "true" : "false";
 		case TYPESTRING:
 			return '"' + stringValue() + '"';
 		case TYPEFLOAT:
@@ -230,7 +246,13 @@ public:
 	}
 
 	const bool parse(const string& value){
-		if (value.at(0) == '"' && value.at(value.length() - 1) == '"'){ // TYPESTRING
+		if(value == "true"){ // TYPEBOOL
+			set(true);
+		}
+		else if(value == "false"){
+			set(false);
+		}
+		else if (value.at(0) == '"' && value.at(value.length() - 1) == '"'){ // TYPESTRING
 			set(value.substr(1, value.length() - 2));
 		}
 		else if (isInt(value)){ // TYPEINT
@@ -458,6 +480,9 @@ const std::vector<std::string> Configuration::children(const std::string& path, 
 	if (root->containsNode(path)){
 		children = root->node(path).children();
 	}
+	else if(path.length() == 0){
+		children = root->children();
+	}
 	if (path.length() > 0 && fullPath){
 		for (size_t i = 0; i < children.size(); i++){
 			children[i] = path + PATH_SEPARATOR + children[i];
@@ -482,6 +507,9 @@ const void Configuration::unset(const std::string& path){
 	}
 }
 
+void Configuration::set(const string& path, const bool& value){
+	root->node(path).set(value);
+}
 void Configuration::set(const string& path, const string& value){
 	root->node(path).set(value);
 }
@@ -501,6 +529,12 @@ void Configuration::set(const string& path, const vector<int> &value){
 	root->node(path).set(value);
 }
 
+const bool Configuration::boolValue(const std::string& path){
+	if(root->containsNode(path)){
+		return root->node(path).boolValue();
+	}
+	return false;
+}
 const string Configuration::stringValue(const std::string& path){
 	if (root->containsNode(path)){
 		return root->node(path).stringValue();

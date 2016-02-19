@@ -34,7 +34,7 @@ void AnimationTester::run(){
 	manager->inputManager->registerListener(keyboardListenerW);
 	manager->inputManager->registerListener(mouseWheelListenerW);
 
-	world = new World();
+	world = new World(manager);
 
 	load();
 
@@ -79,7 +79,7 @@ void AnimationTester::load(){
 	if (a != NULL){
 		delete a;
 	}
-	world = new World();
+	world = new World(manager);
 
 	TextureManager* tm = manager->spriteManager->texMan;
 	tm->textures.insert(t);

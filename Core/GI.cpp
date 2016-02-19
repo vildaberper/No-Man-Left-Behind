@@ -88,12 +88,14 @@ namespace gi{
 			renderWindow->draw(rs);
 		}
 
-		if(collisionBoxes && drawable->shouldCollide){
+		draw(*s);
+
+		if(collisionBoxes && drawable->cb.shouldCollide){
 			sf::FloatRect fr = drawable->bounds(time);
 			sf::RectangleShape rs = sf::RectangleShape();
 			rs.setPosition(
-				round((fr.left - gi::cameraX + gi::WIDTH / 2) * gi::dx()) + 0.375f,
-				round((fr.top - gi::cameraY + gi::HEIGHT / 2) * gi::dy()) + 0.375f
+				round((fr.left - cameraX + WIDTH / 2) * dx()) + 0.375f,
+				round((fr.top - cameraY + HEIGHT / 2) * dy()) + 0.375f
 				);
 			rs.setSize(sf::Vector2f(fr.width * gi::dx(), fr.height * gi::dy()));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
@@ -101,8 +103,6 @@ namespace gi{
 			rs.setOutlineThickness(1);
 			renderWindow->draw(rs);
 		}
-
-		draw(*s);
 	}
 
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h){
