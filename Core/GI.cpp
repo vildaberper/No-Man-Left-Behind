@@ -95,12 +95,19 @@ namespace gi{
 			sf::RectangleShape rs = sf::RectangleShape();
 			rs.setPosition(
 				round((fr.left - cameraX + WIDTH / 2) * dx()) + 0.375f,
-				round((fr.top - cameraY + HEIGHT / 2) * dy()) + 0.375f
+				round((fr.top - cameraY + HEIGHT / 2) * dy()) - 0.5f + 0.375f
 				);
 			rs.setSize(sf::Vector2f(fr.width * gi::dx(), fr.height * gi::dy()));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
 			rs.setOutlineColor(sf::Color(255, 0, 0, 255));
 			rs.setOutlineThickness(1);
+			renderWindow->draw(rs);
+
+			rs.setPosition(s->getGlobalBounds().left, s->getGlobalBounds().top + s->getGlobalBounds().height * drawable->cb.renderOffset);
+			rs.setSize(sf::Vector2f(s->getGlobalBounds().width, 1.0f));
+			rs.setFillColor(sf::Color(0, 255, 0, 255));
+			rs.setOutlineColor(sf::Color(0, 255, 0, 255));
+			rs.setOutlineThickness(0);
 			renderWindow->draw(rs);
 		}
 	}

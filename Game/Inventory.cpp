@@ -48,7 +48,7 @@ ItemStack& Inventory::put(ItemStack& is, unsigned char slot){
 }
 ItemStack& Inventory::put(ItemStack& is){
 	for(size_t i = 0; i < size && is.amount > 0; i++){
-		put(is, i);
+		put(is, unsigned char(i));
 	}
 
 	return is;

@@ -25,6 +25,7 @@ bool CollisionManager::initialize(sf::RenderWindow* window){
 			cb->shouldCollide = c.boolValue(name + ".shouldCollide");
 			cb->offset = c.floatVector(name + ".offset");
 			cb->size = c.floatVector(name + ".size");
+			cb->renderOffset = c.floatValue(name + ".renderOffset");
 			collisionBoxes[name] = cb;
 		}
 	}
@@ -67,6 +68,7 @@ bool CollisionManager::save(File& file){
 		c.set(ent.first + ".shouldCollide", ent.second->shouldCollide);
 		c.set(ent.first + ".offset", ent.second->offset.fv());
 		c.set(ent.first + ".size", ent.second->size.fv());
+		c.set(ent.first + ".renderOffset", ent.second->renderOffset);
 	}
 	return c.save(file);
 }

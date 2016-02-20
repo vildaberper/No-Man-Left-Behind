@@ -18,6 +18,7 @@ public:
 	bool shouldCollide = false;
 	Vector offset = Vector(0.0f, 0.0f);
 	Vector size = Vector(1.0f, 1.0f);
+	float renderOffset = 1.0f;
 };
 
 class CollisionManager{

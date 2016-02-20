@@ -244,10 +244,7 @@ const void Editor::mouseButtonListener(MouseButtonEvent& event){
 		break;
 	case Mouse::Button::Middle:
 		if(event.pressed() && target != NULL){
-			if(selectedString != NULL){
-				delete selectedString;
-			}
-			selectedString = new string(target->drawable->reference);
+			*selectedString = target->drawable->reference;
 			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
 				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
@@ -278,7 +275,7 @@ const void Editor::mouseButtonListener(MouseButtonEvent& event){
 				}
 				targeting = true;
 				d->highlight = true;
-				target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2 * gi::dx(), s->getGlobalBounds().height / 2 * gi::dy());
+				target = new Target(d, selectedLayer, s->getLocalBounds().width * gi::dx() / 2, s->getLocalBounds().height * gi::dy() / 2);
 				mouseMoveListener(MouseMoveEvent(event.x(), event.y(), 0, 0));
 			}
 		}
@@ -403,6 +400,7 @@ const void Editor::mouseMoveListener(MouseMoveEvent& event){
 					}
 				}
 			}
+			world->orderDrawables(target->layer);
 		}
 	}
 }

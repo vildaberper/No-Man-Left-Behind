@@ -16,4 +16,5 @@ void Player::initialize(Manager* m){
 	cb.shouldCollide = true;
 	cb.offset = Vector(0.3f, 0.75f);
 	cb.size = Vector(0.4f, 0.2f);
+	cb.renderOffset = 0.84f;
 }

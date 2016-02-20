@@ -52,7 +52,7 @@ void World::tick(){
 		}
 	}
 
-	for (Entity* e : entities){
+	for(Entity* e : entities){
 		e->tick(time, dt_);
 	}
 
@@ -60,8 +60,9 @@ void World::tick(){
 	cleanAll(false);
 }
 
-const void World::render(){
-	if (background != NULL){
+
+const void World::renderBackground(){
+	if(background != NULL){
 		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::WIDTH + 3 * background->getSize().x), int(gi::HEIGHT + 3 * background->getSize().y)));
 		float x = (-gi::cameraX + gi::WIDTH / 2) * gi::dx();
 		float y = (-gi::cameraY + gi::HEIGHT / 2) * gi::dy();
@@ -71,30 +72,24 @@ const void World::render(){
 		s.scale(gi::dx(), gi::dy());
 		gi::draw(s);
 	}
-	for (const auto &ent : drawables){
-		for (drawable::Drawable* d : ent.second){
+}
+const void World::render(){
+	renderBackground();
+	for(const auto &ent : drawables){
+		for(drawable::Drawable* d : ent.second){
 			gi::draw(d, lastTime);
 		}
 	}
 }
 const void World::render(drawable::Drawable* relative){
-	if (background != NULL){
-		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::WIDTH + 3 * background->getSize().x), int(gi::HEIGHT + 3 * background->getSize().y)));
-		float x = (-gi::cameraX + gi::WIDTH / 2) * gi::dx();
-		float y = (-gi::cameraY + gi::HEIGHT / 2) * gi::dy();
-		x = fmod(x, background->getSize().x * gi::dx());
-		y = fmod(y, background->getSize().y * gi::dy());
-		s.setPosition(x - background->getSize().x * gi::dx(), y - background->getSize().y * gi::dy());
-		s.scale(gi::dx(), gi::dy());
-		gi::draw(s);
-	}
+	renderBackground();
 	std::vector<drawable::Drawable*> under;
 	std::vector<drawable::Drawable*> above;
 
 	sf::FloatRect rel = relative->getSprite(lastTime)->getGlobalBounds();
-	for (drawable::Drawable* d : drawables[LAYER2]){
+	for(drawable::Drawable* d : drawables[LAYER2]){
 		sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
-		if (fr.top + fr.height <= rel.top + rel.height){
+		if(fr.top + fr.height * d->cb.renderOffset <= rel.top + rel.height * relative->cb.renderOffset){
 			under.push_back(d);
 		}
 		else{
@@ -102,26 +97,26 @@ const void World::render(drawable::Drawable* relative){
 		}
 	}
 
-	for (const auto &ent : drawables){
-		if (ent.first == LAYER2){
+	for(const auto &ent : drawables){
+		if(ent.first == LAYER2){
 			break;
 		}
-		for (drawable::Drawable* d : ent.second){
+		for(drawable::Drawable* d : ent.second){
 			gi::draw(d, lastTime);
 		}
 	}
-	for (drawable::Drawable* d : under){
+	for(drawable::Drawable* d : under){
 		gi::draw(d, lastTime);
 	}
 	gi::draw(relative, lastTime);
-	for (drawable::Drawable* d : above){
+	for(drawable::Drawable* d : above){
 		gi::draw(d, lastTime);
 	}
-	for (const auto &ent : drawables){
-		if (ent.first == LAYER0 || ent.first == LAYER1 || ent.first == LAYER2){
+	for(const auto &ent : drawables){
+		if(ent.first == LAYER0 || ent.first == LAYER1 || ent.first == LAYER2){
 			continue;
 		}
-		for (drawable::Drawable* d : ent.second){
+		for(drawable::Drawable* d : ent.second){
 			gi::draw(d, lastTime);
 		}
 	}
@@ -135,23 +130,44 @@ const float World::dt(){
 	return dt_;
 }
 
+void World::orderDrawables(const Layer& layer){
+	bool swapped;
+	drawable::Drawable* current;
+	drawable::Drawable* before;
+
+	do{ // Yay bubblesort
+		swapped = false;
+		for(size_t i = 1; i < drawables[layer].size(); i++){
+			sf::FloatRect frCurrent = (current = drawables[layer][i])->getSprite(lastTime)->getGlobalBounds();
+			sf::FloatRect frBefore = (before = drawables[layer][i - 1])->getSprite(lastTime)->getGlobalBounds();
+
+			if(frBefore.top + frBefore.height * before->cb.renderOffset > frCurrent.top + frCurrent.height * current->cb.renderOffset){
+				drawables[layer][i] = before;
+				drawables[layer][i - 1] = current;
+				swapped = true;
+			}
+		}
+	} while(swapped);
+}
+
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	entities.push_back((Entity*) drawable);
 	drawables[layer].push_back(drawable);
 
 	drawable->reference = drawable->animations[drawable->currentAnimation]->textures[0];
 	drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
-	if(drawable->cb.shouldCollide){
+	if(drawable->cb.shouldCollide && layer == LAYER2){
 		collidables.push_back(drawable);
 	}
+	orderDrawables(layer);
 }
 
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
-	if (drawables[layer].size() > 0){
-		for (size_t i = 0; i < drawables[layer].size(); i++){
+	if(drawables[layer].size() > 0){
+		for(size_t i = 0; i < drawables[layer].size(); i++){
 			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
 			sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
-			if (
+			if(
 				fr.left < x
 				&& fr.left + fr.width > x
 				&& fr.top < y
@@ -163,16 +179,16 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 					x - (d->position.x - (gi::cameraX - gi::TARGET_WIDTH / 2)) * gi::dx(),
 					y - (d->position.y - (gi::cameraY - gi::TARGET_HEIGHT / 2)) * gi::dy()
 					);
-			} 
+			}
 		}
 	}
 	return NULL;
 }
 
 void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::string layer){
-	for (size_t i = 0; i < ds.size(); i++){
+	for(size_t i = 0; i < ds.size(); i++){
 		drawable::Drawable d = *ds[i];
-		if (!d.isAlive()){
+		if(!d.isAlive()){
 			continue;
 		}
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
@@ -183,7 +199,7 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 		c.set(sub + ".position", d.position.fv());
 		c.set(sub + ".velocity", d.velocity.fv());
 		sub += ".animations";
-		for (auto &ent : d.animations){
+		for(auto &ent : d.animations){
 			drawable::Animation* a = d.animations[ent.first];
 			std::string suba = sub + "." + ent.first;
 			c.set(suba + ".timing", a->timing.asMilliseconds());
@@ -196,7 +212,7 @@ void World::save(File& f){
 	sf::Clock cl;
 	Configuration c;
 
-	if (backgroundName.length() > 0){
+	if(backgroundName.length() > 0){
 		c.set("background", backgroundName);
 	}
 	save_helper(c, drawables[LAYER0], "LAYER0");
@@ -212,7 +228,7 @@ void World::save(File& f){
 void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 	std::vector<std::string> cs = c.children("drawables." + layer);
 	size_t size = cs.size();
-	for (size_t i = 0; i < size; i++){
+	for(size_t i = 0; i < size; i++){
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
 		drawable::Drawable* d = new drawable::Drawable();
 		d->currentAnimation = c.stringValue(sub + ".currentAnimation");
@@ -224,11 +240,11 @@ void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 		d->position.y = ceil(d->position.y);
 		d->velocity = Vector(c.floatVector(sub + ".velocity"));
 		sub += ".animations";
-		for (std::string an : c.children(sub, false)){
+		for(std::string an : c.children(sub, false)){
 			drawable::Animation* a = new drawable::Animation();
 			a->timing = sf::milliseconds(c.intValue(sub + "." + an + ".timing"));
 			a->textures = c.stringVector(sub + "." + an + ".textures");
-			for (std::string t : a->textures){
+			for(std::string t : a->textures){
 				a->sprites.push_back(m->spriteManager->getSprite(t));
 			}
 			d->animations[an] = a;
@@ -257,15 +273,15 @@ void World::load(File& f){
 }
 
 void World::cleanAll(const bool& all){
-	for (auto &ent : drawables){
+	for(auto &ent : drawables){
 		ent.second.erase(
 			remove_if(ent.second.begin(), ent.second.end(),
-			[all](drawable::Drawable* e){ return all || !((Entity*)e)->isAlive(); }),
+				[all](drawable::Drawable* e){ return all || !((Entity*) e)->isAlive(); }),
 			ent.second.end());
 	}
 
-	for (size_t i = 0; i < entities.size(); i++){
-		if (all || !entities[i]->isAlive()){
+	for(size_t i = 0; i < entities.size(); i++){
+		if(all || !entities[i]->isAlive()){
 			// delete entities[i]; TODO Fix memory leak
 			entities.erase(entities.begin() + (i--));
 		}

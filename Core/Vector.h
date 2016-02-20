@@ -23,8 +23,8 @@ public:
 	}
 
 	Vector(const std::vector<float>& fs){
-		Vector::x = fs[0];
-		Vector::y = fs[1];
+		Vector::x = fs.size() > 0 ? fs[0] : 0.0f;
+		Vector::y = fs.size() > 1 ? fs[1] : 0.0f;
 	}
 
 	Vector(){

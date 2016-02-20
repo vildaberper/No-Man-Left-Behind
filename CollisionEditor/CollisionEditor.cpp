@@ -245,6 +245,22 @@ const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
 		}
 		break;
 	}
+	case Mouse::Button::Right:
+	{
+		if(event.pressed()){
+			if(selectedString->length() > 0 && d != NULL){
+				FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
+				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+
+				float y = (event.y() - fr.top) / fr.height;
+
+				cb->renderOffset = y;
+
+				update();
+			}
+		}
+		break;
+	}
 	}
 }
 

@@ -121,12 +121,15 @@ public:
 
 	void tick();
 
+	const void renderBackground();
 	const void render();
 	const void render(drawable::Drawable* relative);
 
 	const sf::Time time();
 
 	const float dt();
+
+	void orderDrawables(const Layer& layer);
 
 	void addDrawable(drawable::Drawable* drawable, const Layer& layer);
 
