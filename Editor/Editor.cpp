@@ -152,6 +152,9 @@ void Editor::run(){
 	backgroundM->items.push_back(backgroundMenu);
 	manager->menuManager->menus["background"] = backgroundM;
 
+	gi::smoothCamera = true;
+	gi::cameraSmoothness = 25.0f;
+
 	while (gi::startOfFrame()){
 		if (manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
 			gi::zoom(gi::cameraZ + 1.0f * gi::cameraZ * world->dt());
@@ -164,6 +167,8 @@ void Editor::run(){
 		manager->tick(window, world->time(), world->dt());
 
 		window->clear();
+
+		gi::camera(world->dt());
 
 		world->render();
 
@@ -287,8 +292,8 @@ const void Editor::mouseMoveListener(MouseMoveEvent& event){
 		return;
 	}
 	if (dragging){
-		gi::cameraX -= event.dx() / gi::dx();
-		gi::cameraY -= event.dy() / gi::dy();
+		gi::cameraTargetX -= event.dx() / gi::dx();
+		gi::cameraTargetY -= event.dy() / gi::dy();
 	}
 	if (!targeting){
 		Target* nt;

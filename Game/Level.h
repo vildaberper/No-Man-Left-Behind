@@ -3,11 +3,12 @@
 #include "Truck.h"
 #include "World.h"
 #include "Player.h"
+#include "Injured.h"
 #include "Controller.h"
 
 enum LevelState{
 	TRUCKMOVING,
-	TRUCKBREAK,
+	TRUCKBREAKING,
 	PLAYING
 };
 
@@ -34,8 +35,11 @@ public:
 	Vector spawn;
 	float timeBeforeBreak;
 
-	Player* player;
+	Player* player = NULL;
 
+	bool firstFrame = true;
 	LevelState state;
 	float fadeValue;
+
+	std::vector<Injured*> injured;
 };

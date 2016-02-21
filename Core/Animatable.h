@@ -15,6 +15,8 @@ public:
 
 	void apply(Manager* m, const std::string& a);
 
+	void setNextState(const unsigned int& state);
+
 	virtual void move(const float& dt);
 
 	AnimatableType animatableType;

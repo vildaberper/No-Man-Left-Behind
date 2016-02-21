@@ -20,6 +20,11 @@ namespace gi{
 	extern float cameraY;
 	extern float cameraZ;
 
+	extern bool smoothCamera;
+	extern float cameraSmoothness;
+	extern float cameraTargetX;
+	extern float cameraTargetY;
+
 	extern float WIDTH;
 	extern float HEIGHT;
 
@@ -28,6 +33,8 @@ namespace gi{
 	extern sf::Font menuFont;
 
 	void zoom(const float& zoom);
+
+	void camera(const float& dt);
 
 	// Initialize \ Finalize
 	bool initalize(sf::RenderWindow*& rw);

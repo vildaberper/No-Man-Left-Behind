@@ -29,6 +29,16 @@ void Animatable::apply(Manager* m, const std::string& a){
 	}
 }
 
+void Animatable::setNextState(const unsigned int& state){
+	unsigned char s = state;
+	if(animatableType == STATES){
+		if(s >= numStates){
+			s = numStates - 1;
+		}
+		nextAnimation = "state" + std::to_string(s);
+	}
+}
+
 void Animatable::move(const float& dt){
 	switch(animatableType){
 	case DIRECTIONAL:

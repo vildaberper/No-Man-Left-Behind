@@ -12,7 +12,7 @@ void Player::initialize(Manager* m){
 	animatableType = DIRECTIONAL;
 	apply(m, "player");
 
-	currentAnimation = nextAnimation = "leftidle";
+	currentAnimation = nextAnimation = "downidle";
 	scale = 1.0f;
 	cb.shouldCollide = true;
 	cb.offset = Vector(0.3f, 0.75f);

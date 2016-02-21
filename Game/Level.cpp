@@ -23,14 +23,34 @@ void Level::begin(){
 	world->load(c::worldDir.child(worldFileName));
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
 
-	player = new Player();
-	player->initialize(manager);
+	if(player == NULL){
+		player = new Player();
+		player->initialize(manager);
+	}
 
 	truck = new Truck();
 	truck->initialize(manager);
 	truck->position = spawn;
 	truck->position.y -= truck->getSprite(world->time())->getGlobalBounds().height * truck->cb.renderOffset / gi::dy();
 	world->addDrawable(truck, LAYER2);
+
+	Injured* in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 0);
+	in->position = Vector(2000.0f, 500.0f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 1);
+	in->position = Vector(2300.0f, 500.0f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 2);
+	in->position = Vector(2600.0f, 500.0f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
 }
 
 void Level::tick(){
@@ -41,22 +61,28 @@ void Level::tick(){
 	case TRUCKMOVING:
 	{
 		world->tick();
-		gi::cameraX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
-		gi::cameraY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
+		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		if(firstFrame){
+			gi::cameraX = gi::cameraTargetX;
+			gi::cameraY = gi::cameraTargetY;
+			firstFrame = false;
+		}
+		gi::camera(world->dt());
 		world->render(truck);
 
 		if(world->time().asSeconds() > timeBeforeBreak){
-			state = TRUCKBREAK;
+			state = TRUCKBREAKING;
 			truck->targetspeed = 0.0f;
 		}
-
 		break;
 	}
-	case TRUCKBREAK:
+	case TRUCKBREAKING:
 	{
 		world->tick();
-		gi::cameraX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
-		gi::cameraY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
+		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::camera(world->dt());
 		world->render(truck);
 
 		if(truck->velocity.direction() == ZERO){
@@ -66,19 +92,20 @@ void Level::tick(){
 			world->entities.push_back(player);
 			world->collidables.push_back(player);
 		}
-
 		break;
 	}
 	case PLAYING:
 	{
 		player->velocity = controller->movement();
 		world->tick();
-		gi::cameraX = player->position.x + player->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
-		gi::cameraY = player->position.y + player->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::cameraTargetX = player->position.x + player->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
+		gi::cameraTargetY = player->position.y + player->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::camera(world->dt());
 		world->render(player);
 		break;
 	}
 	}
+
 	if(fadeValue > 0.0f){
 		gi::darken(fadeValue);
 	}

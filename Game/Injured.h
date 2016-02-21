@@ -6,16 +6,25 @@
 #include "Animatable.h"
 #include "Item.h"
 
-enum InjuredState {
-	DEAD,
-	CRITICAL,
-	SERIOUS,
-	FAIR,
-	HEALED
+enum InjuredState{
+	DEAD = 0,
+	CRITICAL = 1,
+	SERIOUS = 2,
+	FAIR = 3,
+	HEALED = 4
 };
 
-static const InjuredState nextInjure(const InjuredState& current) {
-	switch(current) {
+static const unsigned char INJURED_STATES = 5;
+
+static const InjuredState injuredState(const unsigned int& i){
+	if(i >= INJURED_STATES){
+		return HEALED;
+	}
+	return InjuredState(i);
+}
+
+static const InjuredState nextInjuredState(const InjuredState& current){
+	switch(current){
 	case DEAD:
 		return CRITICAL;
 		break;
@@ -35,8 +44,8 @@ static const InjuredState nextInjure(const InjuredState& current) {
 	return DEAD;
 }
 
-static const InjuredState previusInjuredState(const InjuredState& current) {
-	switch(current) {
+static const InjuredState previusInjuredState(const InjuredState& current){
+	switch(current){
 	case DEAD:
 		return DEAD;
 		break;
@@ -56,39 +65,39 @@ static const InjuredState previusInjuredState(const InjuredState& current) {
 	return DEAD;
 }
 
-static const InjuredState parseInjuredState(const std::string& s) {
-	if(s == "DEAD") {
+static const InjuredState parseInjuredState(const std::string& s){
+	if(s == "DEAD"){
 		return DEAD;
 	}
-	else if(s == "CRITICAL") {
+	else if(s == "CRITICAL"){
 		return CRITICAL;
 	}
-	else if(s == "SERIOUS") {
+	else if(s == "SERIOUS"){
 		return SERIOUS;
 	}
-	else if(s == "FAIR") {
+	else if(s == "FAIR"){
 		return FAIR;
 	}
-	else if(s == "HEALED") {
+	else if(s == "HEALED"){
 		return HEALED;
 	}
 	return DEAD;
 }
 
-static const std::string injuredStateToString(const InjuredState& Injure) {
-	if(Injure == DEAD) {
+static const std::string injuredStateToString(const InjuredState& Injure){
+	if(Injure == DEAD){
 		return "DEAD";
 	}
-	else if(Injure == CRITICAL) {
+	else if(Injure == CRITICAL){
 		return "CRITICAL";
 	}
-	else if(Injure == SERIOUS) {
+	else if(Injure == SERIOUS){
 		return "SERIOUS";
 	}
-	else if(Injure == FAIR) {
+	else if(Injure == FAIR){
 		return "FAIR";
 	}
-	else if(Injure == HEALED) {
+	else if(Injure == HEALED){
 		return "HEALED";
 	}
 	return "DEAD";
@@ -99,7 +108,7 @@ enum Injure{
 };
 
 /*
-	toString/parse Injure
+	toString/parse Injure TODO not enum
 */
 
 namespace injured{
@@ -116,14 +125,19 @@ namespace injured{
 
 static const std::map<Injure, std::vector<Resource>> requirements = injured::createRequirements();
 
-class Injured: public Animatable {
+class Injured: public Animatable{
 public:
 	Injured();
 	~Injured();
 
+	void initialize(Manager* manager, const std::string& animation, const Injure& injure, const size_t& progress = 0);
+
+	void updateAnimation();
+
+	bool isHealed();
+
 	Injure injure;
-	size_t progress;
+	size_t progress; // InjuredState
 
 	sf::Time timer;
-	InjuredState injuredState; // Same as progress?
 };

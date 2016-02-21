@@ -26,7 +26,10 @@ void Game::run(){
 	logger::timing("Constants initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
 	clock.restart();
 	gi::initalize(window);
+	gi::smoothCamera = true;
 	logger::timing("Graphics interface initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
+
+	gi::renderWindow->setMouseCursorVisible(false);
 
 	Level* level = NULL;
 

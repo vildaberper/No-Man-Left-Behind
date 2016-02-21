@@ -41,11 +41,9 @@ void Truck::move(const float& dt){
 		playedStopped = false;
 		if(playingStopping){
 			si::stopSound(soundId);
-			logger::debug("Stopping truck sound stopping");
 			playingStopping = false;
 		}
 		if(!playingRunning){
-			logger::debug("Playing truck sound running");
 			playingRunning = true;
 			soundId = si::playSound("truck.running", true);
 		}
@@ -53,11 +51,9 @@ void Truck::move(const float& dt){
 	else{
 		if(playingRunning){
 			si::stopSound(soundId);
-			logger::debug("Stopping truck sound running");
 			playingRunning = false;
 		}
 		if(!playingStopping && !playedStopped){
-			logger::debug("Playing truck sound stopping");
 			playingStopping = true;
 			soundId = si::playSound("truck.stopping");
 		}
