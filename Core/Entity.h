@@ -13,12 +13,12 @@ public:
 	};
 	~Entity(){};
 
-	void move(const float& dt){
+	virtual void move(const float& dt){
 		position += velocity * dt;
 	}
 
 	virtual void tick(const sf::Time& time, const float& dt){
-		move(dt);
+		
 	};
 
 	bool isAlive(){

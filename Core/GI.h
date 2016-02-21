@@ -54,6 +54,8 @@ namespace gi{
 
 	void draw(ProgressBar* progressbar, const sf::Time& time);
 
+	void darken(const float& darkness);
+
 	// endOfFrame
 	bool endOfFrame();
 }

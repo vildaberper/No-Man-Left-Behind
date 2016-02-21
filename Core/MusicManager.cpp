@@ -9,8 +9,6 @@ bool DEFAULT_FADEOUT = false;
 bool DEFAULT_FADEIN = false;
 bool DEFAULT_LOOP = false;
 
-unsigned long idTracker;
-
 MusicManager::MusicManager(){
 }
 
@@ -18,8 +16,6 @@ MusicManager::~MusicManager(){
 }
 
 bool MusicManager::initialize(sf::RenderWindow* window){
-	idTracker = 0;
-
 	Clock cl;
 	// Loading sounds
 	if (archiveMusic()){

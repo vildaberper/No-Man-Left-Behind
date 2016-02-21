@@ -23,8 +23,15 @@ namespace gi{
 	}
 
 	bool initalize(sf::RenderWindow*& rw){
-		//renderWindow = rw = new sf::RenderWindow(sf::VideoMode(1920, 1080, 32), "SFML", sf::Style::Fullscreen);
-		renderWindow = rw = new sf::RenderWindow(sf::VideoMode(1280, 720, 32), "NMLB");
+		if(c::fullscreen){
+			renderWindow = rw = new sf::RenderWindow(sf::VideoMode(c::resX, c::resY, 32), c::WINDOW_TITLE, sf::Style::Fullscreen);
+		}
+		else{
+			renderWindow = rw = new sf::RenderWindow(sf::VideoMode(c::resX, c::resY, 32), c::WINDOW_TITLE);
+		}
+		renderWindow->setFramerateLimit(c::frameLimit);
+		renderWindow->setVerticalSyncEnabled(c::verticalSync);
+
 		drawCalls = frameCount = 0;
 
 		cameraX = TARGET_WIDTH / 2;
@@ -95,7 +102,7 @@ namespace gi{
 			sf::RectangleShape rs = sf::RectangleShape();
 			rs.setPosition(
 				round((fr.left - cameraX + WIDTH / 2) * dx()) + 0.375f,
-				round((fr.top - cameraY + HEIGHT / 2) * dy()) - 0.5f + 0.375f
+				round((fr.top - cameraY + HEIGHT / 2) * dy()) + 0.375f
 				);
 			rs.setSize(sf::Vector2f(fr.width * gi::dx(), fr.height * gi::dy()));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
@@ -103,7 +110,7 @@ namespace gi{
 			rs.setOutlineThickness(1);
 			renderWindow->draw(rs);
 
-			rs.setPosition(s->getGlobalBounds().left, s->getGlobalBounds().top + s->getGlobalBounds().height * drawable->cb.renderOffset);
+			rs.setPosition(s->getGlobalBounds().left, s->getGlobalBounds().top + s->getGlobalBounds().height * drawable->cb.renderOffset - 0.5f);
 			rs.setSize(sf::Vector2f(s->getGlobalBounds().width, 1.0f));
 			rs.setFillColor(sf::Color(0, 255, 0, 255));
 			rs.setOutlineColor(sf::Color(0, 255, 0, 255));
@@ -214,6 +221,14 @@ namespace gi{
 		renderWindow->draw(rs);
 	}
 
+	void darken(const float& darkness){
+		sf::RectangleShape rs = sf::RectangleShape();
+		rs.setFillColor(sf::Color(0, 0, 0, int(255 * darkness)));
+		rs.setOutlineThickness(0);
+		rs.setPosition(0, 0);
+		rs.setSize(sf::Vector2f(float(renderWindow->getSize().x), float(renderWindow->getSize().y)));
+		renderWindow->draw(rs);
+	}
 
 	// endOfFrame
 	bool endOfFrame(){

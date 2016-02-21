@@ -21,54 +21,62 @@ Game::~Game(){
 }
 
 void Game::run(){
-	sf::Clock fg;
+	sf::Clock clock;
 	c::initialize();
-	logger::timing("Constants initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	fg.restart();
+	logger::timing("Constants initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
+	clock.restart();
 	gi::initalize(window);
-	logger::timing("Graphics interface initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	manager = new Manager();
-	manager->initialize(window);
-	logger::timing("Manager initialized in " + to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	world = new World(manager);
-	file = File().child("world.txt");
-	world->load(file);
-	world->background = manager->spriteManager->getBackground(world->backgroundName);
+	logger::timing("Graphics interface initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
 
-	controller = new Controller();
-	controller->initialize(manager);
+	Level* level = NULL;
 
-	player = new Player();
-
-	player->initialize(manager);
-	world->entities.push_back(player);
-	world->collidables.push_back(player);
-
-	gi::collisionBoxes = true;
-
-	window->setFramerateLimit(60);
+	Time lastTime;
 	while(gi::startOfFrame()){
-		player->velocity = controller->movement() * (400.0f * (manager->inputManager->isPressed(Keyboard::LShift) ? 10.0f : 1.0f));
-		player->cb.shouldCollide = !manager->inputManager->isPressed(Keyboard::E);
+		if(!managerInitialized){
+			gi::darken(1.0f);
+			gi::endOfFrame();
+			clock.restart();
+			manager = new Manager();
+			manager->initialize(window);
+			logger::timing("Manager initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
+			controller = new Controller();
+			controller->initialize(manager);
+			managerInitialized = true;
+			continue;
+		}
+		if(level == NULL){
+			gi::darken(1.0f);
+			gi::endOfFrame();
+			clock.restart();
+			level = new Level(manager, controller);
+			level->begin();
+			logger::timing("Level initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
+			clock.restart();
+		}
 
-		world->tick();
-		manager->tick(window, world->time(), world->dt());
+		if(manager->inputManager->isPressed(Keyboard::Escape)){
+			window->close();
+		}
 
-		gi::cameraX = player->position.x;
-		gi::cameraY = player->position.y;
+		Time time = clock.getElapsedTime();
+		float dt = (time - lastTime).asSeconds();
+
+		gi::collisionBoxes = manager->inputManager->isPressed(Keyboard::C);
+
+		manager->tick(window, time, dt);
 
 		window->clear();
 
-		world->render(player);
+		level->tick();
 
-		manager->menuManager->draw(world->time());
+		manager->menuManager->draw(time);
 
+		lastTime = time;
 		gi::endOfFrame();
 	}
+	delete level;
 	manager->finalize(window);
 	delete manager;
 	gi::finalize();
-	delete world;
 	delete controller;
-	delete player;
 }

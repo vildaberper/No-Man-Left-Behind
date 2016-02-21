@@ -9,4 +9,8 @@ public:
 	~Player();
 
 	void initialize(Manager* m);
+
+	virtual void tick(const sf::Time& time, const float& dt);
+
+	float speed;
 };

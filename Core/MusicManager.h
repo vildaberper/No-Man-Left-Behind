@@ -42,4 +42,6 @@ private:
 
 	bool archiveMusic();
 	bool archiveMusicFromDir(File& dir);
+
+	unsigned long idTracker = 0;
 };

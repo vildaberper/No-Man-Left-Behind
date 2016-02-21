@@ -17,10 +17,12 @@ void mouseMoveListenerW(MouseMoveEvent& event){
 
 CollisionEditor::CollisionEditor(){
 	collisionEditor = this;
+	current = new std::string();
 	selectedString = new std::string();
 }
 
 CollisionEditor::~CollisionEditor(){
+	delete current;
 	delete selectedString;
 }
 
@@ -35,6 +37,7 @@ void CollisionEditor::run(){
 	manager->initialize(window);
 	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	world = new World(manager);
+	world->background = manager->spriteManager->getBackground("Snow");
 
 	vector<string> cs = manager->spriteManager->categories();
 	Menu* cm = new Menu();
@@ -78,7 +81,6 @@ void CollisionEditor::run(){
 
 	gi::collisionBoxes = true;
 
-	window->setFramerateLimit(60);
 	while(gi::startOfFrame()){
 		if(manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
 			gi::zoom(gi::cameraZ + 1.0f * gi::cameraZ * world->dt());
@@ -87,66 +89,37 @@ void CollisionEditor::run(){
 			gi::zoom(gi::cameraZ - 1.0f * gi::cameraZ * world->dt());
 		}
 
-		// Keyboard
-		if(manager->inputManager->isPressed(Keyboard::LShift)){
-			if(manager->inputManager->isPressed(Keyboard::W)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+		if(current->length() > 0){
+			CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
+			if(manager->inputManager->isPressed(Keyboard::LShift)){
+				if(manager->inputManager->isPressed(Keyboard::W)){
 					cb->size.y -= 0.1f * world->dt();
-					update();
 				}
-			}
-			if(manager->inputManager->isPressed(Keyboard::S)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				if(manager->inputManager->isPressed(Keyboard::S)){
 					cb->size.y += 0.1f * world->dt();
-					update();
 				}
-			}
-			if(manager->inputManager->isPressed(Keyboard::A)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				if(manager->inputManager->isPressed(Keyboard::A)){
 					cb->size.x -= 0.1f * world->dt();
-					update();
 				}
-			}
-			if(manager->inputManager->isPressed(Keyboard::D)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				if(manager->inputManager->isPressed(Keyboard::D)){
 					cb->size.x += 0.1f * world->dt();
-					update();
 				}
 			}
-		}
-		else{
-			if(manager->inputManager->isPressed(Keyboard::W)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+			else{
+				if(manager->inputManager->isPressed(Keyboard::W)){
 					cb->offset.y -= 0.1f * world->dt();
-					update();
 				}
-			}
-			if(manager->inputManager->isPressed(Keyboard::S)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				if(manager->inputManager->isPressed(Keyboard::S)){
 					cb->offset.y += 0.1f * world->dt();
-					update();
 				}
-			}
-			if(manager->inputManager->isPressed(Keyboard::A)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				if(manager->inputManager->isPressed(Keyboard::A)){
 					cb->offset.x -= 0.1f * world->dt();
-					update();
 				}
-			}
-			if(manager->inputManager->isPressed(Keyboard::D)){
-				if(selectedString->length() > 0){
-					CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				if(manager->inputManager->isPressed(Keyboard::D)){
 					cb->offset.x += 0.1f * world->dt();
-					update();
 				}
 			}
+			update();
 		}
 
 		world->tick();
@@ -172,11 +145,11 @@ void CollisionEditor::update(){
 		d->kill();
 	}
 
-	if(selectedString->length() == 0){
+	if(current->length() == 0){
 		return;
 	}
 
-	Sprite* s = manager->spriteManager->getSprite(*selectedString);
+	Sprite* s = manager->spriteManager->getSprite(*current);
 	d = new drawable::Drawable();
 	drawable::Animation* a = new drawable::Animation();
 	d->position = Vector(
@@ -184,7 +157,7 @@ void CollisionEditor::update(){
 		gi::TARGET_HEIGHT / 2 - s->getGlobalBounds().height / 2
 		);
 	d->scale = 1.0f;
-	a->textures.push_back(*selectedString);
+	a->textures.push_back(*current);
 	a->sprites.push_back(s);
 	a->timing = milliseconds(1000);
 	d->animations["default"] = a;
@@ -197,11 +170,14 @@ const void CollisionEditor::keyboardListener(KeyboardEvent& event){
 		return;
 	}
 	switch(event.key()){
+	case Keyboard::Escape:
+		window->close();
+		break;
 	case Keyboard::C:
 	{
 		if(event.pressed() && event.first()){
-			if(selectedString->length() > 0){
-				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+			if(current->length() > 0){
+				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 				cb->shouldCollide = !cb->shouldCollide;
 				update();
 			}
@@ -215,6 +191,20 @@ const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
 	if(event.isCancelled()){
 		if(event.button() == Mouse::Button::Left && event.pressed()){
 			if(selectedString->length() > 0){
+				if(manager->inputManager->isPressed(Keyboard::LShift)){
+					if(current->length() > 0 && d != NULL){
+						CollisionBox* cbc = manager->collisionManager->getCollisionBoxReference(*selectedString);
+						CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
+						cb->offset = cbc->offset;
+						cb->renderOffset = cbc->renderOffset;
+						cb->shouldCollide = cbc->shouldCollide;
+						cb->size = cbc->size;
+					}
+				}
+				else{
+					delete current;
+					current = new string(*selectedString);
+				}
 				update();
 			}
 		}
@@ -224,9 +214,9 @@ const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
 	case Mouse::Button::Left:
 	{
 		if(event.pressed()){
-			if(selectedString->length() > 0 && d != NULL){
+			if(current->length() > 0 && d != NULL){
 				FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
-				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
 				cb->shouldCollide = true;
 
@@ -248,9 +238,9 @@ const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
 	case Mouse::Button::Right:
 	{
 		if(event.pressed()){
-			if(selectedString->length() > 0 && d != NULL){
+			if(current->length() > 0 && d != NULL){
 				FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
-				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
 				float y = (event.y() - fr.top) / fr.height;
 
@@ -266,9 +256,9 @@ const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
 
 const void CollisionEditor::mouseMoveListener(MouseMoveEvent& event){
 	if(dragging){
-		if(selectedString->length() > 0 && d != NULL){
+		if(current->length() > 0 && d != NULL){
 			FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
-			CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*selectedString);
+			CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
 			float x = (event.x() - fr.left - cb->offset.x * fr.width) / fr.width;
 			float y = (event.y() - fr.top - cb->offset.y * fr.height) / fr.height;

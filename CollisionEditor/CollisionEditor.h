@@ -32,5 +32,6 @@ private:
 	unsigned long mouseButtonListenerId;
 	unsigned long mouseMoveListenerId;
 
+	std::string* current = NULL;
 	std::string* selectedString = NULL;
 };

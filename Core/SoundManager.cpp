@@ -5,8 +5,6 @@
 using namespace std;
 using namespace sf;
 
-bool playing = false;
-
 SoundManager::SoundManager(){
 }
 
@@ -17,14 +15,14 @@ bool SoundManager::initialize(RenderWindow* window){
 	sf::Clock cl;
 
 	undefined = new SoundBuffer();
-	File u = c::soundDir.child("undefined.ogg");
-	if (!u.isFile() || !undefined->loadFromFile(u.path())){
+	File u = c::soundDir.child("undefined.wav");
+	if(!u.isFile() || !undefined->loadFromFile(u.path())){
 		logger::warning("Undefined sound not found!");
 	}
 	sounds.insert(undefined);
 
 	// Loading sounds
-	if (loadSounds()){
+	if(loadSounds()){
 		logger::timing("Sounds loaded in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return true;
 	}
@@ -36,11 +34,12 @@ bool SoundManager::initialize(RenderWindow* window){
 
 bool SoundManager::finalize(RenderWindow* window){
 	// Empty containers
-	for (Sound* s : channels){
-		delete s;
+	for(auto &ent : channels){
+		ent.second->stop();
+		delete ent.second;
 	}
 	channels.clear();
-	for (SoundBuffer* sb : sounds){
+	for(SoundBuffer* sb : sounds){
 		delete sb;
 	}
 	sounds.clear();
@@ -51,38 +50,49 @@ bool SoundManager::finalize(RenderWindow* window){
 }
 
 void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt){
-	// Cleaning stoped sounds
-	for (size_t i = 0; i < channels.size(); i++){
-		if (channels[i]->getStatus() == Sound::Stopped){
-			delete channels[i];
-			channels.erase(channels.begin() + (i--));
+	// Cleaning stopped sounds
+	for(auto &ent : channels){
+		if(ent.second->getStatus() == Sound::Stopped){
+			delete ent.second;
+			ent.second = NULL;
 		}
 	}
+	for(std::map<unsigned long, Sound*>::iterator i = channels.begin(); i != channels.end(); ) {
+		if(i->second == NULL) {
+			channels.erase(i++);
+		}
+		else {
+			++i;
+		}
+	}
+
 	// If game is paused
-	if (dt <= 0.0f){
-		if (playing){
-			for (Sound* s : channels){
-				s->pause();
+	if(dt <= 0.0f){
+		if(playing){
+			for(auto &ent : channels){
+				ent.second->pause();
 			}
 			playing = false;
 		}
 	}
 	else{
-		if (!playing){
-			for (Sound* s : channels){
-				s->play();
+		if(!playing){
+			for(auto &ent : channels){
+				ent.second->play();
 			}
 			playing = true;
 		}
 	}
 }
 
-bool SoundManager::play(const std::string& name){
+unsigned long SoundManager::play(const std::string& name, const bool& loop){
 	std::string::size_type index = name.find_first_of('.');
 
-	return play(name.substr(0, index), name.substr(index + 1));
+	return play(name.substr(0, index), name.substr(index + 1), loop);
 }
-bool SoundManager::play(const string& category, const string& name){
+unsigned long SoundManager::play(const string& category, const string& name, const bool& loop){
+	unsigned long id = idTracker++;
+
 	// can add a cap to how many sounds can play at once
 	if(channels.size() > 100){
 		logger::warning("All them sounds are playing");
@@ -90,16 +100,23 @@ bool SoundManager::play(const string& category, const string& name){
 	}
 
 	Sound* s = new Sound();
-	if (soundBoard.count(category) == 0 || soundBoard[category].count(name) == 0){
+	if(soundBoard.count(category) == 0 || soundBoard[category].count(name) == 0){
 		s->setBuffer(*undefined);
 	}
 	else{
 		s->setBuffer(*soundBoard[category][name]);
 	}
 	s->setVolume(c::masterVolume * 100.0f);
+	s->setLoop(loop);
 	s->play();
-	channels.push_back(s);
-	return true;
+	channels[id] = s;
+	return id;
+}
+
+void SoundManager::stop(const unsigned long& id){
+	if(channels.count(id) > 0){
+		channels[id]->stop();
+	}
 }
 
 bool SoundManager::loadSounds(){
@@ -107,19 +124,19 @@ bool SoundManager::loadSounds(){
 }
 
 bool SoundManager::loadSoundsFromDir(File& dir){
-	if (!dir.exists() || !dir.isDirectory()){
+	if(!dir.exists() || !dir.isDirectory()){
 		return false;
 	}
 	bool success = true;
-	for (File file : dir.listFiles()){
-		if (file.isDirectory()){
+	for(File file : dir.listFiles()){
+		if(file.isDirectory()){
 			success = !loadSoundsFromDir(file) ? false : success;
 			continue;
 		}
 
 		SoundBuffer* localBuffer = new SoundBuffer();
 
-		if (!localBuffer->loadFromFile(file.path())){
+		if(!localBuffer->loadFromFile(file.path())){
 			delete localBuffer;
 			logger::warning("Failed to load sound: " + file.path());
 			success = false;

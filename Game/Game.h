@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GI.h"
+#include "Level.h"
 #include "SFMLI.h"
 #include "World.h"
 #include "Player.h"
@@ -21,11 +22,7 @@ private:
 
 	Manager* manager;
 
-	World* world;
-
-	File file;
-
 	Controller* controller;
 
-	Player* player;
+	bool managerInitialized = false;
 };

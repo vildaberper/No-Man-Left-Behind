@@ -32,7 +32,6 @@ void AnimationManager::tick(sf::RenderWindow* window, const sf::Time& time, cons
 
 drawable::Animation* AnimationManager::getAnimation(const std::string& name){
 	if (animations.count(name) == 0){
-		logger::warning("Animation not found: " + name);
 		return undefined->clone();
 	}
 	return animations[name]->clone();

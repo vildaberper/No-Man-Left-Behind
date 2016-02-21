@@ -18,6 +18,10 @@ void World::tick(){
 	sf::Time time = clock.getElapsedTime();
 	dt_ = (time - lastTime).asSeconds();
 
+	for(Entity* e : entities){
+		e->tick(time, dt_);
+	}
+
 	bool foundX = false;
 	bool foundY = false;
 	bool foundXY = false;
@@ -53,7 +57,7 @@ void World::tick(){
 	}
 
 	for(Entity* e : entities){
-		e->tick(time, dt_);
+		e->move(dt_);
 	}
 
 	lastTime = time;
@@ -88,6 +92,9 @@ const void World::render(drawable::Drawable* relative){
 
 	sf::FloatRect rel = relative->getSprite(lastTime)->getGlobalBounds();
 	for(drawable::Drawable* d : drawables[LAYER2]){
+		if(d == relative){
+			continue;
+		}
 		sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
 		if(fr.top + fr.height * d->cb.renderOffset <= rel.top + rel.height * relative->cb.renderOffset){
 			under.push_back(d);
@@ -135,7 +142,7 @@ void World::orderDrawables(const Layer& layer){
 	drawable::Drawable* current;
 	drawable::Drawable* before;
 
-	do{ // Yay bubblesort
+	do{ // Yay bubblesort TODO real time ordering by index
 		swapped = false;
 		for(size_t i = 1; i < drawables[layer].size(); i++){
 			sf::FloatRect frCurrent = (current = drawables[layer][i])->getSprite(lastTime)->getGlobalBounds();
@@ -155,7 +162,9 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	drawables[layer].push_back(drawable);
 
 	drawable->reference = drawable->animations[drawable->currentAnimation]->textures[0];
-	drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
+	if(!drawable->cb.shouldCollide){
+		drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
+	}
 	if(drawable->cb.shouldCollide && layer == LAYER2){
 		collidables.push_back(drawable);
 	}
@@ -225,7 +234,7 @@ void World::save(File& f){
 	logger::info("World saved: " + f.parent().name() + "\\" + f.name());
 }
 
-void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
+unsigned int load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 	std::vector<std::string> cs = c.children("drawables." + layer);
 	size_t size = cs.size();
 	for(size_t i = 0; i < size; i++){
@@ -251,6 +260,7 @@ void load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 		}
 		w->addDrawable(d, parseLayer(layer));
 	}
+	return size;
 }
 
 void World::load(File& f){
@@ -263,12 +273,13 @@ void World::load(File& f){
 	logger::timing("World configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
 	cl.restart();
 	backgroundName = c.stringValue("background");
-	load_helper(c, this, "LAYER0", manager);
-	load_helper(c, this, "LAYER1", manager);
-	load_helper(c, this, "LAYER2", manager);
-	load_helper(c, this, "LAYER3", manager);
-	load_helper(c, this, "LAYER4", manager);
-	logger::timing("Objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	unsigned int total = 0;
+	total += load_helper(c, this, "LAYER0", manager);
+	total += load_helper(c, this, "LAYER1", manager);
+	total += load_helper(c, this, "LAYER2", manager);
+	total += load_helper(c, this, "LAYER3", manager);
+	total += load_helper(c, this, "LAYER4", manager);
+	logger::timing(std::to_string(total) + " objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
 	logger::info("World loaded: " + f.parent().name() + "\\" + f.name());
 }
 

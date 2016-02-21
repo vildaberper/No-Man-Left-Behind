@@ -45,7 +45,7 @@ void Editor::run(){
 	manager->initialize(window);
 	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	world = new World(manager);
-	file = File().child("world.txt");
+	file = c::worldDir.child("world.txt");
 	world->load(file);
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
 
@@ -152,7 +152,6 @@ void Editor::run(){
 	backgroundM->items.push_back(backgroundMenu);
 	manager->menuManager->menus["background"] = backgroundM;
 
-	window->setFramerateLimit(60);
 	while (gi::startOfFrame()){
 		if (manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
 			gi::zoom(gi::cameraZ + 1.0f * gi::cameraZ * world->dt());

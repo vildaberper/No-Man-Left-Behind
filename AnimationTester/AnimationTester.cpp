@@ -38,7 +38,6 @@ void AnimationTester::run(){
 
 	load();
 
-	window->setFramerateLimit(60);
 	while (gi::startOfFrame()){
 		world->tick();
 		manager->tick(window, world->time(), world->dt());

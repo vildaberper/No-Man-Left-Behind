@@ -13,17 +13,19 @@ public:
 
 	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
 
-	bool play(const std::string& name);
-	bool play(const std::string& category, const std::string& name);
+	unsigned long play(const std::string& name, const bool& loop);
+	unsigned long play(const std::string& category, const std::string& name, const bool& loop);
+	void stop(const unsigned long& id);
 private:
 	std::map<std::string, std::map<std::string, sf::SoundBuffer*>> soundBoard;
 	std::set<sf::SoundBuffer*> sounds;
-	std::vector<sf::Sound*> channels;
+	std::map<unsigned long, sf::Sound*> channels;
 
 	sf::SoundBuffer* undefined;
 
-	bool playing;	// Flag to signify if sounds are being played or paused
-
 	bool loadSounds();
 	bool loadSoundsFromDir(File& dir);
+
+	bool playing = false;
+	unsigned long idTracker = 0;
 };
