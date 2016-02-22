@@ -20,6 +20,7 @@ namespace c{
 
 	float masterVolume;
 	float musicVolume;
+
 	int frameLimit;
 	int resX;
 	int resY;
@@ -46,7 +47,7 @@ namespace c{
 		resX = config.intValue("settings.resX");
 		resY = config.intValue("settings.resY");
 
-		masterVolume = 1.0f;
-		musicVolume = 1.0f;
+		masterVolume = config.floatValue("volume.masterVolume");
+		musicVolume = config.floatValue("volume.musicVolume");
 	}
 }

@@ -32,6 +32,7 @@ static const unsigned char stackLimit(const Resource& r){
 class ItemStack{
 public:
 	ItemStack();
+	ItemStack(Resource resource, unsigned char amount);
 	ItemStack(Item item, unsigned char amount);
 	~ItemStack();
 

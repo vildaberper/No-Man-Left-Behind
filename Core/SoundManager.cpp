@@ -102,6 +102,7 @@ unsigned long SoundManager::play(const string& category, const string& name, con
 	Sound* s = new Sound();
 	if(soundBoard.count(category) == 0 || soundBoard[category].count(name) == 0){
 		s->setBuffer(*undefined);
+		logger::warning("Sound not found: " + category + "." + name);
 	}
 	else{
 		s->setBuffer(*soundBoard[category][name]);

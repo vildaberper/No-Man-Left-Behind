@@ -1,6 +1,7 @@
 #include "Inventory.h"
 
 Inventory::Inventory(const unsigned char size){
+	Inventory::size = size;
 	content = new ItemStack[size];
 }
 Inventory::~Inventory(){
@@ -10,11 +11,19 @@ Inventory::~Inventory(){
 std::vector<ItemStack> Inventory::setSize(unsigned char size){
 	ItemStack* old = content;
 	content = new ItemStack[size];
+	std::vector<ItemStack> left;
 
-	for(int i = 0; i < Inventory::size && i < size; i++){
-		content[i] = old[i];
+	for(int i = 0; i < size; i++){
+		if(i < Inventory::size){
+			content[i] = old[i];
+		}
+		else{
+			left.push_back(ItemStack(old[i].item, old[i].amount));
+		}
 	}
 	delete[] old;
+
+	return left;
 }
 unsigned char Inventory::getSize() const{
 	return size;
@@ -22,9 +31,6 @@ unsigned char Inventory::getSize() const{
 
 ItemStack& Inventory::put(ItemStack& is, unsigned char slot){
 	if(slot >= size){
-		return ItemStack();
-	}
-	if(is.amount > stackLimit(is.item.type)){
 		return is;
 	}
 

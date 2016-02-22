@@ -22,6 +22,8 @@ public:
 
 	Vector movement();
 
+	Vector camera();
+
 	bool isPressed(const Command& c);
 private:
 	InputManager* im;

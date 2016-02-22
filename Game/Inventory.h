@@ -24,8 +24,8 @@ public:
 	bool has(ItemStack is) const;
 
 	void clear();
-private:
-	unsigned char size;
 
 	ItemStack* content;
+private:
+	unsigned char size;
 };

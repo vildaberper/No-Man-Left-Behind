@@ -27,6 +27,18 @@ Vector Controller::movement(){
 		).norm();
 }
 
+Vector Controller::camera(){
+	if(sf::Joystick::isConnected(0)){
+		if(sf::Joystick::hasAxis(0, sf::Joystick::U) && sf::Joystick::hasAxis(0, sf::Joystick::R)){
+			Vector joystick = Vector(sf::Joystick::getAxisPosition(0, sf::Joystick::U), sf::Joystick::getAxisPosition(0, sf::Joystick::R)) / 100.0f;
+			if(joystick.length() > 0.25f){
+				return joystick;
+			}
+		}
+	}
+	return Vector(0.0f, 0.0f);
+}
+
 bool Controller::isPressed(const Command& c){
 	switch(c){
 	case INTERACT:

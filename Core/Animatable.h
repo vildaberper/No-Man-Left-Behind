@@ -20,5 +20,5 @@ public:
 	virtual void move(const float& dt);
 
 	AnimatableType animatableType;
-	unsigned char numStates;
+	unsigned char numStates = 1;
 };
