@@ -16,7 +16,7 @@ void Injured::initialize(Manager* manager, const std::string& animation, const I
 	Injured::progress = progress;
 	updateAnimation();
 	cb.shouldCollide = true;
-	cb.renderOffset = 1.0f;
+	cb.renderOffset = 0.9f;
 	cb.offset = Vector(0.2f, 0.3f);
 	cb.size = Vector(0.6f, 0.6f);
 }

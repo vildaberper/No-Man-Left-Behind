@@ -43,11 +43,16 @@ namespace gi{
 	}
 
 	bool initalize(sf::RenderWindow*& rw){
+		sf::VideoMode vm = sf::VideoMode(c::resX, c::resY, 32);
+
 		if(c::fullscreen){
-			renderWindow = rw = new sf::RenderWindow(sf::VideoMode(c::resX, c::resY, 32), c::WINDOW_TITLE, sf::Style::Fullscreen);
+			if(c::autoResolution){
+				vm = sf::VideoMode::getDesktopMode();
+			}
+			renderWindow = rw = new sf::RenderWindow(vm, c::WINDOW_TITLE, sf::Style::Fullscreen);
 		}
 		else{
-			renderWindow = rw = new sf::RenderWindow(sf::VideoMode(c::resX, c::resY, 32), c::WINDOW_TITLE);
+			renderWindow = rw = new sf::RenderWindow(vm, c::WINDOW_TITLE);
 		}
 		renderWindow->setFramerateLimit(c::frameLimit);
 		renderWindow->setVerticalSyncEnabled(c::verticalSync);

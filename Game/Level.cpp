@@ -12,7 +12,8 @@ Level::~Level(){
 void Level::begin(){
 	// Load level (levelFileName)
 	worldFileName = "world.txt";
-	spawn = Vector(100.0f, 250.0f);
+	spawn = Vector(1550.0f, 2050.0f);
+	useTruck = false;
 	//
 
 	state = TRUCKMOVING;
@@ -28,32 +29,97 @@ void Level::begin(){
 		player->initialize(manager);
 	}
 
-	truck = new Truck();
-	truck->initialize(manager);
-	truck->position = spawn;
-	truck->position.y -= truck->getSprite(world->time())->getGlobalBounds().height * truck->cb.renderOffset / gi::dy();
-	world->addDrawable(truck, LAYER2);
+	if(useTruck){
+		truck = new Truck();
+		truck->initialize(manager);
+		truck->position = spawn;
+		truck->position.y -= truck->getSprite(world->time())->getGlobalBounds().height * truck->cb.renderOffset / gi::dy();
+		world->addDrawable(truck, LAYER2);
+	}
+	else{
+		player->position = spawn;
+		world->entities.push_back(player);
+		world->collidables.push_back(player);
+	}
 
 	Injured* in = new Injured();
-	in->initialize(manager, "testinjured", OPEN_WOUND, 0);
-	in->position = Vector(2000.0f, 500.0f);
+	in->initialize(manager, "testinjured", OPEN_WOUND, 0); // soldier
+	in->position = Vector(1644.000000f, -20.000000f);
 	world->addDrawable(in, LAYER2);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "testinjured", OPEN_WOUND, 1);
-	in->position = Vector(2300.0f, 500.0f);
+	in->initialize(manager, "testinjured", OPEN_WOUND, 1); // civil
+	in->position = Vector(2079.000000f, -11.000000f);
 	world->addDrawable(in, LAYER2);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "testinjured", OPEN_WOUND, 2);
-	in->position = Vector(2600.0f, 500.0f);
+	in->initialize(manager, "testinjured", OPEN_WOUND, 2); // soldier
+	in->position = Vector(838.000000f, 6.000000f);
 	world->addDrawable(in, LAYER2);
 	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 0); // soldier
+	in->position = Vector(1240.000000f, 6.000000f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 1); // civil
+	in->position = Vector(2163.000000f, 374.000000f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 2); // officer
+	in->position = Vector(2156.000000f, 827.000000f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 0); // soldier
+	in->position = Vector(1762.000000f, 878.000000f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 1); // soldier
+	in->position = Vector(1343.000000f, 896.000000f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	in = new Injured();
+	in->initialize(manager, "testinjured", OPEN_WOUND, 2); // soldier
+	in->position = Vector(994.000000f, 907.000000f);
+	world->addDrawable(in, LAYER2);
+	injured.push_back(in);
+
+	if(!useTruck){
+		state = PLAYING;
+	}
 }
 
 void Level::tick(){
+	if(controller->isPressed(PAUSE)){
+		world->setPaused(!world->isPaused());
+	}
+
+	if(manager->inputManager->isFirstPressed(sf::Keyboard::Num0)){
+		world->setTimeScale(0.5f);
+	}
+	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num1)){
+		world->setTimeScale(1.0f);
+	}
+	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num2)){
+		world->setTimeScale(2.0f);
+	}
+	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num3)){
+		world->setTimeScale(4.0f);
+	}
+
 	if(fadeValue > 0.0f){
 		fadeValue -= world->dt();
 	}
@@ -63,11 +129,6 @@ void Level::tick(){
 		world->tick();
 		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
 		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
-		if(firstFrame){
-			gi::cameraX = gi::cameraTargetX;
-			gi::cameraY = gi::cameraTargetY;
-			firstFrame = false;
-		}
 		gi::camera(world->dt());
 		world->render(truck);
 
@@ -104,6 +165,12 @@ void Level::tick(){
 		world->render(player);
 		break;
 	}
+	}
+
+	if(firstFrame){
+		gi::cameraX = gi::cameraTargetX;
+		gi::cameraY = gi::cameraTargetY;
+		firstFrame = false;
 	}
 
 	if(fadeValue > 0.0f){

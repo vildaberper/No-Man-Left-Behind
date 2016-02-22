@@ -8,6 +8,9 @@
 #include "SFMLI.h"
 #include "GI.h"
 
+// interv(x0, x1) + interv(y0 - y1) !! NOT EUCLIDEAN DISTANCE !!
+static const float MAX_COLLISION_DISTANCE = 2000.0f;
+
 enum Layer {
 	LAYER0 = 0,
 	LAYER1 = 1,
@@ -125,6 +128,12 @@ public:
 	const void render();
 	const void render(drawable::Drawable* relative);
 
+	void setPaused(const bool& paused);
+	bool isPaused();
+
+	void setTimeScale(const float& timeScale);
+	float getTimeScale();
+
 	const sf::Time time();
 
 	const float dt();
@@ -148,9 +157,12 @@ public:
 	std::vector<drawable::Drawable*> collidables;
 	std::vector<Entity*> entities;
 private:
+	bool firstTick = true;
+	bool paused = false;
 	sf::Clock clock;
-	sf::Time lastTime;
-	float dt_;
+	sf::Time t;
+	sf::Time dt_;
+	float timeScale = 1.0f;
 
 	void cleanAll(const bool& all);
 };

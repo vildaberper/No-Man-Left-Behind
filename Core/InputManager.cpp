@@ -26,6 +26,12 @@ void InputManager::finalize(RenderWindow* window){
 void InputManager::tick(RenderWindow* window, const Time& time, const float& dt){
 	Event event;
 
+	for(unsigned int i = 0; i < sf::Keyboard::KeyCount; i++){
+		if(keyStates[i]){
+			firstPress[i] = false;
+		}
+	}
+
 	while (window->pollEvent(event)){
 		if (event.type == Event::Closed){
 			window->close();
@@ -46,6 +52,7 @@ void InputManager::tick(RenderWindow* window, const Time& time, const float& dt)
 		else if (event.type == sf::Event::KeyReleased){
 			if (event.key.code == -1)
 				return;
+			firstPress[event.key.code] = false;
 			keyStates[event.key.code] = false;
 			push(KeyboardEvent(event.key.code, false, firstPress[event.key.code]));
 		}
@@ -154,6 +161,9 @@ void InputManager::push(MouseWheelEvent& event){
 
 bool InputManager::isPressed(const sf::Keyboard::Key& key){
 	return keyStates[key];
+}
+bool InputManager::isFirstPressed(const sf::Keyboard::Key& key){
+	return firstPress[key];
 }
 
 int InputManager::mouseX(){

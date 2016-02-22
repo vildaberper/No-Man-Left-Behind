@@ -14,6 +14,7 @@ namespace c{
 
 	File collisionBoxFile;
 
+	bool autoResolution;
 	bool fullscreen;
 	bool verticalSync;
 
@@ -38,6 +39,7 @@ namespace c{
 
 		collisionBoxFile = dir.child(config.stringValue("files.collisionBoxFile"));
 
+		autoResolution = config.boolValue("settings.autoResolution");
 		fullscreen = config.boolValue("settings.fullscreen");
 		verticalSync = config.boolValue("settings.verticalSync");
 		frameLimit = config.intValue("settings.frameLimit");

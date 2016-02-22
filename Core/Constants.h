@@ -18,6 +18,7 @@ namespace c{
 
 	extern File collisionBoxFile;
 
+	extern bool autoResolution;
 	extern bool fullscreen;
 	extern bool verticalSync;
 	extern int frameLimit;

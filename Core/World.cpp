@@ -6,7 +6,6 @@ World::World(Manager* manager){
 	drawables[LAYER2] = std::vector<drawable::Drawable*>();
 	drawables[LAYER3] = std::vector<drawable::Drawable*>();
 	drawables[LAYER4] = std::vector<drawable::Drawable*>();
-	lastTime = clock.getElapsedTime();
 	World::manager = manager;
 }
 
@@ -14,12 +13,44 @@ World::~World(){
 
 }
 
+void World::setPaused(const bool& paused){
+	World::paused = paused;
+}
+bool World::isPaused(){
+	return paused;
+}
+
+void World::setTimeScale(const float& timeScale){
+	World::timeScale = timeScale;
+}
+float World::getTimeScale(){
+	return timeScale;
+}
+
+const sf::Time World::time(){
+	return t;
+}
+
+const float World::dt(){
+	return paused ? 0.0f : dt_.asSeconds();
+}
+
 void World::tick(){
-	sf::Time time = clock.getElapsedTime();
-	dt_ = (time - lastTime).asSeconds();
+	if(firstTick){
+		clock.restart();
+		firstTick = false;
+	}
+
+	dt_ = clock.restart() * getTimeScale();
+
+	if(paused){
+		return;
+	}
+
+	t += dt_;
 
 	for(Entity* e : entities){
-		e->tick(time, dt_);
+		e->tick(time(), dt());
 	}
 
 	bool foundX = false;
@@ -37,13 +68,16 @@ void World::tick(){
 			if(d0 == d1){
 				continue;
 			}
-			if(d0->collidesWith(d1, time, d0->position + Vector(d0->velocity.x * dt_, 0.0f))){
+			if(math::interv(d0->position.x, d1->position.x) + math::interv(d0->position.y, d1->position.y) > MAX_COLLISION_DISTANCE){
+				continue;
+			}
+			if(d0->collidesWith(d1, time(), d0->position + Vector(d0->velocity.x * dt(), 0.0f))){
 				foundX = true;
 			}
-			if(d0->collidesWith(d1, time, d0->position + Vector(0.0f, d0->velocity.y * dt_))){
+			if(d0->collidesWith(d1, time(), d0->position + Vector(0.0f, d0->velocity.y * dt()))){
 				foundY = true;
 			}
-			if(d0->collidesWith(d1, time, d0->position + (d0->velocity * dt_))){
+			if(d0->collidesWith(d1, time(), d0->position + (d0->velocity * dt()))){
 				foundXY = true;
 			}
 		}
@@ -57,10 +91,9 @@ void World::tick(){
 	}
 
 	for(Entity* e : entities){
-		e->move(dt_);
+		e->move(dt());
 	}
 
-	lastTime = time;
 	cleanAll(false);
 }
 
@@ -81,7 +114,7 @@ const void World::render(){
 	renderBackground();
 	for(const auto &ent : drawables){
 		for(drawable::Drawable* d : ent.second){
-			gi::draw(d, lastTime);
+			gi::draw(d, time());
 		}
 	}
 }
@@ -90,12 +123,12 @@ const void World::render(drawable::Drawable* relative){
 	std::vector<drawable::Drawable*> under;
 	std::vector<drawable::Drawable*> above;
 
-	sf::FloatRect rel = relative->getSprite(lastTime)->getGlobalBounds();
+	sf::FloatRect rel = relative->getSprite(time())->getGlobalBounds();
 	for(drawable::Drawable* d : drawables[LAYER2]){
 		if(d == relative){
 			continue;
 		}
-		sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
+		sf::FloatRect fr = d->getSprite(time())->getGlobalBounds();
 		if(fr.top + fr.height * d->cb.renderOffset <= rel.top + rel.height * relative->cb.renderOffset){
 			under.push_back(d);
 		}
@@ -109,32 +142,24 @@ const void World::render(drawable::Drawable* relative){
 			break;
 		}
 		for(drawable::Drawable* d : ent.second){
-			gi::draw(d, lastTime);
+			gi::draw(d, time());
 		}
 	}
 	for(drawable::Drawable* d : under){
-		gi::draw(d, lastTime);
+		gi::draw(d, time());
 	}
-	gi::draw(relative, lastTime);
+	gi::draw(relative, time());
 	for(drawable::Drawable* d : above){
-		gi::draw(d, lastTime);
+		gi::draw(d, time());
 	}
 	for(const auto &ent : drawables){
 		if(ent.first == LAYER0 || ent.first == LAYER1 || ent.first == LAYER2){
 			continue;
 		}
 		for(drawable::Drawable* d : ent.second){
-			gi::draw(d, lastTime);
+			gi::draw(d, time());
 		}
 	}
-}
-
-const sf::Time World::time(){
-	return lastTime;
-}
-
-const float World::dt(){
-	return dt_;
 }
 
 void World::orderDrawables(const Layer& layer){
@@ -145,8 +170,8 @@ void World::orderDrawables(const Layer& layer){
 	do{ // Yay bubblesort TODO real time ordering by index
 		swapped = false;
 		for(size_t i = 1; i < drawables[layer].size(); i++){
-			sf::FloatRect frCurrent = (current = drawables[layer][i])->getSprite(lastTime)->getGlobalBounds();
-			sf::FloatRect frBefore = (before = drawables[layer][i - 1])->getSprite(lastTime)->getGlobalBounds();
+			sf::FloatRect frCurrent = (current = drawables[layer][i])->getSprite(time())->getGlobalBounds();
+			sf::FloatRect frBefore = (before = drawables[layer][i - 1])->getSprite(time())->getGlobalBounds();
 
 			if(frBefore.top + frBefore.height * before->cb.renderOffset > frCurrent.top + frCurrent.height * current->cb.renderOffset){
 				drawables[layer][i] = before;
@@ -165,7 +190,7 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	if(!drawable->cb.shouldCollide){
 		drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
 	}
-	if(drawable->cb.shouldCollide && layer == LAYER2){
+	if(drawable->cb.shouldCollide){
 		collidables.push_back(drawable);
 	}
 	orderDrawables(layer);
@@ -175,7 +200,7 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	if(drawables[layer].size() > 0){
 		for(size_t i = 0; i < drawables[layer].size(); i++){
 			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
-			sf::FloatRect fr = d->getSprite(lastTime)->getGlobalBounds();
+			sf::FloatRect fr = d->getSprite(time())->getGlobalBounds();
 			if(
 				fr.left < x
 				&& fr.left + fr.width > x

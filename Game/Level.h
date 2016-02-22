@@ -31,6 +31,7 @@ public:
 	std::string worldFileName;
 	World* world;
 
+	bool useTruck;
 	Truck* truck;
 	Vector spawn;
 	float timeBeforeBreak;
