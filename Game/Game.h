@@ -11,13 +11,17 @@
 #include "MathHelper.h"
 #include "ProgressBar.h"
 
-class Game{
+class Game : public InputListener{
 public:
 	Game();
 	~Game();
 
+	virtual void on(KeyboardEvent& event);
+
 	void run();
 private:
+	unsigned long inputListenerId;
+
 	sf::RenderWindow* window;
 
 	Manager* manager;

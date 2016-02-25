@@ -5,7 +5,7 @@
 using namespace std;
 
 CollisionManager::CollisionManager(){
-	
+
 }
 
 CollisionManager::~CollisionManager(){
@@ -13,6 +13,8 @@ CollisionManager::~CollisionManager(){
 }
 
 bool CollisionManager::initialize(sf::RenderWindow* window){
+	sf::Clock cl;
+
 	Configuration c;
 	if(!c.load(c::collisionBoxFile)){
 		logger::fatal("Failed to load collisionBox file: " + c::collisionBoxFile.parent().name() + "\\" + c::collisionBoxFile.name());
@@ -29,10 +31,10 @@ bool CollisionManager::initialize(sf::RenderWindow* window){
 			collisionBoxes[name] = cb;
 		}
 	}
+	logger::timing("Collisionboxes initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	return true;
 }
 bool CollisionManager::finalize(sf::RenderWindow* window){
-	save(c::collisionBoxFile);
 	for(auto &ent : collisionBoxes){
 		delete ent.second;
 	}
@@ -63,6 +65,7 @@ bool CollisionManager::createCollisionBox(const std::string& name){
 }
 
 bool CollisionManager::save(File& file){
+	sf::Clock cl;
 	Configuration c;
 	for(auto &ent : collisionBoxes){
 		c.set(ent.first + ".shouldCollide", ent.second->shouldCollide);
@@ -70,5 +73,9 @@ bool CollisionManager::save(File& file){
 		c.set(ent.first + ".size", ent.second->size.fv());
 		c.set(ent.first + ".renderOffset", ent.second->renderOffset);
 	}
-	return c.save(file);
+	bool success = c.save(file);
+
+	logger::timing("Collisionboxes saved in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+	logger::info("Collisionboxes saved: " + file.parent().name() + "\\" + file.name());
+	return success;
 }

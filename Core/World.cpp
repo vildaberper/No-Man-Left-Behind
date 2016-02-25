@@ -164,12 +164,13 @@ const void World::render(drawable::Drawable* relative){
 
 void World::orderDrawables(const Layer& layer){
 	bool swapped;
+	unsigned int ss = 0;
 	drawable::Drawable* current;
 	drawable::Drawable* before;
 
 	do{ // Yay bubblesort TODO real time ordering by index
 		swapped = false;
-		for(size_t i = 1; i < drawables[layer].size(); i++){
+		for(size_t i = 1; i < drawables[layer].size() && ss < 50; i++){
 			sf::FloatRect frCurrent = (current = drawables[layer][i])->getSprite(time())->getGlobalBounds();
 			sf::FloatRect frBefore = (before = drawables[layer][i - 1])->getSprite(time())->getGlobalBounds();
 
@@ -177,9 +178,10 @@ void World::orderDrawables(const Layer& layer){
 				drawables[layer][i] = before;
 				drawables[layer][i - 1] = current;
 				swapped = true;
+				ss++;
 			}
 		}
-	} while(swapped);
+	} while(swapped && ss < 50);
 }
 
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
@@ -208,10 +210,10 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 				&& fr.top + fr.height > y
 				){
 				return new Target(
-					drawables[layer][drawables[layer].size() - i - 1],
+					d,
 					layer,
-					x - (d->position.x - (gi::cameraX - gi::TARGET_WIDTH / 2)) * gi::dx(),
-					y - (d->position.y - (gi::cameraY - gi::TARGET_HEIGHT / 2)) * gi::dy()
+					x - fr.left,
+					y - fr.top
 					);
 			}
 		}
@@ -255,7 +257,7 @@ void World::save(File& f){
 	save_helper(c, drawables[LAYER3], "LAYER3");
 	save_helper(c, drawables[LAYER4], "LAYER4");
 	c.save(f);
-	logger::timing("World configuration saved in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	logger::timing("World configuration saved in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	logger::info("World saved: " + f.parent().name() + "\\" + f.name());
 }
 
@@ -295,7 +297,7 @@ void World::load(File& f){
 	Configuration c;
 
 	c.load(f);
-	logger::timing("World configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	logger::timing("World configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	cl.restart();
 	backgroundName = c.stringValue("background");
 	unsigned int total = 0;
@@ -304,7 +306,7 @@ void World::load(File& f){
 	total += load_helper(c, this, "LAYER2", manager);
 	total += load_helper(c, this, "LAYER3", manager);
 	total += load_helper(c, this, "LAYER4", manager);
-	logger::timing(std::to_string(total) + " objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+	logger::timing(std::to_string(total) + " objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	logger::info("World loaded: " + f.parent().name() + "\\" + f.name());
 }
 

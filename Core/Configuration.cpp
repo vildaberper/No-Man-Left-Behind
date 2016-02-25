@@ -6,8 +6,8 @@
 using namespace std;
 
 static const bool isDigits(string value){
-	for (size_t i = 0; i < value.length(); i++){
-		if (!isdigit(value.at(i))){
+	for(size_t i = 0; i < value.length(); i++){
+		if(!isdigit(value.at(i))){
 			return false;
 		}
 	}
@@ -17,14 +17,14 @@ static const bool isDigits(string value){
 static const bool isInt(string value){
 	size_t i = 0;
 
-	if (value.length() == 0){
+	if(value.length() == 0){
 		return false;
 	}
-	if (value.at(0) == '-'){
+	if(value.at(0) == '-'){
 		i = 1;
 	}
-	for (; i < value.length(); i++){
-		if (!isdigit(value.at(i))){
+	for(; i < value.length(); i++){
+		if(!isdigit(value.at(i))){
 			return false;
 		}
 	}
@@ -34,11 +34,11 @@ static const bool isInt(string value){
 static const bool isFloat(string value){
 	size_t index = value.find_first_of('.');
 
-	if (index == string::npos || index == 0 || index == value.length()){
+	if(index == string::npos || index == 0 || index == value.length()){
 		return false;
 	}
 
-	if (!isInt(value.substr(0, index)) || !isDigits(value.substr(index + 1))){
+	if(!isInt(value.substr(0, index)) || !isDigits(value.substr(index + 1))){
 		return false;
 	}
 	return true;
@@ -46,13 +46,13 @@ static const bool isFloat(string value){
 
 const enum Type{
 	TYPEUNDEFINED,
+	TYPEBOOL,
 	TYPESTRING,
 	TYPEFLOAT,
 	TYPEINT,
 	TYPEVECTORSTRING,
 	TYPEVECTORFLOAT,
-	TYPEVECTORINT,
-	TYPEBOOL
+	TYPEVECTORINT
 };
 
 class ConfigurationNode{
@@ -70,9 +70,9 @@ public:
 
 	~ConfigurationNode(){
 		unset();
-		if (nodes != NULL){
-			for (auto &ent : *nodes){
-				if (ent.second != NULL){
+		if(nodes != NULL){
+			for(auto &ent : *nodes){
+				if(ent.second != NULL){
 					delete ent.second;
 					ent.second = NULL;
 				}
@@ -84,11 +84,31 @@ public:
 	}
 
 	void ConfigurationNode::unset(){
-		if (type != TYPEUNDEFINED){
-			type = TYPEUNDEFINED;
-			delete value;
-			value = NULL;
+		switch(type){
+		case TYPEBOOL:
+			delete static_cast<bool*>(value);
+			break;
+		case TYPESTRING:
+			delete static_cast<string*>(value);
+			break;
+		case TYPEFLOAT:
+			delete static_cast<float*>(value);
+			break;
+		case TYPEINT:
+			delete static_cast<int*>(value);
+			break;
+		case TYPEVECTORSTRING:
+			delete static_cast<vector<string>*>(value);
+			break;
+		case TYPEVECTORFLOAT:
+			delete static_cast<vector<float>*>(value);
+			break;
+		case TYPEVECTORINT:
+			delete static_cast<vector<int>*>(value);
+			break;
 		}
+		type = TYPEUNDEFINED;
+		value = NULL;
 	}
 
 	void ConfigurationNode::set(const bool& value){
@@ -141,42 +161,42 @@ public:
 	}
 
 	const string ConfigurationNode::stringValue(){
-		if (type != TYPESTRING){
+		if(type != TYPESTRING){
 			return "";
 		}
 		return *static_cast<string*>(value);
 	}
 
 	const float ConfigurationNode::floatValue(){
-		if (type != TYPEFLOAT){
+		if(type != TYPEFLOAT){
 			return 0.0f;
 		}
 		return *static_cast<float*>(value);
 	}
 
 	const int ConfigurationNode::intValue(){
-		if (type != TYPEINT){
+		if(type != TYPEINT){
 			return 0;
 		}
 		return *static_cast<int*>(value);
 	}
 
 	const vector<string> ConfigurationNode::stringVector(){
-		if (type != TYPEVECTORSTRING){
+		if(type != TYPEVECTORSTRING){
 			return vector<string>();
 		}
 		return *static_cast<vector<string>*>(value);
 	}
 
 	const vector<float> ConfigurationNode::floatVector(){
-		if (type != TYPEVECTORFLOAT){
+		if(type != TYPEVECTORFLOAT){
 			return vector<float>();
 		}
 		return *static_cast<vector<float>*>(value);
 	}
 
 	const vector<int> ConfigurationNode::intVector(){
-		if (type != TYPEVECTORINT){
+		if(type != TYPEVECTORINT){
 			return vector<int>();
 		}
 		return *static_cast<vector<int>*>(value);
@@ -187,7 +207,7 @@ public:
 	}
 
 	const string toString(){
-		switch (type){
+		switch(type){
 		case TYPEBOOL:
 			return boolValue() ? "true" : "false";
 		case TYPESTRING:
@@ -198,48 +218,48 @@ public:
 			return to_string(intValue());
 		case TYPEVECTORSTRING:
 		{
-							 stringstream stream;
-							 vector<string> vector = stringVector();
+			stringstream stream;
+			vector<string> vector = stringVector();
 
-							 stream << '{';
-							 for (size_t i = 0; i < vector.size(); i++){
-								 if (i > 0){
-									 stream << SEPARATOR;
-								 }
-								 stream << '"' << vector[i] << '"';
-							 }
-							 stream << '}';
-							 return stream.str();
+			stream << '{';
+			for(size_t i = 0; i < vector.size(); i++){
+				if(i > 0){
+					stream << SEPARATOR;
+				}
+				stream << '"' << vector[i] << '"';
+			}
+			stream << '}';
+			return stream.str();
 		}
 		case TYPEVECTORFLOAT:
 		{
-							stringstream stream;
-							vector<float> vector = floatVector();
+			stringstream stream;
+			vector<float> vector = floatVector();
 
-							stream << '{';
-							for (size_t i = 0; i < vector.size(); i++){
-								if (i > 0){
-									stream << SEPARATOR;
-								}
-								stream << to_string(vector[i]);
-							}
-							stream << '}';
-							return stream.str();
+			stream << '{';
+			for(size_t i = 0; i < vector.size(); i++){
+				if(i > 0){
+					stream << SEPARATOR;
+				}
+				stream << to_string(vector[i]);
+			}
+			stream << '}';
+			return stream.str();
 		}
 		case TYPEVECTORINT:
 		{
-						  stringstream stream;
-						  vector<int> vector = intVector();
+			stringstream stream;
+			vector<int> vector = intVector();
 
-						  stream << '{';
-						  for (size_t i = 0; i < vector.size(); i++){
-							  if (i > 0){
-								  stream << SEPARATOR;
-							  }
-							  stream << to_string(vector[i]);
-						  }
-						  stream << '}';
-						  return stream.str();
+			stream << '{';
+			for(size_t i = 0; i < vector.size(); i++){
+				if(i > 0){
+					stream << SEPARATOR;
+				}
+				stream << to_string(vector[i]);
+			}
+			stream << '}';
+			return stream.str();
 		}
 		}
 		return "";
@@ -252,23 +272,23 @@ public:
 		else if(value == "false"){
 			set(false);
 		}
-		else if (value.at(0) == '"' && value.at(value.length() - 1) == '"'){ // TYPESTRING
+		else if(value.at(0) == '"' && value.at(value.length() - 1) == '"'){ // TYPESTRING
 			set(value.substr(1, value.length() - 2));
 		}
-		else if (isInt(value)){ // TYPEINT
+		else if(isInt(value)){ // TYPEINT
 			set(stoi(value));
 		}
-		else if (isFloat(value)){ // TYPEFLOAT
+		else if(isFloat(value)){ // TYPEFLOAT
 			set(stof(value));
 		}
-		else if (value.at(0) == '{' && value.at(value.length() - 1) == '}'){
+		else if(value.at(0) == '{' && value.at(value.length() - 1) == '}'){
 			string val = value.substr(1, value.length() - 2);
 			string::size_type index;
 
-			if (value.at(1) == '"' && value.at(value.length() - 2) == '"'){ // TYPEVECTORSTRING
+			if(value.at(1) == '"' && value.at(value.length() - 2) == '"'){ // TYPEVECTORSTRING
 				vector<string> vector;
 
-				while ((index = val.find_first_of(',')) != string::npos){
+				while((index = val.find_first_of(',')) != string::npos){
 					vector.push_back(val.substr(1, index - 2));
 					val = val.substr(index + 1);
 				}
@@ -278,22 +298,22 @@ public:
 			else{
 				string test = val;
 				index = val.find_first_of(',');
-				if (index != string::npos)
+				if(index != string::npos)
 					test = val.substr(0, index);
-				if (isInt(test)){ // TYPEVECTORINT
+				if(isInt(test)){ // TYPEVECTORINT
 					vector<int> vector;
 
-					while ((index = val.find_first_of(',')) != string::npos){
+					while((index = val.find_first_of(',')) != string::npos){
 						vector.push_back(stoi(val.substr(0, index)));
 						val = val.substr(index + 1);
 					}
 					vector.push_back(stoi(val));
 					set(vector);
 				}
-				else if (isFloat(test)){ // TYPEVECTORFLOAT
+				else if(isFloat(test)){ // TYPEVECTORFLOAT
 					vector<float> vector;
 
-					while ((index = val.find_first_of(',')) != string::npos){
+					while((index = val.find_first_of(',')) != string::npos){
 						vector.push_back(stof(val.substr(0, index)));
 						val = val.substr(index + 1);
 					}
@@ -314,7 +334,7 @@ public:
 	const vector<string> children(){
 		vector<string> children;
 
-		for (auto const &node : *nodes){
+		for(auto const &node : *nodes){
 			children.push_back(node.first);
 		}
 		return children;
@@ -323,10 +343,10 @@ public:
 	const bool containsNode(const string& path){
 		size_t index;
 
-		if ((index = path.find_first_of(Configuration::PATH_SEPARATOR)) != string::npos){
+		if((index = path.find_first_of(PATH_SEPARATOR)) != string::npos){
 			string sub = path.substr(0, index);
 
-			if (nodes->count(sub) > 0){
+			if(nodes->count(sub) > 0){
 				return (*nodes)[sub]->containsNode(path.substr(index + 1));
 			}
 			else{
@@ -338,15 +358,15 @@ public:
 
 	ConfigurationNode& node(const string& path){
 		size_t index;
-		if ((index = path.find_first_of(Configuration::PATH_SEPARATOR)) != string::npos){
+		if((index = path.find_first_of(PATH_SEPARATOR)) != string::npos){
 			string sub = path.substr(0, index);
 
-			if (nodes->count(sub) == 0){
+			if(nodes->count(sub) == 0){
 				(*nodes)[sub] = new ConfigurationNode();
 			}
 			return (*nodes)[sub]->node(path.substr(index + 1));
 		}
-		if (nodes->count(path) == 0){
+		if(nodes->count(path) == 0){
 			(*nodes)[path] = new ConfigurationNode();
 		}
 		return *(*nodes)[path];
@@ -355,10 +375,10 @@ public:
 	const void remove(const string& path){
 		size_t index;
 
-		if ((index = path.find_first_of(Configuration::PATH_SEPARATOR)) != string::npos){
+		if((index = path.find_first_of(PATH_SEPARATOR)) != string::npos){
 			string sub = path.substr(0, index);
 
-			if (nodes->count(sub) == 0){
+			if(nodes->count(sub) == 0){
 				return;
 			}
 			return (*nodes)[sub]->remove(path.substr(index + 1));
@@ -371,7 +391,7 @@ public:
 	vector<string>* contents(string ind){
 		vector<string>* lines = new vector<string>();
 
-		for (string n : children()){
+		for(string n : children()){
 			lines->push_back(ind + n + ":" + (node(n).hasValue() ? (" " + node(n).toString()) : ""));
 
 			vector<string>* next = node(n).contents(ind + "  ");
@@ -402,14 +422,14 @@ Configuration::~Configuration(){
 int h(string& s){
 	string::size_type i = s.find_first_not_of(' ');
 	s = s.substr(i);
-	return i / Configuration::INDENT_WIDTH;
+	return i / INDENT_WIDTH;
 }
 
 bool Configuration::load(File& file){
 	delete root;
 	root = new ConfigurationNode();
 
-	if (!file.isFile()){
+	if(!file.isFile()){
 		return false;
 	}
 
@@ -417,11 +437,11 @@ bool Configuration::load(File& file){
 	int indent = -1;
 	string curPath = "";
 	bool success = true;
-	for (size_t i = 0; i < lines->size(); i++){
+	for(size_t i = 0; i < lines->size(); i++){
 		string line = (*lines)[i];
 		int curIndent = h(line);
 
-		if (line.length() == 0 || line.at(0) == '#'){
+		if(line.length() == 0 || line.at(0) == '#'){
 			continue;
 		}
 
@@ -429,14 +449,14 @@ bool Configuration::load(File& file){
 		string node = line.substr(0, colIndex);
 		string val;
 
-		if (indent < curIndent){
+		if(indent < curIndent){
 			curPath += (curPath.length() > 0 ? "." : "") + node;
 		}
 		else{
-			for (int s = 0; s <= indent - curIndent; s++){
+			for(int s = 0; s <= indent - curIndent; s++){
 				string::size_type index = curPath.find_last_of('.');
 
-				if (index != string::npos){
+				if(index != string::npos){
 					curPath = curPath.substr(0, index);
 				}
 				else{
@@ -446,13 +466,13 @@ bool Configuration::load(File& file){
 			}
 			curPath += (curPath.length() > 0 ? "." : "") + node;
 		}
-		if (line.length() > colIndex + 1){
+		if(line.length() > colIndex + 1){
 			val = line.substr(colIndex + 1);
 			h(val);
-			if (val.length() == 0 || val.at(0) == '#'){
+			if(val.length() == 0 || val.at(0) == '#'){
 				continue;
 			}
-			if (!root->node(curPath).parse(val)){
+			if(!root->node(curPath).parse(val)){
 				logger::fatal("Failed to parse file (" + file.parent().name() + "\\" + file.name() + "): line " + to_string(i + 1) + " - " + line);
 				success = false;
 				break;
@@ -466,25 +486,22 @@ bool Configuration::load(File& file){
 
 const bool Configuration::save(File& file){
 	vector<string>* lines = root->contents("");
-	bool success =  file.writeTextFile(lines);
+	bool success = file.writeTextFile(lines);
 	delete lines;
 	return success;
 }
 
-const vector<string> Configuration::children(const string& path){
-	return children(path, true);
-}
 const std::vector<std::string> Configuration::children(const std::string& path, const bool& fullPath){
 	vector<string> children;
 
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		children = root->node(path).children();
 	}
 	else if(path.length() == 0){
 		children = root->children();
 	}
-	if (path.length() > 0 && fullPath){
-		for (size_t i = 0; i < children.size(); i++){
+	if(path.length() > 0 && fullPath){
+		for(size_t i = 0; i < children.size(); i++){
 			children[i] = path + PATH_SEPARATOR + children[i];
 		}
 	}
@@ -496,13 +513,13 @@ const bool Configuration::hasValue(const string& path){
 }
 
 const void Configuration::remove(const std::string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		root->remove(path);
 	}
 }
 
 const void Configuration::unset(const std::string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		root->node(path).unset();
 	}
 }
@@ -536,37 +553,37 @@ const bool Configuration::boolValue(const std::string& path){
 	return false;
 }
 const string Configuration::stringValue(const std::string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		return root->node(path).stringValue();
 	}
 	return "";
 }
 const float Configuration::floatValue(const string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		return root->node(path).floatValue();
 	}
 	return 0.0f;
 }
 const int Configuration::intValue(const string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		return root->node(path).intValue();
 	}
 	return 0;
 }
 const vector<string> Configuration::stringVector(const string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		return root->node(path).stringVector();
 	}
 	return vector<string>();
 }
 const vector<float> Configuration::floatVector(const string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		return root->node(path).floatVector();
 	}
 	return vector<float>();
 }
 const vector<int> Configuration::intVector(const string& path){
-	if (root->containsNode(path)){
+	if(root->containsNode(path)){
 		return root->node(path).intVector();
 	}
 	return vector<int>();

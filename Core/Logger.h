@@ -1,6 +1,9 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
+#include "SFMLI.h"
 
 const enum LogLevel{
 	INFO,
@@ -11,47 +14,42 @@ const enum LogLevel{
 };
 
 namespace logger{
-	static const void log(const std::string& message, const LogLevel& level){
-		std::string out;
+	extern sf::Clock clock;
 
-		switch (level){
-		case INFO:
-			out += "[INFO]";
-			break;
-		case DEBUG:
-			out += "[DEBUG]";
-			break;
-		case WARNING:
-			out += "[WARNING]";
-			break;
-		case FATAL:
-			out += "[FATAL]";
-			break;
-		case TIMING:
-			out += "[TIMING]";
-			break;
+	class LogEntry{
+	public:
+		LogEntry(std::string message){
+			LogEntry::message = message;
+			time = logger::clock.getElapsedTime();
 		}
-		out += ' ' + message + '\n';
-		printf(out.c_str());
-	}
+		~LogEntry(){
 
-	static const void info(const std::string& message){
-		log(message, INFO);
-	}
+		}
 
-	static const void debug(const std::string& message){
-		log(message, DEBUG);
-	}
+		float fadeValue(const sf::Time& showTime, const sf::Time& fadeTime) const{
+			if(time + showTime > logger::clock.getElapsedTime()){
+				return 1.0f;
+			}
+			float f = 1.0f - (logger::clock.getElapsedTime() - time - showTime).asSeconds() / fadeTime.asSeconds();
+			return f < 0.0f ? 0.0f : f;
+		}
 
-	static const void warning(const std::string& message){
-		log(message, WARNING);
-	}
+		std::string message;
+		sf::Time time;
+	};
 
-	static const void fatal(const std::string& message){
-		log(message, FATAL);
-	}
+	extern std::vector<LogEntry> history;
+	extern size_t historyCount;
 
-	static const void timing(const std::string& message){
-		log(message, TIMING);
-	}
+	void log(const std::string& message, const LogLevel& level);
+
+	void info(const std::string& message);
+
+	void debug(const std::string& message);
+
+	void warning(const std::string& message);
+
+	void fatal(const std::string& message);
+
+	void timing(const std::string& message);
 }

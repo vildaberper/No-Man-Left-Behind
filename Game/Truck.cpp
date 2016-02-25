@@ -9,8 +9,8 @@ Truck::~Truck(){
 }
 
 void Truck::initialize(Manager* m){
-	animatableType = DIRECTIONAL;
-	apply(m, "truck");
+	setAnimationType(DIRECTIONAL);
+	applyAnimation(m, "truck");
 
 	currentAnimation = nextAnimation = "rightidle";
 	scale = 1.0f;

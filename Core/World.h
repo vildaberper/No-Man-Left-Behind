@@ -11,7 +11,7 @@
 // interv(x0, x1) + interv(y0 - y1) !! NOT EUCLIDEAN DISTANCE !!
 static const float MAX_COLLISION_DISTANCE = 2000.0f;
 
-enum Layer {
+enum Layer{
 	LAYER0 = 0,
 	LAYER1 = 1,
 	LAYER2 = 2,

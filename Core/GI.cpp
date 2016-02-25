@@ -14,6 +14,8 @@ namespace gi{
 	float cameraTargetX;
 	float cameraTargetY;
 
+	bool logAlwaysActive = false;
+
 	float WIDTH = TARGET_WIDTH;
 	float HEIGHT = TARGET_HEIGHT;
 
@@ -43,6 +45,8 @@ namespace gi{
 	}
 
 	bool initalize(sf::RenderWindow*& rw){
+		sf::Clock cl;
+
 		sf::VideoMode vm = sf::VideoMode(c::resX, c::resY, 32);
 
 		if(c::fullscreen){
@@ -61,8 +65,10 @@ namespace gi{
 
 		cameraX = cameraTargetX = TARGET_WIDTH / 2;
 		cameraY = cameraTargetY = TARGET_HEIGHT / 2;
+		bool success = menuFont.loadFromFile(c::fontDir.child("Arial.ttf").path());
 
-		return menuFont.loadFromFile(c::fontDir.child("Arial.ttf").path());
+		logger::timing("Graphics interface initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+		return success;
 	}
 
 	bool finalize(){
@@ -80,18 +86,25 @@ namespace gi{
 		return renderWindow->isOpen();
 	}
 
+	float wx(){
+		return float(renderWindow->getSize().x);
+	}
+	float wy(){
+		return float(renderWindow->getSize().y);
+	}
+
 	float dx(){
-		return renderWindow->getSize().x / WIDTH;
+		return wx() / WIDTH;
 	}
 	float dy(){
-		return renderWindow->getSize().y / HEIGHT;
+		return wy() / HEIGHT;
 	}
 
 	float dxiz(){
-		return renderWindow->getSize().x / TARGET_WIDTH;
+		return wx() / TARGET_WIDTH;
 	}
 	float dyiz(){
-		return renderWindow->getSize().y / TARGET_HEIGHT;
+		return wy() / TARGET_HEIGHT;
 	}
 
 	// Drawcall
@@ -152,6 +165,40 @@ namespace gi{
 		}
 	}
 
+	void draw(const logger::LogEntry& logEntry, const float& x, const float& y, const float& w, const float& h){
+		sf::Uint8 a = sf::Uint8(logAlwaysActive ? 185 : (185 * logEntry.fadeValue(sf::seconds(3.0f), sf::seconds(1.0f))));
+		sf::Uint8 ta = sf::Uint8((float(a) / 185.0f) * 255.0f);
+		sf::RectangleShape rs = sf::RectangleShape();
+
+		rs.setPosition(x, y);
+
+		rs.setFillColor(sf::Color(0, 0, 0, a));
+		rs.setOutlineThickness(0);
+
+		sf::Text title = sf::Text();
+		title.setFont(menuFont);
+		title.setColor(sf::Color(255, 255, 255, ta));
+		title.setString(logEntry.message);
+
+		float scx = w / (title.getGlobalBounds().width + 20);
+		float scy = h / (title.getGlobalBounds().height + 10);
+		float sc = scx < scy ? scx : scy;
+		title.scale(sc, sc);
+		title.setOrigin(0, float(title.getCharacterSize() / 2));
+		title.setPosition(x + 10 * dxiz(), y + h / 2 - 5 * dyiz());
+
+		rs.setSize(sf::Vector2f(title.getGlobalBounds().width + 20, h));
+		renderWindow->draw(rs);
+
+		renderWindow->draw(title);
+	}
+
+	void drawLog(){
+		for(unsigned int i = 0; i < logger::history.size(); i++){
+			draw(logger::history[logger::history.size() - i - 1], 10 * dxiz(), (TARGET_HEIGHT - 125 - 40 * i) * dyiz(), (TARGET_WIDTH - 20) * dxiz(), 40 * dyiz());
+		}
+	}
+
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h){
 		sf::RectangleShape rs = sf::RectangleShape();
 		rs.setPosition(x, y);
@@ -161,7 +208,7 @@ namespace gi{
 			rs.setFillColor(sf::Color(55, 55, 0, 255));
 		}
 		else{
-			rs.setFillColor(sf::Color(0, 0, 0, 155));
+			rs.setFillColor(sf::Color(0, 0, 0, 185));
 		}
 		rs.setOutlineColor(sf::Color(255, 255, 0, 255));
 		rs.setOutlineThickness(1);
@@ -197,7 +244,6 @@ namespace gi{
 		title.setPosition(x + 5 * dxiz(), y + h / 2 - 5 * dyiz());
 		renderWindow->draw(title);
 	}
-
 
 	void draw(Menu* menu, const sf::Time& time){
 		float x = menu->position.x * dxiz();

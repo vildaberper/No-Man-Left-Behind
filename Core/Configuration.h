@@ -2,11 +2,11 @@
 
 #include "File.h"
 
+static const char PATH_SEPARATOR = '.';
+static const unsigned char INDENT_WIDTH = 2;
+
 class Configuration{
 public:
-	static const char PATH_SEPARATOR = '.';
-	static const unsigned char INDENT_WIDTH = 2;
-
 	Configuration();
 	~Configuration();
 
@@ -17,8 +17,7 @@ public:
 	const bool save(File& file);
 
 	// Children of a node (parent.child1, parent.child2)
-	const std::vector<std::string> children(const std::string& path);
-	const std::vector<std::string> children(const std::string& path, const bool& fullPath);
+	const std::vector<std::string> children(const std::string& path, const bool& fullPath = true);
 
 	// Node has a value
 	const bool hasValue(const std::string& path);

@@ -14,15 +14,10 @@ CollisionEditor::~CollisionEditor(){
 }
 
 void CollisionEditor::run(){
-	sf::Clock fg;
 	c::initialize();
-	logger::timing("Constants initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	fg.restart();
 	gi::initalize(window);
-	logger::timing("Graphics interface initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	manager = new Manager();
 	manager->initialize(window);
-	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	world = new World(manager);
 	world->background = manager->spriteManager->getBackground("Snow");
 
@@ -114,6 +109,8 @@ void CollisionEditor::run(){
 
 		world->render();
 
+		gi::drawLog();
+
 		manager->menuManager->draw(world->time());
 
 		gi::endOfFrame();
@@ -169,6 +166,18 @@ void CollisionEditor::on(KeyboardEvent& event){
 		}
 		break;
 	}
+	case Keyboard::L:
+		if(event.first()){
+			gi::logAlwaysActive = !gi::logAlwaysActive;
+		}
+		break;
+	case Keyboard::S:
+		if(event.first()){
+			if(manager->inputManager->isPressed(Keyboard::LControl)){
+				manager->collisionManager->save(c::collisionBoxFile);
+			}
+		}
+		break;
 	}
 }
 void CollisionEditor::on(MouseButtonEvent& event){

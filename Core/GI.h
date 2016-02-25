@@ -25,6 +25,8 @@ namespace gi{
 	extern float cameraTargetX;
 	extern float cameraTargetY;
 
+	extern bool logAlwaysActive;
+
 	extern float WIDTH;
 	extern float HEIGHT;
 
@@ -44,6 +46,9 @@ namespace gi{
 	// StartOfFrame
 	bool startOfFrame();
 
+	float wx();
+	float wy();
+
 	float dx();
 	float dy();
 
@@ -54,6 +59,9 @@ namespace gi{
 	void draw(sf::Sprite& sprite);
 
 	void draw(drawable::Drawable* drawable, const sf::Time& time);
+
+	void draw(const logger::LogEntry& logEntry, const float& x, const float& y, const float& w, const float& h);
+	void drawLog();
 
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h);
 

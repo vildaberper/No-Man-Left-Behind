@@ -17,6 +17,7 @@ TextureManager::~TextureManager(){
 // Initialize\Finalize
 const bool TextureManager::initialize(){
 	sf::Clock cl;
+
 	Texture* t = new Texture();
 	File u = c::textureDir.child("undefined.png");
 	if (!u.isFile() || !t->loadFromFile(u.path())){
@@ -46,11 +47,11 @@ const bool TextureManager::initialize(){
 
 	// Load all them textures
 	if (loadTextures()){
-		logger::timing("Textures loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds.");
+		logger::timing("Textures initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return true;
 	}
 	else{
-		logger::fatal("TexturesManager failed to initialize");
+		logger::fatal("Textures failed to initialize");
 		return false;
 	}
 }

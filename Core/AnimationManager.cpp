@@ -12,18 +12,24 @@ AnimationManager::~AnimationManager(){
 }
 
 void AnimationManager::initialize(sf::RenderWindow* window, SpriteManager* sm){
+	sf::Clock cl;
+
 	undefined = new drawable::Animation();
-	undefined->timing = milliseconds(100);
+	undefined->timing = milliseconds(0);
 	undefined->textures.push_back("undefined");
 	undefined->sprites.push_back(new sf::Sprite(*sm->texMan->getUndefinedTexture()->texi->texture));
 
 	loadFromDir(c::animationDir, sm);
+
+	logger::timing("Animations initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 }
 
 void AnimationManager::finalize(sf::RenderWindow* window){
-	/*
-		TODO Memory leak
-	*/
+	for(auto &ent : animations){
+		delete ent.second;
+	}
+	animations.clear();
+	delete undefined;
 }
 
 void AnimationManager::tick(sf::RenderWindow* window, const sf::Time& time, const float& dt){

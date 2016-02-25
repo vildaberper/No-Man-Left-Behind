@@ -13,12 +13,18 @@ public:
 	Animatable();
 	~Animatable();
 
-	void apply(Manager* m, const std::string& a);
+	void applyAnimation(Manager* m, const std::string& animation);
 
 	std::string state(const unsigned int& state);
 
 	virtual void move(const float& dt);
 
+	void setAnimationType(const AnimatableType& animatableType, const unsigned int& numStates = 1);
+	AnimatableType getAnimationType();
+
+	void setNumStates(const unsigned int& numStates);
+	unsigned int getNumStates();
+private:
 	AnimatableType animatableType;
-	unsigned char numStates = 1;
+	unsigned int numStates = 1;
 };

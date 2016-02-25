@@ -19,15 +19,10 @@ Editor::~Editor(){
 }
 
 void Editor::run(){
-	sf::Clock fg;
 	c::initialize();
-	logger::timing("Constants initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	fg.restart();
 	gi::initalize(window);
-	logger::timing("Graphics interface initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	manager = new Manager();
 	manager->initialize(window);
-	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	world = new World(manager);
 	file = c::worldDir.child("world.txt");
 	world->load(file);
@@ -41,7 +36,7 @@ void Editor::run(){
 	cm->size.y = 50;
 	cm->type = HORIZONTAL;
 	cm->hidden = false;
-	for (size_t c = 0; c < cs.size(); c++){
+	for(size_t c = 0; c < cs.size(); c++){
 		Menu* tm = new Menu();
 		MenuItem* mi = new MenuItem();
 		mi->title = cs[c];
@@ -55,7 +50,7 @@ void Editor::run(){
 		tm->type = VERTICAL;
 		tm->hidden = true;
 		vector<string> ms = manager->spriteManager->members(mi->title);
-		for (string t : ms){
+		for(string t : ms){
 			MenuItem* ti = new MenuItem();
 			ti->title = t;
 			ti->type = TEXTURE;
@@ -101,7 +96,7 @@ void Editor::run(){
 	backgroundC->type = VERTICAL;
 	backgroundC->position = Vector(gi::TARGET_WIDTH - 310, gi::TARGET_HEIGHT - 50 - 10 - 400);
 	backgroundC->size = Vector(300, 400);
-	for (string b : cs){
+	for(string b : cs){
 		MenuItem* ti = new MenuItem();
 		ti->title = b;
 		ti->type = TEXTURE;
@@ -121,9 +116,9 @@ void Editor::run(){
 	backgroundMenu->toggle = backgroundC;
 	backgroundMenu->closeOnClick = false;
 	backgroundMenu->type = TEXTURE;
-	if (world->backgroundName.length() > 0){
+	if(world->backgroundName.length() > 0){
 		backgroundMenu->title = world->backgroundName;
-		if (world->background != NULL){
+		if(world->background != NULL){
 			backgroundMenu->sprite = new Sprite(*world->background);
 		}
 	}
@@ -136,12 +131,22 @@ void Editor::run(){
 	gi::smoothCamera = true;
 	gi::cameraSmoothness = 25.0f;
 
-	while (gi::startOfFrame()){
-		if (manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
-			gi::zoom(gi::cameraZ + 1.0f * gi::cameraZ * world->dt());
+	while(gi::startOfFrame()){
+		if(manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
+			gi::zoom(gi::cameraZ + gi::cameraZ * world->dt());
+			if(target != NULL){
+				target->dx += target->dx * world->dt();
+				target->dy += target->dy * world->dt();
+			}
+			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 		}
-		if (manager->inputManager->isPressed(sf::Keyboard::Key::X)){
-			gi::zoom(gi::cameraZ - 1.0f * gi::cameraZ * world->dt());
+		if(manager->inputManager->isPressed(sf::Keyboard::Key::X)){
+			gi::zoom(gi::cameraZ - gi::cameraZ * world->dt());
+			if(target != NULL){
+				target->dx -= target->dx * world->dt();
+				target->dy -= target->dy * world->dt();
+			}
+			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 		}
 
 		world->tick();
@@ -152,6 +157,8 @@ void Editor::run(){
 		gi::camera(world->dt());
 
 		world->render();
+
+		gi::drawLog();
 
 		manager->menuManager->draw(world->time());
 
@@ -165,17 +172,17 @@ void Editor::run(){
 }
 
 void Editor::on(KeyboardEvent& event){
-	if (event.isCancelled()){
+	if(event.isCancelled()){
 		return;
 	}
-	if (event.pressed()){
-		switch (event.key()){
+	if(event.pressed()){
+		switch(event.key()){
 		case Keyboard::Escape:
 			world->save(file);
 			window->close();
 			break;
 		case Keyboard::Delete:
-			if (target != NULL){
+			if(target != NULL){
 				target->drawable->kill();
 				delete target;
 				target = NULL;
@@ -183,17 +190,19 @@ void Editor::on(KeyboardEvent& event){
 			}
 			break;
 		case Keyboard::S:
-			if (manager->inputManager->isPressed(Keyboard::LControl)){
-				world->save(file);
+			if(event.first()){
+				if(manager->inputManager->isPressed(Keyboard::LControl)){
+					world->save(file);
+				}
 			}
 			break;
 		case Keyboard::Add:
-			if (target != NULL){
+			if(target != NULL){
 				target->drawable->scale *= 1.2f;
 			}
 			break;
 		case Keyboard::Subtract:
-			if (target != NULL){
+			if(target != NULL){
 				target->drawable->scale *= (5.0f / 6.0f);
 			}
 			break;
@@ -202,17 +211,22 @@ void Editor::on(KeyboardEvent& event){
 				gi::collisionBoxes = !gi::collisionBoxes;
 			}
 			break;
+		case Keyboard::L:
+			if(event.first()){
+				gi::logAlwaysActive = !gi::logAlwaysActive;
+			}
+			break;
 		}
 	}
 }
 void Editor::on(MouseButtonEvent& event){
-	if (event.isCancelled()){
-		if (event.button() == Mouse::Button::Left && event.pressed()){
-			if (selectedString->length() > 0){
+	if(event.isCancelled()){
+		if(event.button() == Mouse::Button::Left && event.pressed()){
+			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
 				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
 			}
-			if (selectedBackground->length() > 0){
+			if(selectedBackground->length() > 0){
 				backgroundMenu->title = *selectedBackground;
 				delete backgroundMenu->sprite;
 				backgroundMenu->sprite = new Sprite(*manager->spriteManager->getBackground(*selectedBackground));
@@ -222,7 +236,7 @@ void Editor::on(MouseButtonEvent& event){
 		}
 		return;
 	}
-	switch (event.button()){
+	switch(event.button()){
 	case Mouse::Button::Right:
 		dragging = event.pressed();
 		break;
@@ -238,28 +252,24 @@ void Editor::on(MouseButtonEvent& event){
 	case Mouse::Button::Left:
 		targeting = target != NULL && event.pressed();
 
-		if (!targeting && event.pressed()){
-			if (selectedString != NULL && selectedString->length() > 0){
+		if(!targeting && event.pressed()){
+			if(selectedString != NULL && selectedString->length() > 0){
 				Sprite* s = manager->spriteManager->getSprite(*selectedString);
 				drawable::Drawable* d = new drawable::Drawable();
 				drawable::Animation* a = new drawable::Animation();
-				d->position = Vector(
-					gi::cameraX - gi::TARGET_WIDTH / 2 + event.x() / gi::dx() - s->getGlobalBounds().width / 2,
-					gi::cameraY - gi::TARGET_HEIGHT / 2 + event.y() / gi::dy() - s->getGlobalBounds().height / 2
-					);
 				d->scale = 1.0f;
 				a->textures.push_back(*selectedString);
 				a->sprites.push_back(s);
-				a->timing = milliseconds(1000);
+				a->timing = milliseconds(0);
 				d->animations["default"] = a;
 				d->currentAnimation = d->nextAnimation = "default";
 				world->addDrawable(d, selectedLayer);
-				if (target != NULL){
+				if(target != NULL){
 					delete target;
 				}
 				targeting = true;
 				d->highlight = true;
-				target = new Target(d, selectedLayer, s->getLocalBounds().width * gi::dx() / 2, s->getLocalBounds().height * gi::dy() / 2);
+				target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2, s->getGlobalBounds().height / 2);
 				on(MouseMoveEvent(event.x(), event.y(), 0, 0));
 			}
 		}
@@ -267,17 +277,17 @@ void Editor::on(MouseButtonEvent& event){
 	}
 }
 void Editor::on(MouseMoveEvent& event){
-	if (event.isCancelled()){
+	if(event.isCancelled()){
 		return;
 	}
-	if (dragging){
+	if(dragging){
 		gi::cameraTargetX -= event.dx() / gi::dx();
 		gi::cameraTargetY -= event.dy() / gi::dy();
 	}
-	if (!targeting){
+	if(!targeting){
 		Target* nt;
-		if ((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != NULL){
-			if (target != NULL){
+		if((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != NULL){
+			if(target != NULL){
 				target->drawable->highlight = false;
 				delete target;
 			}
@@ -285,7 +295,7 @@ void Editor::on(MouseMoveEvent& event){
 			target->drawable->highlight = true;
 		}
 		else{
-			if (target != NULL){
+			if(target != NULL){
 				target->drawable->highlight = false;
 				delete target;
 			}
@@ -293,12 +303,12 @@ void Editor::on(MouseMoveEvent& event){
 		}
 	}
 	else{
-		if (!dragging){
-			target->drawable->position.x = gi::cameraX - gi::TARGET_WIDTH / 2 + event.x() / gi::dx() - target->dx / gi::dx();
-			target->drawable->position.y = gi::cameraY - gi::TARGET_HEIGHT / 2 + event.y() / gi::dy() - target->dy / gi::dy();
+		if(!dragging){
+			target->drawable->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
+			target->drawable->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
 
-			if (target->layer == LAYER0){
-				if (world->background != NULL){
+			if(target->layer == LAYER0){
+				if(world->background != NULL){
 					int w = world->background->getSize().x;
 					int h = world->background->getSize().y;
 					float x = target->drawable->position.x - w / 2;
@@ -309,73 +319,73 @@ void Editor::on(MouseMoveEvent& event){
 					target->drawable->position.y = y;
 				}
 			}
-			else if (manager->inputManager->isPressed(sf::Keyboard::Key::S)){
+			else if(manager->inputManager->isPressed(sf::Keyboard::Key::S)){
 				FloatRect tr = target->drawable->getSprite(world->time())->getGlobalBounds();
-				for (drawable::Drawable* d : world->drawables[target->layer]){
+				for(drawable::Drawable* d : world->drawables[target->layer]){
 					FloatRect dr = d->getSprite(world->time())->getGlobalBounds();
-					if (interv(dr.left + dr.width, tr.left) < SNAP){
-						if (interv(dr.top + dr.height, tr.top) < SNAP){
+					if(interv(dr.left + dr.width, tr.left) < SNAP){
+						if(interv(dr.top + dr.height, tr.top) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
 							break;
 						}
-						else if (interv(dr.top, tr.top) < SNAP){
+						else if(interv(dr.top, tr.top) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy()) / gi::dy();
 							break;
 						}
-						else if (interv(dr.top, tr.top + tr.height) < SNAP){
+						else if(interv(dr.top, tr.top + tr.height) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
 							break;
 						}
-						else if (interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
+						else if(interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() - tr.height + dr.height) / gi::dy();
 							break;
 						}
 					}
-					else if (interv(dr.left, tr.left + tr.width) < SNAP){
-						if (interv(dr.top + dr.height, tr.top) < SNAP){
+					else if(interv(dr.left, tr.left + tr.width) < SNAP){
+						if(interv(dr.top + dr.height, tr.top) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
 							break;
 						}
-						else if (interv(dr.top, tr.top) < SNAP){
+						else if(interv(dr.top, tr.top) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy()) / gi::dy();
 							break;
 						}
-						else if (interv(dr.top, tr.top + tr.height) < SNAP){
+						else if(interv(dr.top, tr.top + tr.height) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
 							break;
 						}
-						else if (interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
+						else if(interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() - tr.height + dr.height) / gi::dy();
 							break;
 						}
 					}
-					else if (interv(dr.top + dr.height, tr.top) < SNAP){
-						if (interv(dr.left, tr.left) < SNAP){
+					else if(interv(dr.top + dr.height, tr.top) < SNAP){
+						if(interv(dr.left, tr.left) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx()) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
 							break;
 						}
-						else if (interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
+						else if(interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width - tr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
 							break;
 						}
 					}
-					else if (interv(dr.top, tr.top + tr.height) < SNAP){
-						if (interv(dr.left, tr.left) < SNAP){
+					else if(interv(dr.top, tr.top + tr.height) < SNAP){
+						if(interv(dr.left, tr.left) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx()) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
 							break;
 						}
-						else if (interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
+						else if(interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width - tr.width) / gi::dx();
 							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
 							break;
@@ -388,16 +398,16 @@ void Editor::on(MouseMoveEvent& event){
 	}
 }
 void Editor::on(MouseWheelEvent& event){
-	if (event.isCancelled()){
+	if(event.isCancelled()){
 		return;
 	}
-	if (event.delta() > 0){
+	if(event.delta() > 0){
 		selectedLayer = nextLayer(selectedLayer);
 	}
 	else{
 		selectedLayer = previousLayer(selectedLayer);
 	}
-	if (target != NULL && targeting){
+	if(target != NULL && targeting){
 		drawable::Drawable* d = target->drawable;
 
 		world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
@@ -406,7 +416,7 @@ void Editor::on(MouseWheelEvent& event){
 	}
 	else{
 		targeting = false;
-		if (target != NULL){
+		if(target != NULL){
 			target->drawable->highlight = false;
 			delete target;
 			target = NULL;

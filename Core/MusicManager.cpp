@@ -20,11 +20,11 @@ bool MusicManager::initialize(sf::RenderWindow* window){
 	// Loading sounds
 	clock.restart();
 	if (archiveMusic()){
-		logger::timing("Music loaded in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+		logger::timing("Music initialized in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return true;
 	}
 	else{
-		logger::fatal("MusicManager failed to initialize");
+		logger::fatal("Music failed to initialize");
 		return false;
 	}
 }

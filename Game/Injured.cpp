@@ -9,9 +9,8 @@ Injured::~Injured(){
 }
 
 void Injured::initialize(Manager* manager, const std::string& animation, const Injure& injure, const size_t& progress){
-	animatableType = STATES;
-	numStates = 5;
-	apply(manager, id = animation);
+	setAnimationType(STATES, 5);
+	applyAnimation(manager, id = animation);
 	Injured::injure = injure;
 	Injured::progress = progress;
 	updateAnimation();

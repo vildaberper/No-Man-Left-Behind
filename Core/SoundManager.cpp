@@ -23,11 +23,11 @@ bool SoundManager::initialize(RenderWindow* window){
 
 	// Loading sounds
 	if(loadSounds()){
-		logger::timing("Sounds loaded in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+		logger::timing("Sounds initialized in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return true;
 	}
 	else{
-		logger::fatal("SoundManager failed to initialize");
+		logger::fatal("Sounds failed to initialize");
 		return false;
 	}
 }

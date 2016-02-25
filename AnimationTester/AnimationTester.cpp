@@ -12,15 +12,10 @@ AnimationTester::~AnimationTester(){
 }
 
 void AnimationTester::run(){
-	Clock fg;
 	c::initialize();
-	logger::timing("Constants initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
-	fg.restart();
 	gi::initalize(window);
-	logger::timing("Graphics interface initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 	manager = new Manager();
 	manager->initialize(window);
-	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 
 	manager->inputManager->registerListener(this);
 

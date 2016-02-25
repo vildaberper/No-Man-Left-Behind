@@ -17,6 +17,7 @@ void Level::begin(){
 
 	spawn = Vector(-3000.0f, 440.0f);
 	useTruck = true;
+	timeBeforeBreak = 2.0f;
 
 	Injured* in = new Injured();
 	in->initialize(manager, "soldier1", OPEN_WOUND, 0); // soldier
@@ -66,7 +67,6 @@ void Level::begin(){
 
 	state = TRUCKMOVING;
 	fadeValue = 1.0f;
-	timeBeforeBreak = 2.0f;
 
 	world = new World(manager);
 	world->load(c::worldDir.child(worldFileName));
@@ -108,14 +108,14 @@ void Level::begin(){
 	player->inventory->put(ItemStack(GAUZE, 16));
 
 	journal = new Animatable();
-	journal->animatableType = STATES;
-	journal->numStates = 1;
-	journal->apply(manager, "journal");
+	journal->setAnimationType(STATES);
+	journal->applyAnimation(manager, "journal");
 	journal->position = Vector(0.0,0.0);
 	journal->scale = 0.7f;
+	journal->viewRelative = true;
 	world->addDrawable(journal, LAYER4);
 
-	si::playMusic("level1", "main", true, false, true);
+	si::playMusic("level1", "main", true, true, true);
 	//si::playMusic("WIND", "Vind_Inside", true, false, true);
 }
 
@@ -251,8 +251,8 @@ void Level::tick(){
 		actual += cv.y;
 	}
 
-	journal->position.x = (gi::cameraX - gi::TARGET_WIDTH / 2 + 50) / gi::dx();
-	journal->position.y = (gi::cameraY - gi::TARGET_HEIGHT / 2) / gi::dy();
+	journal->position.x = 50;
+	journal->position.y = 50;
 	journal->position.y -= actual;
 }
 

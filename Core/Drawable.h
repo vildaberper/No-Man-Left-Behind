@@ -12,7 +12,7 @@ namespace drawable{
 	public:
 		std::vector<std::string> textures;
 		std::vector<sf::Sprite*> sprites;
-		sf::Time timing; // length of each frame in ms
+		sf::Time timing;
 
 		Animation* clone(){
 			Animation* a = new Animation();
@@ -33,6 +33,7 @@ namespace drawable{
 		sf::Time startTime;
 		float scale = 1.0f;
 		bool highlight = false;
+		bool viewRelative = false;
 
 		Drawable();
 		~Drawable();

@@ -20,14 +20,34 @@ Game::~Game(){
 
 }
 
+void Game::on(KeyboardEvent& event){
+	if(event.isCancelled()){
+		return;
+	}
+	if(event.pressed()){
+		switch(event.key()){
+		case Keyboard::Escape:
+			gi::renderWindow->close();
+			break;
+		case Keyboard::C:
+			if(event.first()){
+				gi::collisionBoxes = !gi::collisionBoxes;
+			}
+			break;
+		case Keyboard::L:
+			if(event.first()){
+				gi::logAlwaysActive = !gi::logAlwaysActive;
+			}
+			break;
+		}
+	}
+}
+
 void Game::run(){
 	sf::Clock clock;
 	c::initialize();
-	logger::timing("Constants initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
-	clock.restart();
 	gi::initalize(window);
 	gi::smoothCamera = true;
-	logger::timing("Graphics interface initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
 
 	gi::renderWindow->setMouseCursorVisible(false);
 
@@ -38,39 +58,32 @@ void Game::run(){
 		if(!managerInitialized){
 			gi::darken(1.0f);
 			gi::endOfFrame();
-			clock.restart();
 			manager = new Manager();
 			manager->initialize(window);
-			logger::timing("Manager initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
 			controller = new Controller();
 			controller->initialize(manager);
 			managerInitialized = true;
+			inputListenerId = manager->inputManager->registerListener(this);
 			continue;
 		}
 		if(level == NULL){
 			gi::darken(1.0f);
 			gi::endOfFrame();
-			clock.restart();
 			level = new Level(manager, controller);
 			level->begin();
-			logger::timing("Level initialized in " + to_string(clock.getElapsedTime().asSeconds()) + " seconds.");
 			clock.restart();
-		}
-
-		if(manager->inputManager->isPressed(Keyboard::Escape)){
-			window->close();
 		}
 
 		Time time = clock.getElapsedTime();
 		float dt = (time - lastTime).asSeconds();
-
-		gi::collisionBoxes = manager->inputManager->isPressed(Keyboard::C);
 
 		manager->tick(window, time, dt);
 
 		window->clear();
 
 		level->tick();
+
+		gi::drawLog();
 
 		manager->menuManager->draw(time);
 

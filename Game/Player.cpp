@@ -9,8 +9,8 @@ Player::~Player(){
 }
 
 void Player::initialize(Manager* m){
-	animatableType = DIRECTIONAL;
-	apply(m, "player");
+	setAnimationType(DIRECTIONAL);
+	applyAnimation(m, "player");
 
 	currentAnimation = nextAnimation = "downidle";
 	scale = 1.0f;

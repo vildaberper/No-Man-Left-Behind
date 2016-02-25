@@ -26,6 +26,8 @@ namespace c{
 	int resY;
 
 	const void initialize(){
+		sf::Clock cl;
+
 		File dir = File();
 
 		config = Configuration();
@@ -51,5 +53,7 @@ namespace c{
 
 		masterVolume = config.floatValue("volume.masterVolume");
 		musicVolume = config.floatValue("volume.musicVolume");
+
+		logger::timing("Constants initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	}
 }
