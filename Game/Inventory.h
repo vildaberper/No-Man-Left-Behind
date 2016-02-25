@@ -18,6 +18,7 @@ public:
 
 	ItemStack& swap(ItemStack& is, unsigned char slot);
 	ItemStack& take(unsigned char slot);
+	ItemStack& at(unsigned char slot);
 
 	bool take(ItemStack is);
 

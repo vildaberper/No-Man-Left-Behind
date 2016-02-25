@@ -24,6 +24,7 @@ public:
 	MenuItemType type = TEXT;
 	Menu* toggle = NULL;
 	bool closeOnClick;
+	bool highlight = false;
 
 	std::string selectedPrefix;
 	std::string* selectedString = NULL;

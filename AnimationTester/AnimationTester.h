@@ -7,7 +7,7 @@
 #include "Constants.h"
 #include "MathHelper.h"
 
-class AnimationTester{
+class AnimationTester : public InputListener{
 public:
 	AnimationTester();
 	~AnimationTester();
@@ -18,8 +18,8 @@ public:
 
 	void save();
 
-	const void keyboardListener(KeyboardEvent& event);
-	const void mouseWheelListener(MouseWheelEvent& event);
+	virtual void on(KeyboardEvent& event);
+	virtual void on(MouseWheelEvent& event);
 private:
 	bool repeat = true;
 

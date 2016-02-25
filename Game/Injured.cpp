@@ -11,7 +11,7 @@ Injured::~Injured(){
 void Injured::initialize(Manager* manager, const std::string& animation, const Injure& injure, const size_t& progress){
 	animatableType = STATES;
 	numStates = 5;
-	apply(manager, animation);
+	apply(manager, id = animation);
 	Injured::injure = injure;
 	Injured::progress = progress;
 	updateAnimation();
@@ -22,9 +22,31 @@ void Injured::initialize(Manager* manager, const std::string& animation, const I
 }
 
 void Injured::updateAnimation(){
-	setNextState(INJURED_STATES - 1 + progress - requirements.at(injure).size());
+	currentAnimation = nextAnimation = state(INJURED_STATES - 1 + progress - requirements.at(injure).size());
+	if(isHealed()){
+		if(voice){
+			si::stopSound(currentVoice);
+		}
+	}
+	else{
+		if(!voice){
+			//voice = true;
+			//currentVoice = si::playSound("voice." + id, true);
+		}
+	}
 }
 
 bool Injured::isHealed(){
 	return progress >= requirements.at(injure).size();
+}
+
+bool Injured::use(ItemStack& is){
+	if(is.amount > 0 && !isHealed() && is.item.type == requirements.at(injure).at(progress)){
+		progress++;
+		updateAnimation();
+		is.amount--;
+		si::playSound("resources." + resourceToString(is.item.type));
+		return true;
+	}
+	return false;
 }

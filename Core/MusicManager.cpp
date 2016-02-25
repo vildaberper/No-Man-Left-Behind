@@ -18,6 +18,7 @@ MusicManager::~MusicManager(){
 bool MusicManager::initialize(sf::RenderWindow* window){
 	Clock cl;
 	// Loading sounds
+	clock.restart();
 	if (archiveMusic()){
 		logger::timing("Music loaded in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return true;
@@ -55,7 +56,7 @@ void MusicManager::tick(sf::RenderWindow* window, const sf::Time& time, const fl
 			float v = elapsed / FADE_DURATION;
 			id.second.music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
 		}
-		else if (id.second.duration.asMilliseconds() != 0 && id.second.fadeOut && elapsed >= id.second.duration - FADE_DURATION){	// Fading out
+		else if (id.second.fadeOut && id.second.duration.asMilliseconds() != 0 && elapsed >= id.second.duration - FADE_DURATION){	// Fading out
 			if (elapsed >= id.second.duration){
 				id.second.music->stop();
 				continue;
@@ -102,6 +103,7 @@ unsigned long MusicManager::play(const std::string& category, const std::string&
 		localMusic.fadeIn = fadeIn;
 		localMusic.fadeOut = fadeOut;
 		localMusic.loop = loop;
+		localMusic.music->setLoop(loop);
 
 		if (loop){
 			localMusic.duration = milliseconds(0);
@@ -109,14 +111,16 @@ unsigned long MusicManager::play(const std::string& category, const std::string&
 		else{
 			localMusic.duration = localMusic.music->getDuration();
 		}
-		channels[id] = localMusic;
+
 		localMusic.music->play();
+		localMusic.start = clock.getElapsedTime();
+		channels[id] = localMusic;
 
 		return id;
 	}
 }
 
-void MusicManager::stop(const unsigned long& id, const sf::Time& time, const bool& force){
+void MusicManager::stop(const unsigned long& id, const bool& force){
 	if (channels.count(id) == 0){
 		return;
 	}
@@ -127,7 +131,7 @@ void MusicManager::stop(const unsigned long& id, const sf::Time& time, const boo
 		m.music->stop();
 	}
 	else{
-		m.duration = time - m.start + FADE_DURATION;
+		m.duration = clock.getElapsedTime() - m.start + FADE_DURATION;
 	}
 }
 

@@ -1,5 +1,7 @@
 #include "Inventory.h"
 
+#include "MathHelper.h"
+
 Inventory::Inventory(const unsigned char size){
 	Inventory::size = size;
 	content = new ItemStack[size];
@@ -62,15 +64,15 @@ ItemStack& Inventory::put(ItemStack& is){
 
 ItemStack& Inventory::swap(ItemStack& is, unsigned char slot){
 	if(slot >= size)
-		return ItemStack();
+		return is;
 	if(is.amount > stackLimit(is.item.type)){
 		return is;
 	}
 
-	ItemStack r = content[slot];
+	ItemStack* r = &content[slot];
 	content[slot] = is;
 
-	return r;
+	return *r;
 }
 ItemStack& Inventory::take(unsigned char slot){
 	return swap(ItemStack(), slot);
@@ -95,6 +97,10 @@ bool Inventory::take(ItemStack is){
 	}
 
 	return true;
+}
+
+ItemStack& Inventory::at(unsigned char slot){
+	return content[math::range(slot, size - 1)];
 }
 
 bool Inventory::has(ItemStack is) const{

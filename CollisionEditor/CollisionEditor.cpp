@@ -3,20 +3,7 @@
 using namespace sf;
 using namespace std;
 
-CollisionEditor* collisionEditor;
-
-void keyboardListenerW(KeyboardEvent& event){
-	collisionEditor->keyboardListener(event);
-}
-void mouseButtonListenerW(MouseButtonEvent& event){
-	collisionEditor->mouseButtonListener(event);
-}
-void mouseMoveListenerW(MouseMoveEvent& event){
-	collisionEditor->mouseMoveListener(event);
-}
-
 CollisionEditor::CollisionEditor(){
-	collisionEditor = this;
 	current = new std::string();
 	selectedString = new std::string();
 }
@@ -75,9 +62,7 @@ void CollisionEditor::run(){
 	}
 	manager->menuManager->menus["categories"] = cm;
 
-	keyboardListenerId = manager->inputManager->registerListener(keyboardListenerW);
-	mouseButtonListenerId = manager->inputManager->registerListener(mouseButtonListenerW);
-	mouseMoveListenerId = manager->inputManager->registerListener(mouseMoveListenerW);
+	manager->inputManager->registerListener(this);
 
 	gi::collisionBoxes = true;
 
@@ -165,7 +150,7 @@ void CollisionEditor::update(){
 	world->addDrawable(d, LAYER2);
 }
 
-const void CollisionEditor::keyboardListener(KeyboardEvent& event){
+void CollisionEditor::on(KeyboardEvent& event){
 	if(event.isCancelled()){
 		return;
 	}
@@ -186,8 +171,7 @@ const void CollisionEditor::keyboardListener(KeyboardEvent& event){
 	}
 	}
 }
-
-const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
+void CollisionEditor::on(MouseButtonEvent& event){
 	if(event.isCancelled()){
 		if(event.button() == Mouse::Button::Left && event.pressed()){
 			if(selectedString->length() > 0){
@@ -254,7 +238,7 @@ const void CollisionEditor::mouseButtonListener(MouseButtonEvent& event){
 	}
 }
 
-const void CollisionEditor::mouseMoveListener(MouseMoveEvent& event){
+void CollisionEditor::on(MouseMoveEvent& event){
 	if(dragging){
 		if(current->length() > 0 && d != NULL){
 			FloatRect fr = d->getSprite(world->time())->getGlobalBounds();

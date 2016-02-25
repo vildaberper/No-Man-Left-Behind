@@ -23,6 +23,11 @@ public:
 
 	bool done();
 
+	Injured* nearestInjured(const float& maxDistance);
+
+	void updateInventoryMenu();
+	std::vector<MenuItem*>* mis;
+
 	Manager* manager;
 	Controller* controller;
 
@@ -37,10 +42,18 @@ public:
 	float timeBeforeBreak;
 
 	Player* player = NULL;
+	int selectedSlot = 0;
 
 	bool firstFrame = true;
 	LevelState state;
 	float fadeValue;
 
 	std::vector<Injured*> injured;
+	Injured* closest = NULL;
+
+	Animatable* journal;
+	float dist = 1250.0f;
+	float target = dist;
+	float actual = dist;
+	float d = 5.0f;
 };

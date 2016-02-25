@@ -25,8 +25,8 @@ namespace si{
 	unsigned long playMusic(const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
 		return musicManager->play(category, name, fadeIn, fadeOut, loop);
 	}
-	void stopMusic(const unsigned long& id, const sf::Time& time, const bool& force){
-		musicManager->stop(id, time, force);
+	void stopMusic(const unsigned long& id, const bool& force){
+		musicManager->stop(id, force);
 	}
 	//Sound
 	unsigned long playSound_(const std::string& category, const std::string& name, const bool& loop){

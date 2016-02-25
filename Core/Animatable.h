@@ -15,7 +15,7 @@ public:
 
 	void apply(Manager* m, const std::string& a);
 
-	void setNextState(const unsigned int& state);
+	std::string state(const unsigned int& state);
 
 	virtual void move(const float& dt);
 

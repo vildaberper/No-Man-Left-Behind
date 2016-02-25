@@ -2,16 +2,9 @@
 
 using namespace sf;
 
-MenuManager* menuManager;
-
-void menuManagerMouseButtonListenerW(MouseButtonEvent& event){
-	menuManager->mouseButtonListener(event);
-}
-
 MenuManager::MenuManager(InputManager* inputManager){
-	menuManager = this;
 	inputManager_ = inputManager;
-	inputManager_->registerListener(menuManagerMouseButtonListenerW);
+	inputManager_->registerListener(this);
 }
 
 MenuManager::~MenuManager(){
@@ -38,7 +31,7 @@ void MenuManager::draw(const sf::Time& time){
 	}
 }
 
-const void MenuManager::mouseButtonListener(MouseButtonEvent& event){
+void MenuManager::on(MouseButtonEvent& event){
 	if (event.pressed() && event.button() == sf::Mouse::Button::Left){
 		for (auto &ent : menus){
 			if (!ent.second->hidden){

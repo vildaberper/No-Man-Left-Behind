@@ -48,7 +48,6 @@ void Level::begin(){
 	in->position = Vector(2156.000000f, 827.000000f);
 	injured.push_back(in);
 
-
 	in = new Injured();
 	in->initialize(manager, "soldier1", OPEN_WOUND, 0); // soldier
 	in->position = Vector(1762.000000f, 878.000000f);
@@ -100,15 +99,24 @@ void Level::begin(){
 		state = PLAYING;
 	}
 
-	player->inventory->put(ItemStack(PENICILLIN, 1));
-	player->inventory->put(ItemStack(FORCEPS, 1));
-	player->inventory->put(ItemStack(ALCOHOL, 1));
-	player->inventory->put(ItemStack(MORPHINE, 1));
-	player->inventory->put(ItemStack(SUTURE_KIT, 1));
-	player->inventory->put(ItemStack(SCALPEL, 1));
-	player->inventory->put(ItemStack(GAUZE, 33));
+	player->inventory->put(ItemStack(PENICILLIN, 16));
+	player->inventory->put(ItemStack(FORCEPS, 16));
+	player->inventory->put(ItemStack(ALCOHOL, 16));
+	player->inventory->put(ItemStack(MORPHINE, 16));
+	player->inventory->put(ItemStack(SUTURE_KIT, 16));
+	player->inventory->put(ItemStack(SCALPEL, 16));
+	player->inventory->put(ItemStack(GAUZE, 16));
 
-	si::playMusic("Level_1", "Level_01_Sketch_01", false, true, true);
+	journal = new Animatable();
+	journal->animatableType = STATES;
+	journal->numStates = 1;
+	journal->apply(manager, "journal");
+	journal->position = Vector(0.0,0.0);
+	journal->scale = 0.7f;
+	world->addDrawable(journal, LAYER4);
+
+	si::playMusic("level1", "main", true, false, true);
+	//si::playMusic("WIND", "Vind_Inside", true, false, true);
 }
 
 void Level::tick(){
@@ -126,20 +134,16 @@ void Level::tick(){
 		world->setTimeScale(2.0f);
 	}
 	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num3)){
-		world->setTimeScale(4.0f);
+		world->setTimeScale(3.0f);
 	}
 	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num4)){
-		world->setTimeScale(8.0f);
+		world->setTimeScale(4.0f);
 	}
 	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num5)){
+		world->setTimeScale(5.0f);
+	}
+	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num6)){
 		world->setTimeScale(16.0f);
-	}
-
-	if(manager->inputManager->isFirstPressed(sf::Keyboard::F)){
-		si::playSound("truck.running", false);
-	}
-	if(manager->inputManager->isFirstPressed(sf::Keyboard::G)){
-		si::playSound("truck.stopping", false);
 	}
 
 	if(fadeValue > 0.0f){
@@ -182,15 +186,13 @@ void Level::tick(){
 			invM->type = HORIZONTAL;
 			invM->position = Vector(5.0f, gi::TARGET_HEIGHT - 85.0f);
 			invM->size = Vector(gi::TARGET_WIDTH - 10, 80);
+			mis = &invM->items;
 			for(size_t i = 0; i < player->inventory->getSize(); i++){
-				ItemStack is = player->inventory->content[i];
 				MenuItem* ti = new MenuItem();
-				ti->title = resourceToString(is.item.type) + " " + std::to_string(is.amount);
-				ti->type = TEXTURE;
-				ti->sprite = new sf::Sprite(*manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type)));
 				ti->closeOnClick = false;
-				invM->items.push_back(ti);
+				mis->push_back(ti);
 			}
+			updateInventoryMenu();
 			manager->menuManager->menus["inventory"] = invM;
 		}
 		break;
@@ -205,6 +207,23 @@ void Level::tick(){
 		Vector camera = controller->camera();
 		gi::cameraTargetX += camera.x * 250.0f;
 		gi::cameraTargetY += camera.y * 250.0f;
+
+		closest = nearestInjured(150.0f);
+
+		if(controller->isPressed(LB)){
+			selectedSlot--;
+			updateInventoryMenu();
+		}
+		if(controller->isPressed(RB)){
+			selectedSlot++;
+			updateInventoryMenu();
+		}
+
+		if(closest != NULL && controller->isPressed(INTERACT)){
+			closest->use(player->inventory->at(selectedSlot));
+			updateInventoryMenu();
+		}
+		target = closest != NULL && !closest->isHealed() ? 0.0f : dist;
 
 		gi::camera(world->dt());
 		world->render(player);
@@ -225,8 +244,56 @@ void Level::tick(){
 	if(fadeValue > 0.0f){
 		gi::darken(fadeValue);
 	}
+
+	Vector cv = Vector(0.0f, target - actual);
+	if(cv.length() > 0.0f){
+		cv *= world->dt() * (d - (d / cv.length()));
+		actual += cv.y;
+	}
+
+	journal->position.x = (gi::cameraX - gi::TARGET_WIDTH / 2 + 50) / gi::dx();
+	journal->position.y = (gi::cameraY - gi::TARGET_HEIGHT / 2) / gi::dy();
+	journal->position.y -= actual;
 }
 
 bool Level::done(){
 	return false;
+}
+
+void Level::updateInventoryMenu(){
+	selectedSlot = math::range(selectedSlot, player->inventory->getSize() - 1);
+	for(size_t i = 0; i < player->inventory->getSize(); i++){
+		ItemStack is = player->inventory->content[i];
+		MenuItem* ti = (*mis)[i];
+		if(is.amount > 0){
+			ti->title = resourceToString(is.item.type) + " " + std::to_string(is.amount);
+			ti->type = TEXTURE;
+			ti->sprite = new sf::Sprite(*manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type)));
+		}
+		else{
+			ti->title = "";
+			ti->type = TEXT;
+		}
+		ti->highlight = i == selectedSlot;
+	}
+}
+
+Injured* Level::nearestInjured(const float& maxDistance){
+	Injured* i = NULL;
+	float d = maxDistance;
+
+	sf::FloatRect pfr = player->bounds(world->time());
+
+	for(Injured* inj : injured){
+		if(!inj->isAlive()){
+			continue;
+		}
+		sf::FloatRect ifr = inj->bounds(world->time());
+		float distance = math::distance(pfr.left + pfr.width / 2, pfr.top + pfr.height / 2, ifr.left + ifr.width / 2, ifr.top + ifr.height / 2);
+		if(d > distance){
+			d = distance;
+			i = inj;
+		}
+	}
+	return i;
 }

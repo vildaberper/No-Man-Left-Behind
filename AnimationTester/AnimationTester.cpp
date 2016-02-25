@@ -3,17 +3,8 @@
 using namespace sf;
 using namespace std;
 
-AnimationTester* animationTester;
-
-void keyboardListenerW(KeyboardEvent& event){
-	animationTester->keyboardListener(event);
-}
-void mouseWheelListenerW(MouseWheelEvent& event){
-	animationTester->mouseWheelListener(event);
-}
-
 AnimationTester::AnimationTester(){
-	animationTester = this;
+
 }
 
 AnimationTester::~AnimationTester(){
@@ -31,8 +22,7 @@ void AnimationTester::run(){
 	manager->initialize(window);
 	logger::timing("Manager initialized in " + std::to_string(fg.getElapsedTime().asSeconds()) + " seconds.");
 
-	manager->inputManager->registerListener(keyboardListenerW);
-	manager->inputManager->registerListener(mouseWheelListenerW);
+	manager->inputManager->registerListener(this);
 
 	world = new World(manager);
 
@@ -145,7 +135,7 @@ void AnimationTester::save(){
 	logger::info("Saved");
 }
 
-const void AnimationTester::keyboardListener(KeyboardEvent& event){
+void AnimationTester::on(KeyboardEvent& event){
 	if (event.isCancelled()){
 		return;
 	}
@@ -216,8 +206,7 @@ const void AnimationTester::keyboardListener(KeyboardEvent& event){
 		}
 	}
 }
-
-const void AnimationTester::mouseWheelListener(MouseWheelEvent& event){
+void AnimationTester::on(MouseWheelEvent& event){
 	if (event.isCancelled()){
 		return;
 	}

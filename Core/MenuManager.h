@@ -5,7 +5,7 @@
 #include "SFMLI.h"
 #include "InputManager.h"
 
-class MenuManager{
+class MenuManager : InputListener{
 public:
 	MenuManager(InputManager* inputManager);
 	~MenuManager();
@@ -18,7 +18,7 @@ public:
 
 	void draw(const sf::Time& time);
 
-	const void MenuManager::mouseButtonListener(MouseButtonEvent& event);
+	virtual void on(MouseButtonEvent& event);
 
 	std::map<std::string, Menu*> menus;
 private:

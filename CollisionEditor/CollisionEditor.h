@@ -7,16 +7,17 @@
 #include "Constants.h"
 #include "MathHelper.h"
 
-class CollisionEditor{
+class CollisionEditor : public InputListener{
 public:
 	CollisionEditor();
 	~CollisionEditor();
 
 	void run();
 	void update();
-	const void keyboardListener(KeyboardEvent& event);
-	const void mouseButtonListener(MouseButtonEvent& event);
-	const void mouseMoveListener(MouseMoveEvent& event);
+
+	void on(KeyboardEvent& event);
+	void on(MouseButtonEvent& event);
+	void on(MouseMoveEvent& event);
 private:
 	sf::RenderWindow* window;
 
@@ -27,10 +28,6 @@ private:
 	drawable::Drawable* d = NULL;
 
 	bool dragging = false;
-
-	unsigned long keyboardListenerId;
-	unsigned long mouseButtonListenerId;
-	unsigned long mouseMoveListenerId;
 
 	std::string* current = NULL;
 	std::string* selectedString = NULL;

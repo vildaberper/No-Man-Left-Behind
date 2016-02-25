@@ -7,7 +7,7 @@ namespace c{
 
 	extern Configuration config;
 
-	extern File dir;
+	extern File baseDir;
 	extern File textureDir;
 	extern File fontDir;
 	extern File backgroundDir;

@@ -94,68 +94,36 @@ void InputManager::tick(RenderWindow* window, const Time& time, const float& dt)
 	}
 }
 
-unsigned long InputManager::registerListener(const keyEventFunc& listener){
+unsigned long InputManager::registerListener(InputListener* listener){
 	listenerId++;
-	keyListeners[listenerId] = listener;
+	listeners[listenerId] = listener;
 
 	return listenerId;
 }
-unsigned long InputManager::registerListener(const mouseButtonEventFunc& listener){
-	listenerId++;
-	mouseButtonListeners[listenerId] = listener;
-
-	return listenerId;
-}
-unsigned long InputManager::registerListener(const mouseMoveEventFunc& listener){
-	listenerId++;
-	mouseMoveListeners[listenerId] = listener;
-
-	return listenerId;
-}
-unsigned long InputManager::registerListener(const mouseWheelEventFunc& listener){
-	listenerId++;
-	mouseWheelListeners[listenerId] = listener;
-
-	return listenerId;
-}
-
 void InputManager::unregisterListener(const unsigned long& id){
-	if (keyListeners.count(id) > 0){
-		keyListeners.erase(id);
-	}
-	else if (mouseButtonListeners.count(id) > 0){
-		mouseButtonListeners.erase(id);
-	}
-	else if (mouseMoveListeners.count(id) > 0){
-		mouseMoveListeners.erase(id);
-	}
-	else if (mouseWheelListeners.count(id) > 0){
-		mouseWheelListeners.erase(id);
+	if (listeners.count(id) > 0){
+		listeners.erase(id);
 	}
 }
 
 void InputManager::push(KeyboardEvent& event){
-	std::map<unsigned long, keyEventFunc> keyListeners = InputManager::keyListeners;
-	for (const auto& elem : keyListeners){
-		elem.second(event);
+	for (auto& elem : listeners){
+		elem.second->on(event);
 	}
 }
 void InputManager::push(MouseButtonEvent& event){
-	std::map<unsigned long, mouseButtonEventFunc> mouseButtonListeners = InputManager::mouseButtonListeners;
-	for (const auto& elem : mouseButtonListeners){
-		elem.second(event);
+	for(auto& elem : listeners){
+		elem.second->on(event);
 	}
 }
 void InputManager::push(MouseMoveEvent& event){
-	std::map<unsigned long, mouseMoveEventFunc> mouseMoveListeners = InputManager::mouseMoveListeners;
-	for (const auto& elem : mouseMoveListeners){
-		elem.second(event);
+	for(auto& elem : listeners){
+		elem.second->on(event);
 	}
 }
 void InputManager::push(MouseWheelEvent& event){
-	std::map<unsigned long, mouseWheelEventFunc> mouseWheelListeners = InputManager::mouseWheelListeners;
-	for (const auto& elem : mouseWheelListeners){
-		elem.second(event);
+	for(auto& elem : listeners){
+		elem.second->on(event);
 	}
 }
 

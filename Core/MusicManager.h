@@ -3,7 +3,7 @@
 #include "SFMLI.h"
 #include "File.h"
 
-static sf::Time FADE_DURATION = sf::milliseconds(10000);
+static sf::Time FADE_DURATION = sf::milliseconds(2000);
 
 namespace mm{
 	class Music{
@@ -34,7 +34,7 @@ public:
 	unsigned long play(const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop);
 	unsigned long play(const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop);
 	
-	void stop(const unsigned long& id, const sf::Time& time, const bool& force);
+	void stop(const unsigned long& id, const bool& force);
 private:
 	std::map<std::string, std::map<std::string, File*>> musicBoard;
 	std::map<unsigned long, mm::Music> channels;
@@ -44,4 +44,6 @@ private:
 	bool archiveMusicFromDir(File& dir);
 
 	unsigned long idTracker = 0;
+
+	sf::Clock clock;
 };

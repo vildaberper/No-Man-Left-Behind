@@ -8,23 +8,7 @@ using namespace sf;
 using namespace std;
 using namespace math;
 
-Editor* editor;
-
-void keyboardListenerW(KeyboardEvent& event){
-	editor->keyboardListener(event);
-}
-void mouseButtonListenerW(MouseButtonEvent& event){
-	editor->mouseButtonListener(event);
-}
-void mouseMoveListenerW(MouseMoveEvent& event){
-	editor->mouseMoveListener(event);
-}
-void mouseWheelListenerW(MouseWheelEvent& event){
-	editor->mouseWheelListener(event);
-}
-
 Editor::Editor(){
-	editor = this;
 	selectedString = new std::string();
 	selectedBackground = new std::string();
 }
@@ -85,10 +69,7 @@ void Editor::run(){
 	}
 	manager->menuManager->menus["categories"] = cm;
 
-	keyboardListenerId = manager->inputManager->registerListener(keyboardListenerW);
-	mouseButtonListenerId = manager->inputManager->registerListener(mouseButtonListenerW);
-	mouseMoveListenerId = manager->inputManager->registerListener(mouseMoveListenerW);
-	mouseWheelListenerId = manager->inputManager->registerListener(mouseWheelListenerW);
+	inputListenerId = manager->inputManager->registerListener(this);
 
 	Menu* layerM = new Menu();
 	layerM->hidden = false;
@@ -183,7 +164,7 @@ void Editor::run(){
 	delete world;
 }
 
-const void Editor::keyboardListener(KeyboardEvent& event){
+void Editor::on(KeyboardEvent& event){
 	if (event.isCancelled()){
 		return;
 	}
@@ -224,8 +205,7 @@ const void Editor::keyboardListener(KeyboardEvent& event){
 		}
 	}
 }
-
-const void Editor::mouseButtonListener(MouseButtonEvent& event){
+void Editor::on(MouseButtonEvent& event){
 	if (event.isCancelled()){
 		if (event.button() == Mouse::Button::Left && event.pressed()){
 			if (selectedString->length() > 0){
@@ -280,14 +260,13 @@ const void Editor::mouseButtonListener(MouseButtonEvent& event){
 				targeting = true;
 				d->highlight = true;
 				target = new Target(d, selectedLayer, s->getLocalBounds().width * gi::dx() / 2, s->getLocalBounds().height * gi::dy() / 2);
-				mouseMoveListener(MouseMoveEvent(event.x(), event.y(), 0, 0));
+				on(MouseMoveEvent(event.x(), event.y(), 0, 0));
 			}
 		}
 		break;
 	}
 }
-
-const void Editor::mouseMoveListener(MouseMoveEvent& event){
+void Editor::on(MouseMoveEvent& event){
 	if (event.isCancelled()){
 		return;
 	}
@@ -408,8 +387,7 @@ const void Editor::mouseMoveListener(MouseMoveEvent& event){
 		}
 	}
 }
-
-const void Editor::mouseWheelListener(MouseWheelEvent& event){
+void Editor::on(MouseWheelEvent& event){
 	if (event.isCancelled()){
 		return;
 	}
@@ -435,5 +413,5 @@ const void Editor::mouseWheelListener(MouseWheelEvent& event){
 		}
 	}
 	layerMenu->title = layerToString(selectedLayer);
-	mouseMoveListener(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+	on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 }

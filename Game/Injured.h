@@ -4,6 +4,7 @@
 #include <map>
 
 #include "Animatable.h"
+#include "ItemStack.h"
 #include "Item.h"
 
 enum InjuredState{
@@ -136,8 +137,15 @@ public:
 
 	bool isHealed();
 
+	bool use(ItemStack& is);
+
 	Injure injure;
 	size_t progress; // InjuredState
 
 	sf::Time timer;
+
+	std::string id;
+
+	bool voice = false;
+	unsigned long currentVoice = 0;
 };

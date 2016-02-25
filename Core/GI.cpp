@@ -156,11 +156,12 @@ namespace gi{
 		sf::RectangleShape rs = sf::RectangleShape();
 		rs.setPosition(x, y);
 		rs.setSize(sf::Vector2f(w, h));
-		if(item->toggle != NULL && !item->toggle->hidden){
+
+		if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
 			rs.setFillColor(sf::Color(55, 55, 0, 255));
 		}
 		else{
-			rs.setFillColor(sf::Color(0, 0, 0, 195));
+			rs.setFillColor(sf::Color(0, 0, 0, 155));
 		}
 		rs.setOutlineColor(sf::Color(255, 255, 0, 255));
 		rs.setOutlineThickness(1);

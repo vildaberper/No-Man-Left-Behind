@@ -6,6 +6,12 @@
 #define PI 3.14159265f
 
 namespace math{
+	// Index helper
+	static const int range(const int& i, const int& upper, const int& lower = 0){
+		int h = i % (upper + 1 - lower);
+		return lower + (h < 0 ? (h + (upper + 1 - lower)) : h);
+	}
+
 	// Positive distance between f0 and f1
 	static const float interv(const float& f0, const float& f1){
 		return f0 > f1 ? f0 - f1 : f1 - f0;

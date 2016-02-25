@@ -43,7 +43,6 @@ public:
 		canceled_ = cancelled;
 	}
 };
-typedef void(*keyEventFunc)(KeyboardEvent&);
 
 class MouseButtonEvent{
 private:
@@ -94,7 +93,6 @@ public:
 		canceled_ = cancelled;
 	}
 };
-typedef void(*mouseButtonEventFunc)(MouseButtonEvent&);
 
 class MouseMoveEvent{
 private:
@@ -139,7 +137,6 @@ public:
 		canceled_ = cancelled;
 	}
 };
-typedef void(*mouseMoveEventFunc)(MouseMoveEvent&);
 
 class MouseWheelEvent{
 private:
@@ -166,7 +163,22 @@ public:
 		canceled_ = cancelled;
 	}
 };
-typedef void(*mouseWheelEventFunc)(MouseWheelEvent&);
+
+class InputListener{
+public:
+	virtual void on(KeyboardEvent& event){
+
+	};
+	virtual void on(MouseButtonEvent& event){
+
+	};
+	virtual void on(MouseMoveEvent& event){
+
+	};
+	virtual void on(MouseWheelEvent& event){
+
+	};
+};
 
 class InputManager{
 public:
@@ -179,11 +191,7 @@ public:
 
 	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
 
-	unsigned long registerListener(const keyEventFunc& listener);
-	unsigned long registerListener(const mouseButtonEventFunc& listener);
-	unsigned long registerListener(const mouseMoveEventFunc& listener);
-	unsigned long registerListener(const mouseWheelEventFunc& listener);
-
+	unsigned long registerListener(InputListener* listener);
 	void unregisterListener(const unsigned long& id);
 
 	void push(KeyboardEvent& event);
@@ -209,11 +217,5 @@ private:
 
 	unsigned long listenerId = 0;
 
-	std::map<unsigned long, keyEventFunc> keyListeners;
-
-	std::map<unsigned long, mouseButtonEventFunc> mouseButtonListeners;
-
-	std::map<unsigned long, mouseMoveEventFunc> mouseMoveListeners;
-
-	std::map<unsigned long, mouseWheelEventFunc> mouseWheelListeners;
+	std::map<unsigned long, InputListener*> listeners;
 };

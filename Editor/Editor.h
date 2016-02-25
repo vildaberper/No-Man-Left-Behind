@@ -9,17 +9,17 @@
 
 static const float SNAP = 20.0f;
 
-class Editor{
+class Editor : public InputListener{
 public:
 	Editor();
 	~Editor();
 
 	void run();
 
-	const void keyboardListener(KeyboardEvent& event);
-	const void mouseButtonListener(MouseButtonEvent& event);
-	const void mouseMoveListener(MouseMoveEvent& event);
-	const void mouseWheelListener(MouseWheelEvent& event);
+	virtual void on(KeyboardEvent& event);
+	virtual void on(MouseButtonEvent& event);
+	virtual void on(MouseMoveEvent& event);
+	virtual void on(MouseWheelEvent& event);
 private:
 	sf::RenderWindow* window;
 
@@ -29,10 +29,7 @@ private:
 
 	File file;
 
-	unsigned long keyboardListenerId;
-	unsigned long mouseButtonListenerId;
-	unsigned long mouseMoveListenerId;
-	unsigned long mouseWheelListenerId;
+	unsigned long inputListenerId;
 
 	bool dragging = false;
 	bool targeting = false;

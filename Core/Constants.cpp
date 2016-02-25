@@ -3,7 +3,7 @@
 namespace c{
 	Configuration config;
 
-	File dir;
+	File baseDir;
 	File textureDir;
 	File fontDir;
 	File backgroundDir;
@@ -26,19 +26,21 @@ namespace c{
 	int resY;
 
 	const void initialize(){
+		File dir = File();
+
 		config = Configuration();
-		dir = File();
 		config.load(dir.child("config.txt"));
 
-		textureDir = dir.child(config.stringValue("directories.textureDir"));
-		fontDir = dir.child(config.stringValue("directories.fontDir"));
-		backgroundDir = dir.child(config.stringValue("directories.backgroundDir"));
-		soundDir = dir.child(config.stringValue("directories.soundDir"));
-		musicDir = dir.child(config.stringValue("directories.musicDir"));
-		animationDir = dir.child(config.stringValue("directories.animationDir"));
-		worldDir = dir.child(config.stringValue("directories.worldDir"));
+		baseDir = dir.child(config.stringValue("directories.baseDir"));
+		textureDir = baseDir.child(config.stringValue("directories.textureDir"));
+		fontDir = baseDir.child(config.stringValue("directories.fontDir"));
+		backgroundDir = baseDir.child(config.stringValue("directories.backgroundDir"));
+		soundDir = baseDir.child(config.stringValue("directories.soundDir"));
+		musicDir = baseDir.child(config.stringValue("directories.musicDir"));
+		animationDir = baseDir.child(config.stringValue("directories.animationDir"));
+		worldDir = baseDir.child(config.stringValue("directories.worldDir"));
 
-		collisionBoxFile = dir.child(config.stringValue("files.collisionBoxFile"));
+		collisionBoxFile = baseDir.child(config.stringValue("files.collisionBoxFile"));
 
 		autoResolution = config.boolValue("settings.autoResolution");
 		fullscreen = config.boolValue("settings.fullscreen");

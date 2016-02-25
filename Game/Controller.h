@@ -10,7 +10,9 @@ enum Command{
 	LEFT,
 	RIGHT,
 	UP,
-	DOWN
+	DOWN,
+	LB,
+	RB
 };
 
 class Controller{
@@ -26,5 +28,12 @@ public:
 
 	bool isPressed(const Command& c);
 private:
+	bool isPressed(const unsigned int& controllerId, const unsigned int& button);
+	bool isFirstPressed(const unsigned int& controllerId, const unsigned int& button);
+	float axisPosition(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
+	float axisPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
+
+	std::map<unsigned int, std::map<unsigned int, bool>> buttonStates;
+
 	InputManager* im;
 };

@@ -13,13 +13,9 @@ void Controller::initialize(Manager* m){
 }
 
 Vector Controller::movement(){
-	if(sf::Joystick::isConnected(0)){
-		if(sf::Joystick::hasAxis(0, sf::Joystick::X) && sf::Joystick::hasAxis(0, sf::Joystick::Y)){
-			Vector joystick = Vector(sf::Joystick::getAxisPosition(0, sf::Joystick::X), sf::Joystick::getAxisPosition(0, sf::Joystick::Y)) / 100.0f;
-			if(joystick.length() > 0.25f){
-				return joystick;
-			}
-		}
+	Vector joystick = Vector(axisPosition(0, sf::Joystick::X), axisPosition(0, sf::Joystick::Y));
+	if(joystick.length() > 0.0f){
+		return joystick;
 	}
 	return Vector(
 		(isPressed(LEFT) ? -1.0f : 0.0f) + (isPressed(RIGHT) ? 1.0f : 0.0f),
@@ -28,13 +24,9 @@ Vector Controller::movement(){
 }
 
 Vector Controller::camera(){
-	if(sf::Joystick::isConnected(0)){
-		if(sf::Joystick::hasAxis(0, sf::Joystick::U) && sf::Joystick::hasAxis(0, sf::Joystick::R)){
-			Vector joystick = Vector(sf::Joystick::getAxisPosition(0, sf::Joystick::U), sf::Joystick::getAxisPosition(0, sf::Joystick::R)) / 100.0f;
-			if(joystick.length() > 0.25f){
-				return joystick;
-			}
-		}
+	Vector joystick = Vector(axisPosition(0, sf::Joystick::U), axisPosition(0, sf::Joystick::R));
+	if(joystick.length() > 0.0f){
+		return joystick;
 	}
 	return Vector(0.0f, 0.0f);
 }
@@ -42,10 +34,10 @@ Vector Controller::camera(){
 bool Controller::isPressed(const Command& c){
 	switch(c){
 	case INTERACT:
-		return im->isFirstPressed(sf::Keyboard::Key::E);
+		return isFirstPressed(0, 0) || im->isFirstPressed(sf::Keyboard::Key::E);
 		break;
 	case PAUSE:
-		return im->isFirstPressed(sf::Keyboard::Key::P);
+		return isFirstPressed(0, 7) || im->isFirstPressed(sf::Keyboard::Key::P);
 		break;
 	case LEFT:
 		return im->isPressed(sf::Keyboard::Key::A);
@@ -59,6 +51,49 @@ bool Controller::isPressed(const Command& c){
 	case DOWN:
 		return im->isPressed(sf::Keyboard::Key::S);
 		break;
+	case RB:
+		return isFirstPressed(0, 5);
+		break;
+	case LB:
+		return isFirstPressed(0, 4);
+		break;
 	}
 	return false;
+}
+
+bool Controller::isPressed(const unsigned int& controllerId, const unsigned int& button){
+	if(sf::Joystick::isConnected(controllerId)){
+		if(sf::Joystick::getButtonCount(controllerId) > button){
+			return sf::Joystick::isButtonPressed(controllerId, button);
+		}
+	}
+	return false;
+}
+
+bool Controller::isFirstPressed(const unsigned int& controllerId, const unsigned int& button){
+	if(sf::Joystick::isConnected(controllerId)){
+		if(sf::Joystick::getButtonCount(controllerId) > button){
+			bool state = buttonStates[controllerId][button];
+
+			return (buttonStates[controllerId][button] = sf::Joystick::isButtonPressed(controllerId, button)) && !state;
+		}
+	}
+	return false;
+}
+
+float Controller::axisPosition(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	if(sf::Joystick::isConnected(controllerId)){
+		if(sf::Joystick::hasAxis(controllerId, axis)){
+			float value = sf::Joystick::getAxisPosition(controllerId, axis) / 100.0f;
+
+			if(abs(value) > 0.25f){
+				return value;
+			}
+		}
+	}
+	return 0.0f;
+}
+
+float Controller::axisPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	return axisPosition(controllerId, axis) > 0.9f;
 }
