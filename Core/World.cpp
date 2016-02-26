@@ -1,11 +1,12 @@
 #include "World.h"
 
 World::World(Manager* manager){
-	drawables[LAYER0] = std::vector<drawable::Drawable*>();
-	drawables[LAYER1] = std::vector<drawable::Drawable*>();
-	drawables[LAYER2] = std::vector<drawable::Drawable*>();
-	drawables[LAYER3] = std::vector<drawable::Drawable*>();
-	drawables[LAYER4] = std::vector<drawable::Drawable*>();
+	for(unsigned int i = 0; i < NUM_LAYERS; i++){
+		Layer l = Layer(i);
+		drawables[l] = std::vector<drawable::Drawable*>();
+		doSwap[l] = false;
+	}
+
 	World::manager = manager;
 }
 
@@ -39,6 +40,15 @@ void World::tick(){
 	if(firstTick){
 		clock.restart();
 		firstTick = false;
+	}
+
+	if(hasRendered){
+		for(unsigned int i = 0; i < NUM_LAYERS; i++){
+			Layer l = Layer(i);
+			if(doSwap[l]){
+				orderDrawables(l);
+			}
+		}
 	}
 
 	dt_ = clock.restart() * getTimeScale();
@@ -117,6 +127,7 @@ const void World::render(){
 			gi::draw(d, time());
 		}
 	}
+	hasRendered = true;
 }
 const void World::render(drawable::Drawable* relative){
 	renderBackground();
@@ -160,6 +171,16 @@ const void World::render(drawable::Drawable* relative){
 			gi::draw(d, time());
 		}
 	}
+	hasRendered = true;
+}
+
+bool World::isOrdering(){
+	for(unsigned int i = 0; i < NUM_LAYERS; i++){
+		if(doSwap[Layer(i)]){
+			return true;
+		}
+	}
+	return false;
 }
 
 void World::orderDrawables(const Layer& layer){
@@ -170,18 +191,19 @@ void World::orderDrawables(const Layer& layer){
 
 	do{ // Yay bubblesort TODO real time ordering by index
 		swapped = false;
-		for(size_t i = 1; i < drawables[layer].size() && ss < 50; i++){
-			sf::FloatRect frCurrent = (current = drawables[layer][i])->getSprite(time())->getGlobalBounds();
-			sf::FloatRect frBefore = (before = drawables[layer][i - 1])->getSprite(time())->getGlobalBounds();
-
-			if(frBefore.top + frBefore.height * before->cb.renderOffset > frCurrent.top + frCurrent.height * current->cb.renderOffset){
+		for(size_t i = 1; i < drawables[layer].size() && ss < MAX_SWAPS_PER_FRAME; i++){
+			if(*(before = drawables[layer][i - 1]) > *(current = drawables[layer][i])){
 				drawables[layer][i] = before;
 				drawables[layer][i - 1] = current;
 				swapped = true;
+				swapPosition[layer] = i;
 				ss++;
 			}
 		}
-	} while(swapped && ss < 50);
+	} while(swapped && ss < MAX_SWAPS_PER_FRAME);
+	if(doSwap[layer] = ss >= MAX_SWAPS_PER_FRAME - 1){
+		swapLayer = layer;
+	}
 }
 
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
@@ -195,13 +217,20 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	if(drawable->cb.shouldCollide){
 		collidables.push_back(drawable);
 	}
-	orderDrawables(layer);
+	doSwap[layer] = true;
 }
 
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
+	float rwx = gi::cameraX - gi::WIDTH / 2 + x / gi::dx();
+	float rwy = gi::cameraY - gi::HEIGHT / 2 + y / gi::dy();
 	if(drawables[layer].size() > 0){
 		for(size_t i = 0; i < drawables[layer].size(); i++){
 			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
+
+			if(math::interv(rwx, d->position.x) + math::interv(rwy, d->position.y) > MAX_COLLISION_DISTANCE){
+				continue;
+			}
+
 			sf::FloatRect fr = d->getSprite(time())->getGlobalBounds();
 			if(
 				fr.left < x

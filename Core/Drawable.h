@@ -47,5 +47,14 @@ namespace drawable{
 
 		std::string reference = "";
 		CollisionBox cb;
+		float renderOffset;
+
+		const bool operator >(const Drawable& d){
+			return renderOffset > d.renderOffset;
+		}
+
+		const bool operator <(const Drawable& d){
+			return renderOffset < d.renderOffset;
+		}
 	};
 }

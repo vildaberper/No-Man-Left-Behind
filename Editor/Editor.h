@@ -43,4 +43,7 @@ private:
 
 	MenuItem* spriteMenu;
 	MenuItem* backgroundMenu;
+	MenuItem* swapMenu;
+
+	sf::Clock swapClock;
 };

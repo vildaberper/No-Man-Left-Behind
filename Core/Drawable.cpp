@@ -67,6 +67,7 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 	else{
 		s->setColor(sf::Color(255, 255, 255, 255));
 	}
+	renderOffset = s->getGlobalBounds().top + s->getGlobalBounds().height * cb.renderOffset;
 	return s;
 }
 

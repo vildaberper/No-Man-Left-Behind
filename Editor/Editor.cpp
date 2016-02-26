@@ -78,6 +78,18 @@ void Editor::run(){
 	layerM->items.push_back(layerMenu);
 	manager->menuManager->menus["layer"] = layerM;
 
+	Menu* swapM = new Menu();
+	swapM->hidden = false;
+	swapM->position = Vector(220, gi::TARGET_HEIGHT - 50 - 10);
+	swapM->size = Vector(430, 50);
+	swapM->type = HORIZONTAL;
+	swapMenu = new MenuItem();
+	swapMenu->closeOnClick = false;
+	swapMenu->type = TEXT;
+	swapMenu->title = "Idle";
+	swapM->items.push_back(swapMenu);
+	manager->menuManager->menus["swap"] = swapM;
+
 	Menu* spriteM = new Menu();
 	spriteM->hidden = false;
 	spriteM->position = Vector(gi::TARGET_WIDTH / 2 - 300, gi::TARGET_HEIGHT - 50 - 10);
@@ -132,6 +144,16 @@ void Editor::run(){
 	gi::cameraSmoothness = 25.0f;
 
 	while(gi::startOfFrame()){
+		if(swapClock.getElapsedTime().asSeconds() > 1.0f){
+			if(world->isOrdering()){
+				swapMenu->title = layerToString(world->swapLayer) + " - " + to_string(world->swapPosition[world->swapLayer]) + "/" + to_string(world->drawables[world->swapLayer].size());
+			}
+			else{
+				swapMenu->title = "Idle";
+			}
+			swapClock.restart();
+		}
+
 		if(manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
 			gi::zoom(gi::cameraZ + gi::cameraZ * world->dt());
 			if(target != NULL){
@@ -269,7 +291,7 @@ void Editor::on(MouseButtonEvent& event){
 				}
 				targeting = true;
 				d->highlight = true;
-				target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2, s->getGlobalBounds().height / 2);
+				target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2 * gi::dx(), s->getGlobalBounds().height / 2 * gi::dy());
 				on(MouseMoveEvent(event.x(), event.y(), 0, 0));
 			}
 		}
