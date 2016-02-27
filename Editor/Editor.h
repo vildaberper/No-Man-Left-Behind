@@ -1,8 +1,11 @@
 #pragma once
 
+#include <cstdlib>
+
 #include "GI.h"
 #include "SFMLI.h"
 #include "World.h"
+#include "Random.h"
 #include "Manager.h"
 #include "Constants.h"
 #include "MathHelper.h"
@@ -46,4 +49,10 @@ private:
 	MenuItem* swapMenu;
 
 	sf::Clock swapClock;
+
+	float brushRadius = 2500.0f;
+	float brushDensity = 200.0f;
+	float brushScaleLower = 1.0f;
+	float brushScaleUpper = 2.0f;
+	std::vector<std::string> brushObjects;
 };

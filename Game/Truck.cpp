@@ -17,7 +17,7 @@ void Truck::initialize(Manager* m){
 	cb.shouldCollide = true;
 	cb.offset = Vector(0.09f, 0.7f);
 	cb.size = Vector(0.89f, 0.28f);
-	cb.renderOffset = 0.7f;
+	cb.renderOffset = 0.8f;
 	speed = 500.0f;
 	targetspeed = 500.0f;
 	acceleration = 100.0f;

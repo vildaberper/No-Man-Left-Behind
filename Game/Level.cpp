@@ -91,8 +91,7 @@ void Level::begin(){
 	}
 	else{
 		player->position = spawn;
-		world->entities.push_back(player);
-		world->collidables.push_back(player);
+		world->addDrawable(player, LAYER2);
 	}
 
 	if(!useTruck){
@@ -178,8 +177,9 @@ void Level::tick(){
 			sf::FloatRect pr = player->getSprite(world->time())->getLocalBounds();
 			player->position.x = tr.left + tr.width * 0.55f;
 			player->position.y = tr.top + tr.height - pr.height * player->cb.offset.y;
-			world->entities.push_back(player);
-			world->collidables.push_back(player);
+			if(useTruck){
+				world->addDrawable(player, LAYER2);
+			}
 
 			Menu* invM = new Menu();
 			invM->hidden = false;

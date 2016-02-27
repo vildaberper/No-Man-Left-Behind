@@ -143,6 +143,35 @@ void Editor::run(){
 	gi::smoothCamera = true;
 	gi::cameraSmoothness = 25.0f;
 
+	for(int i = 1; i < 6; i++){
+		brushObjects.push_back("Big Trees.Bigtree " + std::to_string(i));
+		brushObjects.push_back("Big Trees.Bigtree " + std::to_string(i));
+		brushObjects.push_back("Big Trees.Bigtree " + std::to_string(i));
+	}
+	for(int i = 1; i < 6; i++){
+		brushObjects.push_back("Small Props.Stone " + std::to_string(i));
+	}
+	for(int i = 1; i < 6; i++){
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+	}
+	random::initialize();
+
 	while(gi::startOfFrame()){
 		if(swapClock.getElapsedTime().asSeconds() > 1.0f){
 			if(world->isOrdering()){
@@ -169,6 +198,53 @@ void Editor::run(){
 				target->dy -= target->dy * world->dt();
 			}
 			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+		}
+		if(manager->inputManager->isPressed(sf::Keyboard::Key::B)){
+			for(int i = 0; i < max(1, int(brushRadius / 1000)); i++){
+				float angle = 2.0f * PI * random::random();
+				float radius = brushRadius * random::random();
+				float x = cos(angle) * radius;
+				float y = sin(angle) * radius;
+
+				x += gi::cameraX - gi::WIDTH / 2 + manager->inputManager->mouseX() / gi::dx();
+				y += gi::cameraY - gi::HEIGHT / 2 + manager->inputManager->mouseY() / gi::dy();
+
+				std::string sprite = brushObjects[random::random(brushObjects.size() - 1)];
+				Sprite* s = manager->spriteManager->getSprite(sprite);
+				drawable::Drawable* d = new drawable::Drawable();
+				drawable::Animation* a = new drawable::Animation();
+				d->scale = brushScaleLower + (brushScaleUpper - brushScaleLower) * random::random();
+				a->textures.push_back(sprite);
+				a->sprites.push_back(s);
+				a->timing = milliseconds(0);
+				d->animations["default"] = a;
+				d->currentAnimation = d->nextAnimation = "default";
+				FloatRect frb = d->getSprite(world->time())->getLocalBounds();
+				d->position.x = x - (d->cb.offset.x * frb.width + d->cb.size.x / 2 * frb.width);
+				d->position.y = y - (d->cb.offset.y * frb.height + d->cb.size.y / 2 * frb.height);
+				FloatRect fr = d->bounds(world->time());
+				float cx = fr.left + fr.width / 2.0f;
+				float cy = fr.top + fr.height / 2.0f;
+				bool passed = true;
+				for(drawable::Drawable* d0 : world->drawables[selectedLayer]){
+					if(interv(cx, d0->position.x) + interv(cy, d0->position.y) > MAX_COLLISION_DISTANCE){
+						continue;
+					}
+					FloatRect fr0 = d0->bounds(world->time());
+
+					if(fr.intersects(fr0) || math::distance(cx, cy, fr0.left + fr0.width / 2.0f, fr0.top + fr0.height / 2.0f) < brushDensity){
+						passed = false;
+						break;
+					}
+				}
+				if(passed){
+					world->addDrawable(d, selectedLayer);
+				}
+				else{
+					delete d;
+					delete a;
+				}
+			}
 		}
 
 		world->tick();
@@ -285,13 +361,15 @@ void Editor::on(MouseButtonEvent& event){
 				a->timing = milliseconds(0);
 				d->animations["default"] = a;
 				d->currentAnimation = d->nextAnimation = "default";
-				world->addDrawable(d, selectedLayer);
 				if(target != NULL){
 					delete target;
 				}
 				targeting = true;
 				d->highlight = true;
 				target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2 * gi::dx(), s->getGlobalBounds().height / 2 * gi::dy());
+				d->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
+				d->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
+				world->addDrawable(d, selectedLayer);
 				on(MouseMoveEvent(event.x(), event.y(), 0, 0));
 			}
 		}

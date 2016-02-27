@@ -8,8 +8,8 @@
 #include "SFMLI.h"
 #include "GI.h"
 
-// interv(x0, x1) + interv(y0 - y1) !! NOT EUCLIDEAN DISTANCE !!
-static const float MAX_COLLISION_DISTANCE = 2000.0f;
+// interv(x0, x1) + interv(y0, y1) !! NOT EUCLIDEAN DISTANCE !!
+static const float MAX_COLLISION_DISTANCE = 3000.0f;
 
 static const unsigned int MAX_SWAPS_PER_FRAME = 100;
 
@@ -87,35 +87,35 @@ static const std::string layerToString(const Layer& layer){
 	if(layer == LAYER0){
 		return "LAYER0";
 	}
-	else if(layer == LAYER1) {
+	else if(layer == LAYER1){
 		return "LAYER1";
 	}
-	else if(layer == LAYER2) {
+	else if(layer == LAYER2){
 		return "LAYER2";
 	}
-	else if(layer == LAYER3) {
+	else if(layer == LAYER3){
 		return "LAYER3";
 	}
-	else if(layer == LAYER4) {
+	else if(layer == LAYER4){
 		return "LAYER4";
 	}
 	return "LAYER0";
 }
 
-class Target {
+class Target{
 public:
 	drawable::Drawable* drawable;
 	Layer layer;
 	float dx;
 	float dy;
 
-	Target(drawable::Drawable* drawable, Layer layer, float dx, float dy) {
+	Target(drawable::Drawable* drawable, Layer layer, float dx, float dy){
 		Target::drawable = drawable;
 		Target::layer = layer;
 		Target::dx = dx;
 		Target::dy = dy;
 	}
-	~Target() {
+	~Target(){
 
 	}
 };
@@ -145,6 +145,12 @@ public:
 
 	void orderDrawables(const Layer& layer);
 
+	void insertDrawableAt(drawable::Drawable* drawable, const Layer& layer, const size_t& index);
+
+	size_t binarySearchRenderOffset(drawable::Drawable* drawable, const Layer& layer);
+
+	void orderDrawable(const size_t& index, const Layer& layer);
+
 	void addDrawable(drawable::Drawable* drawable, const Layer& layer);
 
 	Target* drawableAt(const float& x, const float& y, const Layer& layer);
@@ -166,7 +172,6 @@ public:
 	std::map<Layer, bool> doSwap;
 	std::map<Layer, size_t> swapPosition;
 private:
-	bool hasRendered = false;
 	bool firstTick = true;
 	bool paused = false;
 	sf::Clock clock;

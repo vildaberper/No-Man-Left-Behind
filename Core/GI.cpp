@@ -113,6 +113,14 @@ namespace gi{
 	}
 
 	void draw(drawable::Drawable* drawable, const sf::Time& time){
+		if(
+			drawable->position.x < gi::cameraX - gi::TARGET_WIDTH / 2 / gi::cameraZ - 1000.0f
+			|| drawable->position.x > gi::cameraX + gi::TARGET_WIDTH / 2 / gi::cameraZ
+			|| drawable->position.y < gi::cameraY - gi::TARGET_HEIGHT / 2 / gi::cameraZ - 1000.0f
+			|| drawable->position.y > gi::cameraY + gi::TARGET_HEIGHT / 2 / gi::cameraZ
+			){
+			return;
+		}
 		drawCalls++;
 
 		sf::Sprite* s = drawable->getSprite(time);

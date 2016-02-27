@@ -33,7 +33,13 @@ namespace c{
 		config = Configuration();
 		config.load(dir.child("config.txt"));
 
-		baseDir = dir.child(config.stringValue("directories.baseDir"));
+		std::string baseDirPath = config.stringValue("directories.baseDir");
+		if(baseDirPath.find_first_of(':') == std::string::npos){
+			baseDir = dir.child(baseDirPath);
+		}
+		else{
+			baseDir = File(baseDirPath);
+		}
 		textureDir = baseDir.child(config.stringValue("directories.textureDir"));
 		fontDir = baseDir.child(config.stringValue("directories.fontDir"));
 		backgroundDir = baseDir.child(config.stringValue("directories.backgroundDir"));

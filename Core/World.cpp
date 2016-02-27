@@ -42,12 +42,10 @@ void World::tick(){
 		firstTick = false;
 	}
 
-	if(hasRendered){
-		for(unsigned int i = 0; i < NUM_LAYERS; i++){
-			Layer l = Layer(i);
-			if(doSwap[l]){
-				orderDrawables(l);
-			}
+	for(unsigned int i = 0; i < NUM_LAYERS; i++){
+		Layer l = Layer(i);
+		if(doSwap[l]){
+			orderDrawables(l);
 		}
 	}
 
@@ -104,6 +102,18 @@ void World::tick(){
 		e->move(dt());
 	}
 
+	for(size_t i = 0; i < NUM_LAYERS; i++){
+		Layer l = Layer(i);
+		for(size_t di = 0; di < drawables[l].size();){
+			if(!drawables[l][di]->hasRenderOffset_){
+				orderDrawable(di, l);
+			}
+			else{
+				di++;
+			}
+		}
+	}
+
 	cleanAll(false);
 }
 
@@ -127,51 +137,39 @@ const void World::render(){
 			gi::draw(d, time());
 		}
 	}
-	hasRendered = true;
 }
 const void World::render(drawable::Drawable* relative){
 	renderBackground();
-	std::vector<drawable::Drawable*> under;
-	std::vector<drawable::Drawable*> above;
 
-	sf::FloatRect rel = relative->getSprite(time())->getGlobalBounds();
-	for(drawable::Drawable* d : drawables[LAYER2]){
-		if(d == relative){
-			continue;
-		}
-		sf::FloatRect fr = d->getSprite(time())->getGlobalBounds();
-		if(fr.top + fr.height * d->cb.renderOffset <= rel.top + rel.height * relative->cb.renderOffset){
-			under.push_back(d);
-		}
-		else{
-			above.push_back(d);
+	size_t index = binarySearchRenderOffset(relative, LAYER2);
+
+	for(size_t i = 0; i < LAYER2; i++){
+		Layer l = Layer(i);
+		for(drawable::Drawable* d : drawables[l]){
+			if(drawables[LAYER2][i] != relative){
+				gi::draw(d, time());
+			}
 		}
 	}
-
-	for(const auto &ent : drawables){
-		if(ent.first == LAYER2){
-			break;
+	for(size_t i = 0; i < index; i++){
+		if(drawables[LAYER2][i] != relative){
+			gi::draw(drawables[LAYER2][i], time());
 		}
-		for(drawable::Drawable* d : ent.second){
-			gi::draw(d, time());
-		}
-	}
-	for(drawable::Drawable* d : under){
-		gi::draw(d, time());
 	}
 	gi::draw(relative, time());
-	for(drawable::Drawable* d : above){
-		gi::draw(d, time());
-	}
-	for(const auto &ent : drawables){
-		if(ent.first == LAYER0 || ent.first == LAYER1 || ent.first == LAYER2){
-			continue;
-		}
-		for(drawable::Drawable* d : ent.second){
-			gi::draw(d, time());
+	for(size_t i = index; i < drawables[LAYER2].size(); i++){
+		if(drawables[LAYER2][i] != relative){
+			gi::draw(drawables[LAYER2][i], time());
 		}
 	}
-	hasRendered = true;
+	for(size_t i = LAYER3; i < NUM_LAYERS; i++){
+		Layer l = Layer(i);
+		for(drawable::Drawable* d : drawables[l]){
+			if(drawables[LAYER2][i] != relative){
+				gi::draw(d, time());
+			}
+		}
+	}
 }
 
 bool World::isOrdering(){
@@ -192,12 +190,13 @@ void World::orderDrawables(const Layer& layer){
 	do{ // Yay bubblesort TODO real time ordering by index
 		swapped = false;
 		for(size_t i = 1; i < drawables[layer].size() && ss < MAX_SWAPS_PER_FRAME; i++){
-			if(*(before = drawables[layer][i - 1]) > *(current = drawables[layer][i])){
+			if((*(before = drawables[layer][i - 1])).renderOffset() >(*(current = drawables[layer][i])).renderOffset()){
 				drawables[layer][i] = before;
 				drawables[layer][i - 1] = current;
 				swapped = true;
 				swapPosition[layer] = i;
 				ss++;
+				//logger::debug("swapped " + std::to_string(i - 1) + "<->" + std::to_string(i));
 			}
 		}
 	} while(swapped && ss < MAX_SWAPS_PER_FRAME);
@@ -206,9 +205,106 @@ void World::orderDrawables(const Layer& layer){
 	}
 }
 
+void World::insertDrawableAt(drawable::Drawable* drawable, const Layer& layer, const size_t& index){
+	if(index >= drawables[layer].size()){
+		drawables[layer].push_back(drawable);
+		return;
+	}
+
+	drawable::Drawable* tmp0 = drawables[layer][index];
+	drawable::Drawable* tmp1;
+
+	for(size_t i = index + 1; i < drawables[layer].size(); i++){
+		tmp1 = drawables[layer][i];
+		drawables[layer][i] = tmp0;
+		tmp0 = tmp1;
+	}
+	drawables[layer].push_back(tmp0);
+	drawables[layer][index] = drawable;
+}
+
+size_t World::binarySearchRenderOffset(drawable::Drawable* drawable, const Layer& layer){
+	if(drawables[layer].size() == 0){
+		return 1;
+	}
+
+	size_t lo = 0;
+	size_t hi = drawables[layer].size() - 1;
+	size_t mi;
+
+	float loo = drawables[layer][lo]->renderOffset();
+	float hio = drawables[layer][hi]->renderOffset();
+	float co = drawable->renderOffset();
+
+	if(co <= loo){
+		return 0;
+	}
+	if(co >= hio){
+		return drawables[layer].size();
+	}
+	size_t mini = drawables[layer].size() - min(drawables[layer].size() - 1, 20);
+	for(size_t i = drawables[layer].size() - 1; i >= mini; i--){
+		hi = i;
+		hio = drawables[layer][hi]->renderOffset();
+		if(co >= hio){
+			return i + 1;
+		}
+	}
+
+	float mio;
+
+	while(lo < hi){
+		mi = lo + (hi - lo) / 2;
+		mio = drawables[layer][mi]->renderOffset();
+
+		if(mio < co){
+			lo = mi;
+			loo = drawables[layer][lo]->renderOffset();
+		}
+		else{
+			hi = mi;
+			hio = drawables[layer][hi]->renderOffset();
+		}
+		if(hi - lo == 1){
+			break;
+		}
+	}
+	if(loo >= co){
+		return lo;
+	}
+	if(mio >= co){
+		return mi;
+	}
+	return hi;
+}
+
+void World::orderDrawable(const size_t& index, const Layer& layer){
+	float co = drawables[layer][index]->renderOffset();
+	drawable::Drawable* tmp;
+
+	for(size_t i = index; i >= 0 && i < drawables[layer].size();){
+		if(i > 0 && drawables[layer][i - 1]->renderOffset() > co){
+			tmp = drawables[layer][i];
+			drawables[layer][i] = drawables[layer][i - 1];
+			drawables[layer][i - 1] = tmp;
+			i--;
+		}
+		else if(i < drawables[layer].size() - 1 && drawables[layer][i + 1]->renderOffset() < co){
+			tmp = drawables[layer][i];
+			drawables[layer][i] = drawables[layer][i + 1];
+			drawables[layer][i + 1] = tmp;
+			i++;
+		}
+		else{
+			break;
+		}
+	}
+}
+
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	entities.push_back((Entity*) drawable);
-	drawables[layer].push_back(drawable);
+
+	insertDrawableAt(drawable, layer, binarySearchRenderOffset(drawable, layer));
 
 	drawable->reference = drawable->animations[drawable->currentAnimation]->textures[0];
 	if(!drawable->cb.shouldCollide){
@@ -223,11 +319,12 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	float rwx = gi::cameraX - gi::WIDTH / 2 + x / gi::dx();
 	float rwy = gi::cameraY - gi::HEIGHT / 2 + y / gi::dy();
+	float dist;
 	if(drawables[layer].size() > 0){
 		for(size_t i = 0; i < drawables[layer].size(); i++){
 			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
 
-			if(math::interv(rwx, d->position.x) + math::interv(rwy, d->position.y) > MAX_COLLISION_DISTANCE){
+			if((dist = rwx - d->position.x + rwy - d->position.y) > MAX_COLLISION_DISTANCE || dist < 0){
 				continue;
 			}
 
@@ -258,11 +355,19 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 		}
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
 		c.set(sub + ".currentAnimation", d.currentAnimation);
-		c.set(sub + ".nextAnimation", d.nextAnimation);
-		c.set(sub + ".scale", d.scale);
-		c.set(sub + ".health", d.health);
+		if(d.nextAnimation != d.currentAnimation){
+			c.set(sub + ".nextAnimation", d.nextAnimation);
+		}
+		if(d.scale != 1.0f){
+			c.set(sub + ".scale", d.scale);
+		}
+		if(d.health != 1.0f){
+			c.set(sub + ".health", d.health);
+		}
 		c.set(sub + ".position", d.position.fv());
-		c.set(sub + ".velocity", d.velocity.fv());
+		if(d.velocity.length() > 0.0f){
+			c.set(sub + ".velocity", d.velocity.fv());
+		}
 		sub += ".animations";
 		for(auto &ent : d.animations){
 			drawable::Animation* a = d.animations[ent.first];
@@ -293,13 +398,23 @@ void World::save(File& f){
 unsigned int load_helper(Configuration& c, World* w, std::string layer, Manager* m){
 	std::vector<std::string> cs = c.children("drawables." + layer);
 	size_t size = cs.size();
+	Layer l = parseLayer(layer);
 	for(size_t i = 0; i < size; i++){
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
 		drawable::Drawable* d = new drawable::Drawable();
 		d->currentAnimation = c.stringValue(sub + ".currentAnimation");
 		d->nextAnimation = c.stringValue(sub + ".nextAnimation");
+		if(d->nextAnimation == ""){
+			d->nextAnimation = d->currentAnimation;
+		}
 		d->scale = c.floatValue(sub + ".scale");
+		if(d->scale == 0.0f){
+			d->scale = 1.0f;
+		}
 		d->health = c.floatValue(sub + ".health");
+		if(d->health == 0.0f){
+			d->health = 1.0f;
+		}
 		d->position = Vector(c.floatVector(sub + ".position"));
 		d->position.x = ceil(d->position.x);
 		d->position.y = ceil(d->position.y);
@@ -314,7 +429,7 @@ unsigned int load_helper(Configuration& c, World* w, std::string layer, Manager*
 			}
 			d->animations[an] = a;
 		}
-		w->addDrawable(d, parseLayer(layer));
+		w->addDrawable(d, l);
 	}
 	return size;
 }

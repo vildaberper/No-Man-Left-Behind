@@ -8,6 +8,15 @@ static sf::Time FADE_DURATION = sf::milliseconds(2000);
 namespace mm{
 	class Music{
 	public:
+		Music(){
+
+		}
+		~Music(){
+			if(music->getStatus() != sf::Music::Stopped){
+				music->stop();
+			}
+			delete music;
+		}
 		File file;
 		sf::Music* music;
 
@@ -37,7 +46,7 @@ public:
 	void stop(const unsigned long& id, const bool& force);
 private:
 	std::map<std::string, std::map<std::string, File*>> musicBoard;
-	std::map<unsigned long, mm::Music> channels;
+	std::map<unsigned long, mm::Music*> channels;
 	std::set<File*> musicArchived;
 
 	bool archiveMusic();

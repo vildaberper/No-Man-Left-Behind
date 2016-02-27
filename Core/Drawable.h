@@ -38,6 +38,8 @@ namespace drawable{
 		Drawable();
 		~Drawable();
 
+		virtual void move(const float& dt);
+
 		sf::Sprite* getSprite(const sf::Time& time);
 
 		sf::FloatRect bounds(const sf::Time& time);
@@ -45,16 +47,11 @@ namespace drawable{
 		bool collidesWith(Drawable* d, const sf::Time& time, const Vector& position);
 		bool collidesWith(Drawable* d, const sf::Time& time);
 
+		float renderOffset();
+
 		std::string reference = "";
 		CollisionBox cb;
-		float renderOffset;
-
-		const bool operator >(const Drawable& d){
-			return renderOffset > d.renderOffset;
-		}
-
-		const bool operator <(const Drawable& d){
-			return renderOffset < d.renderOffset;
-		}
+		float renderOffset_;
+		bool hasRenderOffset_ = false;
 	};
 }

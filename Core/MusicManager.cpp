@@ -19,7 +19,7 @@ bool MusicManager::initialize(sf::RenderWindow* window){
 	Clock cl;
 	// Loading sounds
 	clock.restart();
-	if (archiveMusic()){
+	if(archiveMusic()){
 		logger::timing("Music initialized in " + to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return true;
 	}
@@ -30,44 +30,54 @@ bool MusicManager::initialize(sf::RenderWindow* window){
 }
 
 bool MusicManager::finalize(sf::RenderWindow* window){
+
 	// Empty containers
-	for (File* f : musicArchived){
+	for(File* f : musicArchived){
 		delete f;
 	}
+	for(auto &id : channels){
+		delete id.second;
+	}
+	channels.clear();
 	musicArchived.clear();
 	musicBoard.clear();
-	channels.clear();
 
 	return true;
 }
 
 void MusicManager::tick(sf::RenderWindow* window, const sf::Time& time, const float& dt){
 	// GarbageDAY!
-	for (auto &id : channels){
-		if (id.second.music->getStatus() == sf::Music::Stopped){
-			channels.erase(id.first);
-		}
-	}
-	// check channels mm::Music for special treatments
-	for (auto &id : channels){
-		Time elapsed = time - channels[id.first].start;
-
-		if (id.second.fadeIn && elapsed <= FADE_DURATION){	// Fading in
-			float v = elapsed / FADE_DURATION;
-			id.second.music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
-		}
-		else if (id.second.fadeOut && id.second.duration.asMilliseconds() != 0 && elapsed >= id.second.duration - FADE_DURATION){	// Fading out
-			if (elapsed >= id.second.duration){
-				id.second.music->stop();
-				continue;
-			}
-			
-			float v = 1 - ((id.second.duration - elapsed) / FADE_DURATION);
-
-			id.second.music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
+	std::map<unsigned long, mm::Music*>::iterator itr = channels.begin();
+	while(itr != channels.end()){
+		if((*itr).second->music->getStatus() == sf::Music::Stopped){
+			delete (*itr).second;
+			itr = channels.erase(itr);
 		}
 		else{
-			id.second.music->setVolume(c::musicVolume * c::masterVolume * 100.0f);
+			++itr;
+		}
+	}
+
+	// check channels mm::Music for special treatments
+	for(auto &id : channels){
+		Time elapsed = time - id.second->start;
+
+		if(id.second->fadeIn && elapsed <= FADE_DURATION){	// Fading in
+			float v = elapsed / FADE_DURATION;
+			id.second->music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
+		}
+		else if(id.second->fadeOut && id.second->duration.asMilliseconds() != 0 && elapsed >= id.second->duration - FADE_DURATION){	// Fading out
+			if(elapsed >= id.second->duration){
+				id.second->music->stop();
+				continue;
+			}
+
+			float v = (id.second->duration - elapsed) / FADE_DURATION;
+
+			id.second->music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
+		}
+		else{
+			id.second->music->setVolume(c::musicVolume * c::masterVolume * 100.0f);
 		}
 	}
 }
@@ -86,34 +96,34 @@ unsigned long MusicManager::play(const std::string& name, const bool& fadeIn, co
 
 unsigned long MusicManager::play(const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
 	unsigned long id = idTracker++;
-	if (musicBoard.count(category) == 0 || musicBoard[category].count(name) == 0){
+	if(musicBoard.count(category) == 0 || musicBoard[category].count(name) == 0){
 		// TODO: call undefined sound
 		logger::warning("Music " + category + "." + name + "could not be found.");
 		return 0;
 	}
 	else{
-		mm::Music localMusic;
+		mm::Music* localMusic = new mm::Music();
 
-		localMusic.music = new Music();
-		if (!localMusic.music->openFromFile(musicBoard[category][name]->path())){
+		localMusic->music = new Music();
+		if(!localMusic->music->openFromFile(musicBoard[category][name]->path())){
 			logger::warning("File " + musicBoard[category][name]->path() + "could not be found.");
 		}
-		localMusic.music->setVolume(0.0f);
+		localMusic->music->setVolume(0.0f);
 
-		localMusic.fadeIn = fadeIn;
-		localMusic.fadeOut = fadeOut;
-		localMusic.loop = loop;
-		localMusic.music->setLoop(loop);
+		localMusic->fadeIn = fadeIn;
+		localMusic->fadeOut = fadeOut;
+		localMusic->loop = loop;
+		localMusic->music->setLoop(loop);
 
-		if (loop){
-			localMusic.duration = milliseconds(0);
+		if(loop){
+			localMusic->duration = milliseconds(0);
 		}
 		else{
-			localMusic.duration = localMusic.music->getDuration();
+			localMusic->duration = localMusic->music->getDuration();
 		}
 
-		localMusic.music->play();
-		localMusic.start = clock.getElapsedTime();
+		localMusic->music->play();
+		localMusic->start = clock.getElapsedTime();
 		channels[id] = localMusic;
 
 		return id;
@@ -121,17 +131,17 @@ unsigned long MusicManager::play(const std::string& category, const std::string&
 }
 
 void MusicManager::stop(const unsigned long& id, const bool& force){
-	if (channels.count(id) == 0){
+	if(channels.count(id) == 0){
 		return;
 	}
 
-	mm::Music m = channels[id];
+	mm::Music* m = channels[id];
 
-	if (force){
-		m.music->stop();
+	if(force || !m->fadeOut){
+		m->music->stop();
 	}
 	else{
-		m.duration = clock.getElapsedTime() - m.start + FADE_DURATION;
+		m->duration = clock.getElapsedTime() - m->start + FADE_DURATION;
 	}
 }
 
@@ -140,19 +150,19 @@ bool MusicManager::archiveMusic(){
 }
 
 bool MusicManager::archiveMusicFromDir(File& dir){
-	if (!dir.exists() || !dir.isDirectory()){
+	if(!dir.exists() || !dir.isDirectory()){
 		return false;
 	}
 
 	bool success = true;
 
-	for (File file : dir.listFiles()){
-		if (file.isDirectory()){
+	for(File file : dir.listFiles()){
+		if(file.isDirectory()){
 			success = !archiveMusicFromDir(file) ? false : success;
 			continue;
 		}
 
-		if (!Music().openFromFile(file.path())){
+		if(!Music().openFromFile(file.path())){
 			logger::warning("Skipping music: " + file.parent().name() + "\\" + file.name());
 			continue;
 		}

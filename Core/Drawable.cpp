@@ -12,6 +12,13 @@ Drawable::~Drawable(){
 
 }
 
+void Drawable::move(const float& dt){
+	if(velocity.direction() != ZERO){
+		hasRenderOffset_ = false;
+	}
+	Entity::move(dt);
+}
+
 sf::Sprite* Drawable::getSprite(const sf::Time& time){
 	Animation* a;
 	sf::Sprite* s;
@@ -21,7 +28,10 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 	else{
 		a = animations[currentAnimation];
 	}
-	if(a->sprites.size() == 1 || a->timing.asMilliseconds() == 0){
+	if(time.asMicroseconds() == 0){
+		s = a->sprites[0];
+	}
+	else if(a->sprites.size() == 1 || a->timing.asMilliseconds() == 0){
 		if(currentAnimation == nextAnimation){
 			s = a->sprites[0];
 		}
@@ -67,7 +77,8 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 	else{
 		s->setColor(sf::Color(255, 255, 255, 255));
 	}
-	renderOffset = s->getGlobalBounds().top + s->getGlobalBounds().height * cb.renderOffset;
+	renderOffset_ = position.y + s->getLocalBounds().height * cb.renderOffset * scale;
+	hasRenderOffset_ = true;
 	return s;
 }
 
@@ -92,4 +103,11 @@ bool Drawable::collidesWith(Drawable* d, const sf::Time& time, const Vector& pos
 }
 bool Drawable::collidesWith(Drawable* d, const sf::Time& time) {
 	return cb.shouldCollide && d->cb.shouldCollide && bounds(time).intersects(d->bounds(time));
+}
+
+float Drawable::renderOffset(){
+	if(!hasRenderOffset_){
+		getSprite(sf::milliseconds(0));
+	}
+	return renderOffset_;
 }
