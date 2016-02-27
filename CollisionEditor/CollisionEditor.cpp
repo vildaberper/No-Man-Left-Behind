@@ -47,7 +47,7 @@ void CollisionEditor::run(){
 			MenuItem* ti = new MenuItem();
 			ti->title = t;
 			ti->type = TEXTURE;
-			ti->sprite = manager->spriteManager->getSprite(mi->title, t);
+			ti->sprite = manager->spriteManager->getSprite(mi->title, t)->sprite();
 			ti->closeOnClick = true;
 			ti->selectedPrefix = cs[c] + '.';
 			ti->selectedString = selectedString;
@@ -131,12 +131,12 @@ void CollisionEditor::update(){
 		return;
 	}
 
-	Sprite* s = manager->spriteManager->getSprite(*current);
+	CoreSprite* s = manager->spriteManager->getSprite(*current);
 	d = new drawable::Drawable();
 	drawable::Animation* a = new drawable::Animation();
 	d->position = Vector(
-		gi::TARGET_WIDTH / 2 - s->getGlobalBounds().width / 2,
-		gi::TARGET_HEIGHT / 2 - s->getGlobalBounds().height / 2
+		gi::TARGET_WIDTH / 2 - s->sprite()->getGlobalBounds().width / 2,
+		gi::TARGET_HEIGHT / 2 - s->sprite()->getGlobalBounds().height / 2
 		);
 	d->scale = 1.0f;
 	a->textures.push_back(*current);
@@ -208,7 +208,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 	{
 		if(event.pressed()){
 			if(current->length() > 0 && d != NULL){
-				FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
+				FloatRect fr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
 				cb->shouldCollide = true;
@@ -232,7 +232,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 	{
 		if(event.pressed()){
 			if(current->length() > 0 && d != NULL){
-				FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
+				FloatRect fr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
 				float y = (event.y() - fr.top) / fr.height;
@@ -250,7 +250,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 void CollisionEditor::on(MouseMoveEvent& event){
 	if(dragging){
 		if(current->length() > 0 && d != NULL){
-			FloatRect fr = d->getSprite(world->time())->getGlobalBounds();
+			FloatRect fr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 			CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
 			float x = (event.x() - fr.left - cb->offset.x * fr.width) / fr.width;

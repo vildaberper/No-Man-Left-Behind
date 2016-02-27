@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TextureManager.h"
+#include "CoreSprite.h"
 
 class SpriteManager{
 public:
@@ -25,11 +26,11 @@ public:
 
 	}
 
-	sf::Sprite* getSprite(const std::string& catKey, const std::string& subKey){
+	CoreSprite* getSprite(const std::string& catKey, const std::string& subKey){
 		SubTexture localSubTex = *texMan->getTextureMap(catKey, subKey);
 		int dx = int(ceil(localSubTex.texi->texture->getSize().x) / float(localSubTex.texi->width));
 		int dy = int(ceil(localSubTex.texi->texture->getSize().y) / float(localSubTex.texi->height));
-		if (
+		if(
 			localSubTex.x >= localSubTex.texi->width
 			|| localSubTex.x < 0
 			|| localSubTex.y >= localSubTex.texi->height
@@ -38,21 +39,31 @@ public:
 			logger::warning("SubTexture " + catKey + "." + subKey + " is outside texture");
 
 			// Returning the undefined a sprite with the undefine texture
-			return new sf::Sprite(*texMan->getUndefinedTexture()->texi->texture);
+			return new CoreSprite(
+				new sf::Sprite(
+					*texMan->getUndefinedTexture()->texi->texture
+					),
+				texMan->getUndefinedTexture()->texi->width,
+				texMan->getUndefinedTexture()->texi->height
+				);
 		}
 
-		return new sf::Sprite(
-			*localSubTex.texi->texture,
-			sf::IntRect(
-			localSubTex.x * dx,
-			localSubTex.y * dy,
+		return new CoreSprite(
+			new sf::Sprite(
+				*localSubTex.texi->texture,
+				sf::IntRect(
+					localSubTex.x * dx,
+					localSubTex.y * dy,
+					dx,
+					dy
+					)
+				),
 			dx,
 			dy
-			)
 			);
 	}
 
-	sf::Sprite* getSprite(const std::string& key){
+	CoreSprite* getSprite(const std::string& key){
 		std::string::size_type index = key.find_first_of('.');
 
 		return getSprite(key.substr(0, index), key.substr(index + 1));

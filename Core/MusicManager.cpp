@@ -62,16 +62,14 @@ void MusicManager::tick(sf::RenderWindow* window, const sf::Time& time, const fl
 	for(auto &id : channels){
 		Time elapsed = time - id.second->start;
 
-		if(id.second->fadeIn && elapsed <= FADE_DURATION){	// Fading in
+		if(elapsed > id.second->duration){
+			id.second->music->stop();
+		}
+		else if(id.second->fadeIn && elapsed <= FADE_DURATION){	// Fading in
 			float v = elapsed / FADE_DURATION;
 			id.second->music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);
 		}
 		else if(id.second->fadeOut && id.second->duration.asMilliseconds() != 0 && elapsed >= id.second->duration - FADE_DURATION){	// Fading out
-			if(elapsed >= id.second->duration){
-				id.second->music->stop();
-				continue;
-			}
-
 			float v = (id.second->duration - elapsed) / FADE_DURATION;
 
 			id.second->music->setVolume(v * c::musicVolume * c::masterVolume * 100.0f);

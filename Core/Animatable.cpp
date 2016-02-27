@@ -11,22 +11,26 @@ Animatable::~Animatable(){
 void Animatable::applyAnimation(Manager* m, const std::string& animation){
 	switch(animatableType){
 	case DIRECTIONAL:
-		animations["leftidle"] = m->animationManager->getAnimation(animation + ".leftidle");
-		animations["left"] = m->animationManager->getAnimation(animation + ".left");
-		animations["rightidle"] = m->animationManager->getAnimation(animation + ".rightidle");
-		animations["right"] = m->animationManager->getAnimation(animation + ".right");
-		animations["upidle"] = m->animationManager->getAnimation(animation + ".upidle");
-		animations["up"] = m->animationManager->getAnimation(animation + ".up");
-		animations["downidle"] = m->animationManager->getAnimation(animation + ".downidle");
-		animations["down"] = m->animationManager->getAnimation(animation + ".down");
+		applyAnimation(m, animation, "leftidle");
+		applyAnimation(m, animation, "left");
+		applyAnimation(m, animation, "rightidle");
+		applyAnimation(m, animation, "right");
+		applyAnimation(m, animation, "upidle");
+		applyAnimation(m, animation, "up");
+		applyAnimation(m, animation, "downidle");
+		applyAnimation(m, animation, "down");
 		break;
 	case STATES:
 		for(unsigned int i = 0; i < numStates; i++){
-			animations["state" + std::to_string(i)] = m->animationManager->getAnimation(animation + "." + state(i));
+			applyAnimation(m, animation, "state" + std::to_string(i));
 		}
-		currentAnimation = nextAnimation = "state0";
+		setAnimation("state0");
 		break;
 	}
+}
+
+bool Animatable::hasAnimation(const std::string& animation){
+	return animations.count(animation) != 0;
 }
 
 std::string Animatable::state(const unsigned int& state){
@@ -44,33 +48,33 @@ void Animatable::move(const float& dt){
 	case DIRECTIONAL:
 		switch(velocity.direction()){
 		case XN:
-			currentAnimation = nextAnimation = "left";
+			setAnimation("left");
 			break;
 		case XP:
-			currentAnimation = nextAnimation = "right";
+			setAnimation("right");
 			break;
 		case YN:
-			currentAnimation = nextAnimation = "up";
+			setAnimation("up");
 			break;
 		case YP:
-			currentAnimation = nextAnimation = "down";
+			setAnimation("down");
 			break;
 		case ZERO:
 			if(currentAnimation == "left"){
-				currentAnimation = nextAnimation = "leftidle";
+				setAnimation("leftidle");
 			}
 			else if(currentAnimation == "right"){
-				currentAnimation = nextAnimation = "rightidle";
+				setAnimation("rightidle");
 			}
 			else if(currentAnimation == "up"){
-				currentAnimation = nextAnimation = "upidle";
+				setAnimation("upidle");
 			}
 			else if(currentAnimation == "down"){
-				currentAnimation = nextAnimation = "downidle";
+				setAnimation("downidle");
 			}
 			break;
 		default:
-			currentAnimation = nextAnimation = "downidle";
+			setAnimation("downidle");
 			break;
 		}
 		break;
@@ -91,4 +95,18 @@ void Animatable::setNumStates(const unsigned int& numStates){
 }
 unsigned int Animatable::getNumStates(){
 	return numStates;
+}
+
+void Animatable::applyAnimation(Manager* m, const std::string& category, const std::string& name){
+	std::string full = category + "." + name;
+
+	if(m->animationManager->hasAnimation(full)){
+		animations[name] = m->animationManager->getAnimation(full);
+	}
+}
+
+void Animatable::setAnimation(const std::string& animation){
+	if(hasAnimation(animation)){
+		currentAnimation = nextAnimation = animation;
+	}
 }

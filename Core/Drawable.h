@@ -4,6 +4,7 @@
 #include <map>
 
 #include "CollisionManager.h"
+#include "CoreSprite.h"
 #include "Entity.h"
 #include "SFMLI.h"
 
@@ -11,7 +12,7 @@ namespace drawable{
 	class Animation{
 	public:
 		std::vector<std::string> textures;
-		std::vector<sf::Sprite*> sprites;
+		std::vector<CoreSprite*> sprites;
 		sf::Time timing;
 
 		Animation* clone(){
@@ -40,18 +41,21 @@ namespace drawable{
 
 		virtual void move(const float& dt);
 
-		sf::Sprite* getSprite(const sf::Time& time);
+		CoreSprite* getSprite(const sf::Time& time);
 
 		sf::FloatRect bounds(const sf::Time& time);
 
 		bool collidesWith(Drawable* d, const sf::Time& time, const Vector& position);
 		bool collidesWith(Drawable* d, const sf::Time& time);
 
+		void calcRenderOffset();
+
 		float renderOffset();
 
 		std::string reference = "";
 		CollisionBox cb;
+
 		float renderOffset_;
-		bool hasRenderOffset_ = false;
+		bool movedY = false;
 	};
 }

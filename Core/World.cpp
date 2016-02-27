@@ -4,7 +4,7 @@ World::World(Manager* manager){
 	for(unsigned int i = 0; i < NUM_LAYERS; i++){
 		Layer l = Layer(i);
 		drawables[l] = std::vector<drawable::Drawable*>();
-		doSwap[l] = false;
+		doSwap[l] = true;
 	}
 
 	World::manager = manager;
@@ -105,7 +105,7 @@ void World::tick(){
 	for(size_t i = 0; i < NUM_LAYERS; i++){
 		Layer l = Layer(i);
 		for(size_t di = 0; di < drawables[l].size();){
-			if(!drawables[l][di]->hasRenderOffset_){
+			if(drawables[l][di]->movedY){
 				orderDrawable(di, l);
 			}
 			else{
@@ -138,39 +138,6 @@ const void World::render(){
 		}
 	}
 }
-const void World::render(drawable::Drawable* relative){
-	renderBackground();
-
-	size_t index = binarySearchRenderOffset(relative, LAYER2);
-
-	for(size_t i = 0; i < LAYER2; i++){
-		Layer l = Layer(i);
-		for(drawable::Drawable* d : drawables[l]){
-			if(drawables[LAYER2][i] != relative){
-				gi::draw(d, time());
-			}
-		}
-	}
-	for(size_t i = 0; i < index; i++){
-		if(drawables[LAYER2][i] != relative){
-			gi::draw(drawables[LAYER2][i], time());
-		}
-	}
-	gi::draw(relative, time());
-	for(size_t i = index; i < drawables[LAYER2].size(); i++){
-		if(drawables[LAYER2][i] != relative){
-			gi::draw(drawables[LAYER2][i], time());
-		}
-	}
-	for(size_t i = LAYER3; i < NUM_LAYERS; i++){
-		Layer l = Layer(i);
-		for(drawable::Drawable* d : drawables[l]){
-			if(drawables[LAYER2][i] != relative){
-				gi::draw(d, time());
-			}
-		}
-	}
-}
 
 bool World::isOrdering(){
 	for(unsigned int i = 0; i < NUM_LAYERS; i++){
@@ -190,17 +157,16 @@ void World::orderDrawables(const Layer& layer){
 	do{ // Yay bubblesort TODO real time ordering by index
 		swapped = false;
 		for(size_t i = 1; i < drawables[layer].size() && ss < MAX_SWAPS_PER_FRAME; i++){
-			if((*(before = drawables[layer][i - 1])).renderOffset() >(*(current = drawables[layer][i])).renderOffset()){
+			if((before = drawables[layer][i - 1])->renderOffset() > (current = drawables[layer][i])->renderOffset()){
 				drawables[layer][i] = before;
 				drawables[layer][i - 1] = current;
 				swapped = true;
 				swapPosition[layer] = i;
 				ss++;
-				//logger::debug("swapped " + std::to_string(i - 1) + "<->" + std::to_string(i));
 			}
 		}
 	} while(swapped && ss < MAX_SWAPS_PER_FRAME);
-	if(doSwap[layer] = ss >= MAX_SWAPS_PER_FRAME - 1){
+	if(doSwap[layer] = ss !=0){
 		swapLayer = layer;
 	}
 }
@@ -223,7 +189,7 @@ void World::insertDrawableAt(drawable::Drawable* drawable, const Layer& layer, c
 	drawables[layer][index] = drawable;
 }
 
-size_t World::binarySearchRenderOffset(drawable::Drawable* drawable, const Layer& layer){
+size_t World::binarySearchRenderOffset(const float& co, const Layer& layer){
 	if(drawables[layer].size() == 0){
 		return 1;
 	}
@@ -234,7 +200,6 @@ size_t World::binarySearchRenderOffset(drawable::Drawable* drawable, const Layer
 
 	float loo = drawables[layer][lo]->renderOffset();
 	float hio = drawables[layer][hi]->renderOffset();
-	float co = drawable->renderOffset();
 
 	if(co <= loo){
 		return 0;
@@ -277,8 +242,12 @@ size_t World::binarySearchRenderOffset(drawable::Drawable* drawable, const Layer
 	}
 	return hi;
 }
+size_t World::binarySearchRenderOffset(drawable::Drawable* drawable, const Layer& layer){
+	return binarySearchRenderOffset(drawable->renderOffset(), layer);
+}
 
 void World::orderDrawable(const size_t& index, const Layer& layer){
+	drawables[layer][index]->movedY = false;
 	float co = drawables[layer][index]->renderOffset();
 	drawable::Drawable* tmp;
 
@@ -302,10 +271,6 @@ void World::orderDrawable(const size_t& index, const Layer& layer){
 }
 
 void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
-	entities.push_back((Entity*) drawable);
-
-	insertDrawableAt(drawable, layer, binarySearchRenderOffset(drawable, layer));
-
 	drawable->reference = drawable->animations[drawable->currentAnimation]->textures[0];
 	if(!drawable->cb.shouldCollide){
 		drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
@@ -313,35 +278,47 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	if(drawable->cb.shouldCollide){
 		collidables.push_back(drawable);
 	}
+	drawable->calcRenderOffset();
 	doSwap[layer] = true;
+	insertDrawableAt(drawable, layer, binarySearchRenderOffset(drawable, layer));
+	entities.push_back((Entity*) drawable);
 }
 
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
-	float rwx = gi::cameraX - gi::WIDTH / 2 + x / gi::dx();
-	float rwy = gi::cameraY - gi::HEIGHT / 2 + y / gi::dy();
+	float rwx = gi::wx(x);
+	float rwy = gi::wy(y);
 	float dist;
-	if(drawables[layer].size() > 0){
-		for(size_t i = 0; i < drawables[layer].size(); i++){
-			drawable::Drawable* d = drawables[layer][drawables[layer].size() - i - 1];
+	size_t min = binarySearchRenderOffset(rwy - MAX_COLLISION_DISTANCE, layer);
+	size_t max = binarySearchRenderOffset(rwy + MAX_COLLISION_DISTANCE, layer);
 
-			if((dist = rwx - d->position.x + rwy - d->position.y) > MAX_COLLISION_DISTANCE || dist < 0){
-				continue;
-			}
+	if(max >= drawables[layer].size()){
+		if(drawables[layer].size() == 0){
+			max = 0;
+		}
+		else{
+			max = drawables[layer].size() - 1;
+		}
+	}
+	for(size_t i = max; i < drawables[layer].size() && i >= min; i--){
+		drawable::Drawable* d = drawables[layer][i];
 
-			sf::FloatRect fr = d->getSprite(time())->getGlobalBounds();
-			if(
-				fr.left < x
-				&& fr.left + fr.width > x
-				&& fr.top < y
-				&& fr.top + fr.height > y
-				){
-				return new Target(
-					d,
-					layer,
-					x - fr.left,
-					y - fr.top
-					);
-			}
+		if((dist = rwx - d->position.x + rwy - d->position.y) > MAX_COLLISION_DISTANCE || dist < 0){
+			continue;
+		}
+
+		CoreSprite* cs = d->getSprite(time());
+		if(
+			d->position.x < rwx
+			&& d->position.x + cs->w() * d->scale  > rwx
+			&& d->position.y < rwy
+			&& d->position.y + cs->h() * d->scale > rwy
+			){
+			return new Target(
+				d,
+				layer,
+				(rwx - d->position.x) * gi::dx(),
+				(rwy - d->position.y) * gi::dy()
+				);
 		}
 	}
 	return NULL;
@@ -354,7 +331,9 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 			continue;
 		}
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
-		c.set(sub + ".currentAnimation", d.currentAnimation);
+		if(d.currentAnimation != "default"){
+			c.set(sub + ".currentAnimation", d.currentAnimation);
+		}
 		if(d.nextAnimation != d.currentAnimation){
 			c.set(sub + ".nextAnimation", d.nextAnimation);
 		}
@@ -372,8 +351,10 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 		for(auto &ent : d.animations){
 			drawable::Animation* a = d.animations[ent.first];
 			std::string suba = sub + "." + ent.first;
-			c.set(suba + ".timing", a->timing.asMilliseconds());
 			c.set(suba + ".textures", a->textures);
+			if(a->timing.asMilliseconds() != 0){
+				c.set(suba + ".timing", a->timing.asMilliseconds());
+			}
 		}
 	}
 }
@@ -403,6 +384,9 @@ unsigned int load_helper(Configuration& c, World* w, std::string layer, Manager*
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
 		drawable::Drawable* d = new drawable::Drawable();
 		d->currentAnimation = c.stringValue(sub + ".currentAnimation");
+		if(d->currentAnimation == ""){
+			d->currentAnimation = "default";
+		}
 		d->nextAnimation = c.stringValue(sub + ".nextAnimation");
 		if(d->nextAnimation == ""){
 			d->nextAnimation = d->currentAnimation;

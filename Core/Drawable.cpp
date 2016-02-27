@@ -13,15 +13,13 @@ Drawable::~Drawable(){
 }
 
 void Drawable::move(const float& dt){
-	if(velocity.direction() != ZERO){
-		hasRenderOffset_ = false;
-	}
+	movedY = velocity.y != 0.0f;
 	Entity::move(dt);
 }
 
-sf::Sprite* Drawable::getSprite(const sf::Time& time){
+CoreSprite* Drawable::getSprite(const sf::Time& time){
 	Animation* a;
-	sf::Sprite* s;
+	CoreSprite* s;
 	if(animations.count(currentAnimation) == 0){
 		a = animations.begin()->second;
 	}
@@ -54,45 +52,40 @@ sf::Sprite* Drawable::getSprite(const sf::Time& time){
 		s = a->sprites[index];
 	}
 
-	// +0.375f because bleeding. what
 	if(viewRelative){
-		s->setPosition(
+		s->sprite()->setPosition(
 			round((position.x) * gi::dx()) + 0.375f,
 			round((position.y) * gi::dy()) + 0.375f
 			);
 	}
 	else{
-		s->setPosition(
-			round((position.x - gi::cameraX + gi::WIDTH / 2) * gi::dx()) + 0.375f,
-			round((position.y - gi::cameraY + gi::HEIGHT / 2) * gi::dy()) + 0.375f
+		s->sprite()->setPosition(
+			gi::sx(position.x),
+			gi::sy(position.y)
 			);
 	}
-	s->scale(
-		(1.0f / s->getScale().x) * scale * gi::dx(),
-		(1.0f / s->getScale().y) * scale * gi::dy()
-		);
 	if(highlight){
-		s->setColor(sf::Color(255, 255, 255, int(205 + 50 * sin(time.asMilliseconds() / 100.0f))));
+		s->sprite()->setColor(sf::Color(255, 255, 255, int(205 + 50 * sin(time.asMilliseconds() / 100.0f))));
 	}
 	else{
-		s->setColor(sf::Color(255, 255, 255, 255));
+		s->sprite()->setColor(sf::Color(255, 255, 255, 255));
 	}
-	renderOffset_ = position.y + s->getLocalBounds().height * cb.renderOffset * scale;
-	hasRenderOffset_ = true;
+	s->sprite()->scale(
+		(1.0f / s->sprite()->getScale().x) * scale * gi::dx(),
+		(1.0f / s->sprite()->getScale().y) * scale * gi::dy()
+		);
 	return s;
 }
 
 sf::FloatRect Drawable::bounds(const sf::Time& time){
-	sf::FloatRect fr = getSprite(time)->getLocalBounds();
+	CoreSprite* cs = getSprite(time);
 
-	fr.width *= scale;
-	fr.height *= scale;
-	fr.left += fr.width * cb.offset.x + position.x;
-	fr.top += fr.height * cb.offset.y + position.y;
-	fr.width *= cb.size.x;
-	fr.height *= cb.size.y;
-
-	return fr;
+	return sf::FloatRect(
+		position.x + cs->w() * scale * cb.offset.x,
+		position.y + cs->h() * scale * cb.offset.y,
+		cs->w() * scale * cb.size.x,
+		cs->h() * scale * cb.size.y
+		);
 }
 
 bool Drawable::collidesWith(Drawable* d, const sf::Time& time, const Vector& position){
@@ -105,9 +98,10 @@ bool Drawable::collidesWith(Drawable* d, const sf::Time& time) {
 	return cb.shouldCollide && d->cb.shouldCollide && bounds(time).intersects(d->bounds(time));
 }
 
+void Drawable::calcRenderOffset(){
+	renderOffset_ = float(animations.begin()->second->sprites[0]->h()) * cb.renderOffset;
+}
+
 float Drawable::renderOffset(){
-	if(!hasRenderOffset_){
-		getSprite(sf::milliseconds(0));
-	}
-	return renderOffset_;
+	return position.y + renderOffset_ * scale;
 }

@@ -13,9 +13,6 @@ namespace gi{
 	static const float TARGET_HEIGHT = 1080;
 
 	extern sf::RenderWindow* renderWindow;
-	extern unsigned int drawCalls;
-	extern unsigned long frameCount;
-	extern sf::Time begin;
 	extern float cameraX;
 	extern float cameraY;
 	extern float cameraZ;
@@ -55,8 +52,15 @@ namespace gi{
 	float dxiz();
 	float dyiz();
 
+	float sx(float x);
+	float sy(float y);
+
+	float wx(float x);
+	float wy(float y);
+
 	// Drawcall
 	void draw(sf::Sprite& sprite);
+	void draw(CoreSprite& sprite);
 
 	void draw(drawable::Drawable* drawable, const sf::Time& time);
 

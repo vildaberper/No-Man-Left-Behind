@@ -17,6 +17,8 @@ public:
 	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
 
 	drawable::Animation* getAnimation(const std::string& name);
+
+	bool hasAnimation(const std::string& name);
 private:
 	std::map<std::string, drawable::Animation*> animations;
 	drawable::Animation* undefined;

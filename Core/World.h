@@ -129,7 +129,6 @@ public:
 
 	const void renderBackground();
 	const void render();
-	const void render(drawable::Drawable* relative);
 
 	void setPaused(const bool& paused);
 	bool isPaused();
@@ -147,6 +146,7 @@ public:
 
 	void insertDrawableAt(drawable::Drawable* drawable, const Layer& layer, const size_t& index);
 
+	size_t binarySearchRenderOffset(const float& co, const Layer& layer);
 	size_t binarySearchRenderOffset(drawable::Drawable* drawable, const Layer& layer);
 
 	void orderDrawable(const size_t& index, const Layer& layer);

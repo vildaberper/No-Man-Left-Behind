@@ -72,9 +72,9 @@ void Level::begin(){
 	world->load(c::worldDir.child(worldFileName));
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
 
-	for(Injured* inj : injured){
+	/*for(Injured* inj : injured){
 		world->addDrawable(inj, LAYER2);
-	}
+	}*/
 
 	if(player == NULL){
 		player = new Player();
@@ -86,7 +86,7 @@ void Level::begin(){
 		truck = new Truck();
 		truck->initialize(manager);
 		truck->position = spawn;
-		truck->position.y -= truck->getSprite(world->time())->getGlobalBounds().height * truck->cb.renderOffset / gi::dy();
+		truck->position.y -= truck->getSprite(world->time())->h() * truck->scale * truck->cb.renderOffset / gi::dy();
 		world->addDrawable(truck, LAYER2);
 	}
 	else{
@@ -152,10 +152,10 @@ void Level::tick(){
 	case TRUCKMOVING:
 	{
 		world->tick();
-		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
-		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->sprite()->getGlobalBounds().width / gi::dx() / 2;
+		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->sprite()->getGlobalBounds().height / gi::dy() / 2;
 		gi::camera(world->dt());
-		world->render(truck);
+		world->render();
 
 		if(world->time().asSeconds() > timeBeforeBreak){
 			state = TRUCKBREAKING;
@@ -166,15 +166,15 @@ void Level::tick(){
 	case TRUCKBREAKING:
 	{
 		world->tick();
-		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
-		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::cameraTargetX = truck->position.x + truck->getSprite(world->time())->sprite()->getGlobalBounds().width / gi::dx() / 2;
+		gi::cameraTargetY = truck->position.y + truck->getSprite(world->time())->sprite()->getGlobalBounds().height / gi::dy() / 2;
 		gi::camera(world->dt());
-		world->render(truck);
+		world->render();
 
 		if(truck->velocity.direction() == ZERO){
 			state = PLAYING;
 			sf::FloatRect tr = truck->bounds(world->time());
-			sf::FloatRect pr = player->getSprite(world->time())->getLocalBounds();
+			sf::FloatRect pr = player->getSprite(world->time())->sprite()->getLocalBounds();
 			player->position.x = tr.left + tr.width * 0.55f;
 			player->position.y = tr.top + tr.height - pr.height * player->cb.offset.y;
 			if(useTruck){
@@ -201,8 +201,8 @@ void Level::tick(){
 	{
 		player->velocity = controller->movement();
 		world->tick();
-		gi::cameraTargetX = player->position.x + player->getSprite(world->time())->getGlobalBounds().width / gi::dx() / 2;
-		gi::cameraTargetY = player->position.y + player->getSprite(world->time())->getGlobalBounds().height / gi::dy() / 2;
+		gi::cameraTargetX = player->position.x + player->getSprite(world->time())->sprite()->getGlobalBounds().width / gi::dx() / 2;
+		gi::cameraTargetY = player->position.y + player->getSprite(world->time())->sprite()->getGlobalBounds().height / gi::dy() / 2;
 
 		Vector camera = controller->camera();
 		gi::cameraTargetX += camera.x * 250.0f;
@@ -226,7 +226,7 @@ void Level::tick(){
 		target = closest != NULL && !closest->isHealed() ? 0.0f : dist;
 
 		gi::camera(world->dt());
-		world->render(player);
+		world->render();
 
 		// Inventory
 		manager->menuManager->draw(world->time());
@@ -252,8 +252,8 @@ void Level::tick(){
 	}
 
 	journal->position.x = 50;
-	journal->position.y = 50;
-	journal->position.y -= actual;
+	journal->position.y = 50 - actual;
+	journal->movedY = true;
 }
 
 bool Level::done(){
@@ -268,7 +268,7 @@ void Level::updateInventoryMenu(){
 		if(is.amount > 0){
 			ti->title = resourceToString(is.item.type) + " " + std::to_string(is.amount);
 			ti->type = TEXTURE;
-			ti->sprite = new sf::Sprite(*manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type)));
+			ti->sprite = new sf::Sprite(*manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type))->sprite());
 		}
 		else{
 			ti->title = "";

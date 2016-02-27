@@ -2,9 +2,6 @@
 
 namespace gi{
 	sf::RenderWindow* renderWindow;
-	unsigned int drawCalls = 0;
-	unsigned long frameCount = 0;
-	sf::Time begin;
 	float cameraX;
 	float cameraY;
 	float cameraZ = 1.0f;
@@ -61,8 +58,6 @@ namespace gi{
 		renderWindow->setFramerateLimit(c::frameLimit);
 		renderWindow->setVerticalSyncEnabled(c::verticalSync);
 
-		drawCalls = frameCount = 0;
-
 		cameraX = cameraTargetX = TARGET_WIDTH / 2;
 		cameraY = cameraTargetY = TARGET_HEIGHT / 2;
 		bool success = menuFont.loadFromFile(c::fontDir.child("Arial.ttf").path());
@@ -81,7 +76,6 @@ namespace gi{
 	}
 
 	bool startOfFrame(){
-		frameCount++;
 		renderWindow->clear();
 		return renderWindow->isOpen();
 	}
@@ -107,33 +101,47 @@ namespace gi{
 		return wy() / TARGET_HEIGHT;
 	}
 
+	// +0.375f because bleeding. what
+	float sx(float x){
+		return round((x - gi::cameraX + gi::WIDTH / 2) * gi::dx()) + 0.375f;
+	}
+	float sy(float y){
+		return round((y - gi::cameraY + gi::HEIGHT / 2) * gi::dy()) + 0.375f;
+	}
+
+	float wx(float x){
+		return gi::cameraX - gi::WIDTH / 2 + x / gi::dx();
+	}
+	float wy(float y){
+		return gi::cameraY - gi::HEIGHT / 2 + y / gi::dy();
+	}
+
 	// Drawcall
 	void draw(sf::Sprite& sprite){
 		renderWindow->draw(sprite);
 	}
 
+	void draw(CoreSprite& sprite){
+		draw(*sprite.sprite());
+	}
+
 	void draw(drawable::Drawable* drawable, const sf::Time& time){
 		if(
-			drawable->position.x < gi::cameraX - gi::TARGET_WIDTH / 2 / gi::cameraZ - 1000.0f
+			!drawable->viewRelative
+			&& (drawable->position.x < gi::cameraX - gi::TARGET_WIDTH / 2 / gi::cameraZ - 1000.0f
 			|| drawable->position.x > gi::cameraX + gi::TARGET_WIDTH / 2 / gi::cameraZ
 			|| drawable->position.y < gi::cameraY - gi::TARGET_HEIGHT / 2 / gi::cameraZ - 1000.0f
-			|| drawable->position.y > gi::cameraY + gi::TARGET_HEIGHT / 2 / gi::cameraZ
+			|| drawable->position.y > gi::cameraY + gi::TARGET_HEIGHT / 2 / gi::cameraZ)
 			){
 			return;
 		}
-		drawCalls++;
 
-		sf::Sprite* s = drawable->getSprite(time);
+		CoreSprite* s = drawable->getSprite(time);
 
-		if((time - begin).asSeconds() > 1){
-			//logger::info("FPS: " + std::to_string(frameCount / (time - begin).asSeconds()));
-			begin = time;
-			frameCount = 0;
-		}
 		if(drawable->highlight){
 			sf::RectangleShape rs = sf::RectangleShape();
-			rs.setPosition(s->getGlobalBounds().left + 1, s->getGlobalBounds().top + 1);
-			rs.setSize(sf::Vector2f(s->getGlobalBounds().width - 2, s->getGlobalBounds().height - 2));
+			rs.setPosition(s->sprite()->getGlobalBounds().left + 1, s->sprite()->getGlobalBounds().top + 1);
+			rs.setSize(sf::Vector2f(s->sprite()->getGlobalBounds().width - 2, s->sprite()->getGlobalBounds().height - 2));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
 			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
 			rs.setOutlineThickness(1);
@@ -142,27 +150,20 @@ namespace gi{
 
 		draw(*s);
 
-		if(collisionBoxes){
+		if(collisionBoxes && !drawable->viewRelative){
 			sf::RectangleShape rs = sf::RectangleShape();
-			rs.setPosition(s->getGlobalBounds().left + 1, s->getGlobalBounds().top + 1);
-			rs.setSize(sf::Vector2f(s->getGlobalBounds().width - 2, s->getGlobalBounds().height - 2));
+			rs.setPosition(sx(drawable->position.x) + 1, sy(drawable->position.y) + 1);
+			rs.setSize(sf::Vector2f(s->w() * drawable->scale * dx() - 2, s->h() * drawable->scale * dy() - 2));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
 			rs.setOutlineColor(sf::Color(255, 255, 0, 155));
 			rs.setOutlineThickness(1);
 			renderWindow->draw(rs);
 
-			rs.setPosition(s->getGlobalBounds().left, s->getGlobalBounds().top + s->getGlobalBounds().height * drawable->cb.renderOffset - 0.5f);
-			rs.setSize(sf::Vector2f(s->getGlobalBounds().width, 1.0f));
-			rs.setFillColor(sf::Color(0, 255, 0, 255));
-			rs.setOutlineColor(sf::Color(0, 255, 0, 255));
-			rs.setOutlineThickness(0);
-			renderWindow->draw(rs);
-
 			if(drawable->cb.shouldCollide){
 				sf::FloatRect fr = drawable->bounds(time);
 				rs.setPosition(
-					round((fr.left - cameraX + WIDTH / 2) * dx()) + 0.375f,
-					round((fr.top - cameraY + HEIGHT / 2) * dy()) + 0.375f
+					sx(fr.left),
+					sy(fr.top)
 					);
 				rs.setSize(sf::Vector2f(fr.width * gi::dx(), fr.height * gi::dy()));
 				rs.setFillColor(sf::Color(0, 0, 0, 0));
@@ -170,6 +171,13 @@ namespace gi{
 				rs.setOutlineThickness(1);
 				renderWindow->draw(rs);
 			}
+
+			rs.setPosition(sx(drawable->position.x), sy(drawable->renderOffset()) - 0.5f);
+			rs.setSize(sf::Vector2f(s->w() * drawable->scale * dx(), 1.0f));
+			rs.setFillColor(sf::Color(0, 255, 0, 255));
+			rs.setOutlineColor(sf::Color(0, 255, 0, 255));
+			rs.setOutlineThickness(0);
+			renderWindow->draw(rs);
 		}
 	}
 
@@ -321,9 +329,6 @@ namespace gi{
 	// endOfFrame
 	bool endOfFrame(){
 		renderWindow->display();
-		if(frameCount % 60 == 0){
-			// TODO: DrawCalls per 60 frame (average
-		}
 
 		return true;
 	}

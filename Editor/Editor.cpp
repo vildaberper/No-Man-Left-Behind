@@ -54,7 +54,7 @@ void Editor::run(){
 			MenuItem* ti = new MenuItem();
 			ti->title = t;
 			ti->type = TEXTURE;
-			ti->sprite = manager->spriteManager->getSprite(mi->title, t);
+			ti->sprite = manager->spriteManager->getSprite(mi->title, t)->sprite();
 			ti->closeOnClick = true;
 			ti->selectedPrefix = cs[c] + '.';
 			ti->selectedString = selectedString;
@@ -210,7 +210,7 @@ void Editor::run(){
 				y += gi::cameraY - gi::HEIGHT / 2 + manager->inputManager->mouseY() / gi::dy();
 
 				std::string sprite = brushObjects[random::random(brushObjects.size() - 1)];
-				Sprite* s = manager->spriteManager->getSprite(sprite);
+				CoreSprite* s = manager->spriteManager->getSprite(sprite);
 				drawable::Drawable* d = new drawable::Drawable();
 				drawable::Animation* a = new drawable::Animation();
 				d->scale = brushScaleLower + (brushScaleUpper - brushScaleLower) * random::random();
@@ -219,7 +219,7 @@ void Editor::run(){
 				a->timing = milliseconds(0);
 				d->animations["default"] = a;
 				d->currentAnimation = d->nextAnimation = "default";
-				FloatRect frb = d->getSprite(world->time())->getLocalBounds();
+				FloatRect frb = d->getSprite(world->time())->sprite()->getLocalBounds();
 				d->position.x = x - (d->cb.offset.x * frb.width + d->cb.size.x / 2 * frb.width);
 				d->position.y = y - (d->cb.offset.y * frb.height + d->cb.size.y / 2 * frb.height);
 				FloatRect fr = d->bounds(world->time());
@@ -276,7 +276,6 @@ void Editor::on(KeyboardEvent& event){
 	if(event.pressed()){
 		switch(event.key()){
 		case Keyboard::Escape:
-			world->save(file);
 			window->close();
 			break;
 		case Keyboard::Delete:
@@ -322,7 +321,7 @@ void Editor::on(MouseButtonEvent& event){
 		if(event.button() == Mouse::Button::Left && event.pressed()){
 			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
-				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
+				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString)->sprite();
 			}
 			if(selectedBackground->length() > 0){
 				backgroundMenu->title = *selectedBackground;
@@ -343,7 +342,7 @@ void Editor::on(MouseButtonEvent& event){
 			*selectedString = target->drawable->reference;
 			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
-				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
+				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString)->sprite();
 			}
 		}
 		break;
@@ -352,10 +351,9 @@ void Editor::on(MouseButtonEvent& event){
 
 		if(!targeting && event.pressed()){
 			if(selectedString != NULL && selectedString->length() > 0){
-				Sprite* s = manager->spriteManager->getSprite(*selectedString);
+				CoreSprite* s = manager->spriteManager->getSprite(*selectedString);
 				drawable::Drawable* d = new drawable::Drawable();
 				drawable::Animation* a = new drawable::Animation();
-				d->scale = 1.0f;
 				a->textures.push_back(*selectedString);
 				a->sprites.push_back(s);
 				a->timing = milliseconds(0);
@@ -366,7 +364,7 @@ void Editor::on(MouseButtonEvent& event){
 				}
 				targeting = true;
 				d->highlight = true;
-				target = new Target(d, selectedLayer, s->getGlobalBounds().width / 2 * gi::dx(), s->getGlobalBounds().height / 2 * gi::dy());
+				target = new Target(d, selectedLayer, s->sprite()->getGlobalBounds().width / 2 * gi::dx(), s->sprite()->getGlobalBounds().height / 2 * gi::dy());
 				d->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
 				d->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
 				world->addDrawable(d, selectedLayer);
@@ -420,9 +418,9 @@ void Editor::on(MouseMoveEvent& event){
 				}
 			}
 			else if(manager->inputManager->isPressed(sf::Keyboard::Key::S)){
-				FloatRect tr = target->drawable->getSprite(world->time())->getGlobalBounds();
+				FloatRect tr = target->drawable->getSprite(world->time())->sprite()->getGlobalBounds();
 				for(drawable::Drawable* d : world->drawables[target->layer]){
-					FloatRect dr = d->getSprite(world->time())->getGlobalBounds();
+					FloatRect dr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 					if(interv(dr.left + dr.width, tr.left) < SNAP){
 						if(interv(dr.top + dr.height, tr.top) < SNAP){
 							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
