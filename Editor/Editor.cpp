@@ -226,7 +226,11 @@ void Editor::run(){
 				float cx = fr.left + fr.width / 2.0f;
 				float cy = fr.top + fr.height / 2.0f;
 				bool passed = true;
-				for(drawable::Drawable* d0 : world->drawables[selectedLayer]){
+				d->calcRenderOffset();
+				size_t min = world->binarySearchRenderOffset(d->renderOffset() - MAX_COLLISION_DISTANCE, selectedLayer);
+				size_t max = world->binarySearchRenderOffset(d->renderOffset() + MAX_COLLISION_DISTANCE, selectedLayer);
+				for(size_t i = min; i <= max; i++){
+					drawable::Drawable* d0 = world->drawables[selectedLayer][i];
 					if(interv(cx, d0->position.x) + interv(cy, d0->position.y) > MAX_COLLISION_DISTANCE){
 						continue;
 					}
@@ -402,9 +406,6 @@ void Editor::on(MouseMoveEvent& event){
 	}
 	else{
 		if(!dragging){
-			target->drawable->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
-			target->drawable->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
-
 			if(target->layer == LAYER0){
 				if(world->background != NULL){
 					int w = world->background->getSize().x;
@@ -491,7 +492,11 @@ void Editor::on(MouseMoveEvent& event){
 					}
 				}
 			}
-			world->orderDrawables(target->layer);
+			else{
+				target->drawable->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
+				target->drawable->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
+			}
+			target->drawable->updateOrder = true;
 		}
 	}
 }

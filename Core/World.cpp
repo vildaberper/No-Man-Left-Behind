@@ -102,17 +102,27 @@ void World::tick(){
 		e->move(dt());
 	}
 
-	for(size_t i = 0; i < NUM_LAYERS; i++){
-		Layer l = Layer(i);
-		for(size_t di = 0; di < drawables[l].size();){
-			if(drawables[l][di]->movedY){
-				orderDrawable(di, l);
+	unsigned int numChecks = 0;
+	for(; orderLayerI < NUM_LAYERS && numChecks < MAX_ORDERCHECKS_PER_FRAME;){
+		Layer l = Layer(orderLayerI);
+		for(; orderIndexI < drawables[l].size() && numChecks < MAX_ORDERCHECKS_PER_FRAME;){
+			if(drawables[l][orderIndexI]->updateOrder){
+				orderDrawable(orderIndexI, l);
 			}
 			else{
-				di++;
+				orderIndexI++;
 			}
+			numChecks++;
+		}
+		if(drawables[l].size() == 0 || orderIndexI >= drawables[l].size()){
+			orderIndexI = 0;
+			orderLayerI++;
 		}
 	}
+	if(orderLayerI >= NUM_LAYERS - 1){
+		orderLayerI = 0;
+	}
+
 
 	cleanAll(false);
 }
@@ -132,9 +142,14 @@ const void World::renderBackground(){
 }
 const void World::render(){
 	renderBackground();
-	for(const auto &ent : drawables){
-		for(drawable::Drawable* d : ent.second){
-			gi::draw(d, time());
+	float cymin = gi::cameraY - gi::HEIGHT / 2 - 1500.0f;
+	float cymax = gi::cameraY + gi::HEIGHT / 2 + 1500.0f;
+	for(unsigned int i = 0; i < NUM_LAYERS; i++){
+		Layer l = Layer(i);
+		size_t min = binarySearchRenderOffset(cymin, l);
+		size_t max = binarySearchRenderOffset(cymax, l);
+		for(size_t di = min; di < drawables[l].size() && di <= max; di++){
+			gi::draw(drawables[l][di], time());
 		}
 	}
 }
@@ -247,7 +262,7 @@ size_t World::binarySearchRenderOffset(drawable::Drawable* drawable, const Layer
 }
 
 void World::orderDrawable(const size_t& index, const Layer& layer){
-	drawables[layer][index]->movedY = false;
+	drawables[layer][index]->updateOrder = false;
 	float co = drawables[layer][index]->renderOffset();
 	drawable::Drawable* tmp;
 
@@ -324,7 +339,7 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	return NULL;
 }
 
-void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::string layer){
+unsigned int save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::string layer){
 	for(size_t i = 0; i < ds.size(); i++){
 		drawable::Drawable d = *ds[i];
 		if(!d.isAlive()){
@@ -357,6 +372,7 @@ void save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::st
 			}
 		}
 	}
+	return ds.size();
 }
 
 void World::save(File& f){
@@ -366,11 +382,14 @@ void World::save(File& f){
 	if(backgroundName.length() > 0){
 		c.set("background", backgroundName);
 	}
-	save_helper(c, drawables[LAYER0], "LAYER0");
-	save_helper(c, drawables[LAYER1], "LAYER1");
-	save_helper(c, drawables[LAYER2], "LAYER2");
-	save_helper(c, drawables[LAYER3], "LAYER3");
-	save_helper(c, drawables[LAYER4], "LAYER4");
+	unsigned int total = 0;
+	total += save_helper(c, drawables[LAYER0], "LAYER0");
+	total += save_helper(c, drawables[LAYER1], "LAYER1");
+	total += save_helper(c, drawables[LAYER2], "LAYER2");
+	total += save_helper(c, drawables[LAYER3], "LAYER3");
+	total += save_helper(c, drawables[LAYER4], "LAYER4");
+	logger::timing(std::to_string(total) + " objects read in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+	cl.restart();
 	c.save(f);
 	logger::timing("World configuration saved in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	logger::info("World saved: " + f.parent().name() + "\\" + f.name());

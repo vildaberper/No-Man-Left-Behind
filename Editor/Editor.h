@@ -50,8 +50,8 @@ private:
 
 	sf::Clock swapClock;
 
-	float brushRadius = 2500.0f;
-	float brushDensity = 200.0f;
+	float brushRadius = 1000.0f;
+	float brushDensity = 150.0f;
 	float brushScaleLower = 1.0f;
 	float brushScaleUpper = 2.0f;
 	std::vector<std::string> brushObjects;

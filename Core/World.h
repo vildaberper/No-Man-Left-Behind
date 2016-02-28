@@ -12,6 +12,7 @@
 static const float MAX_COLLISION_DISTANCE = 3000.0f;
 
 static const unsigned int MAX_SWAPS_PER_FRAME = 100;
+static const unsigned int MAX_ORDERCHECKS_PER_FRAME = 10000;
 
 enum Layer{
 	LAYER0 = 0,
@@ -178,6 +179,9 @@ private:
 	sf::Time t;
 	sf::Time dt_;
 	float timeScale = 1.0f;
+
+	size_t orderLayerI = 0;
+	size_t orderIndexI = 0;
 
 	void cleanAll(const bool& all);
 };

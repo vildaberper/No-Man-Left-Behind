@@ -14,6 +14,9 @@ Drawable::~Drawable(){
 
 void Drawable::move(const float& dt){
 	movedY = velocity.y != 0.0f;
+	if(movedY){
+		updateOrder = true;
+	}
 	Entity::move(dt);
 }
 

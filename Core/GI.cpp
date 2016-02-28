@@ -29,8 +29,9 @@ namespace gi{
 	void camera(const float& dt){
 		if(smoothCamera){
 			Vector cv = Vector(cameraTargetX - cameraX, cameraTargetY - cameraY);
-			if(cv.length() > 0.0f){
-				cv *= dt * (cameraSmoothness - (cameraSmoothness / cv.length()));
+			float length = cv.length();
+			if(length > 0.0f){
+				cv *= std::min(1.0f, dt * (cameraSmoothness - (cameraSmoothness / length)));
 				cameraX += cv.x;
 				cameraY += cv.y;
 			}
@@ -128,10 +129,10 @@ namespace gi{
 	void draw(drawable::Drawable* drawable, const sf::Time& time){
 		if(
 			!drawable->viewRelative
-			&& (drawable->position.x < gi::cameraX - gi::TARGET_WIDTH / 2 / gi::cameraZ - 1000.0f
-			|| drawable->position.x > gi::cameraX + gi::TARGET_WIDTH / 2 / gi::cameraZ
-			|| drawable->position.y < gi::cameraY - gi::TARGET_HEIGHT / 2 / gi::cameraZ - 1000.0f
-			|| drawable->position.y > gi::cameraY + gi::TARGET_HEIGHT / 2 / gi::cameraZ)
+			&& (drawable->position.x < gi::cameraX - gi::WIDTH / 2 - 1000.0f
+			|| drawable->position.x > gi::cameraX + gi::WIDTH / 2
+			|| drawable->position.y < gi::cameraY - gi::HEIGHT / 2 - 1000.0f
+			|| drawable->position.y > gi::cameraY + gi::HEIGHT / 2)
 			){
 			return;
 		}

@@ -57,5 +57,6 @@ namespace drawable{
 
 		float renderOffset_;
 		bool movedY = false;
+		bool updateOrder = false;
 	};
 }
