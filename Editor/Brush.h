@@ -15,6 +15,8 @@ public:
 
 	bool paint(const float& x, const float& y, const float& radius, const float& density, Manager*& manager, World*& world, const Layer& layer);
 
+	void erase(const float& x, const float& y, const float& radius, World*& world, const Layer& layer);
+
 	float scaleLower = 1.0f;
 	float scaleUpper = 2.0f;
 	std::vector<std::string> objects;

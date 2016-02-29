@@ -11,11 +11,29 @@ using namespace math;
 Editor::Editor(){
 	selectedString = new std::string();
 	selectedBackground = new std::string();
+	selectedBrush = new std::string();
+	selectedWorld = new std::string();
 }
 
 Editor::~Editor(){
 	delete selectedString;
 	delete selectedBackground;
+	delete selectedBrush;
+	delete selectedWorld;
+}
+
+void worlds(vector<string>& ws, File& f){
+	if(f.isFile()){
+		if(f.extension() == "txt"){
+			string s = f.path().substr(c::worldDir.path().size() + 1);
+			ws.push_back(s.substr(0, s.length() - 4));
+		}
+	}
+	else if(f.isDirectory()){
+		for(File f0 : f.listFiles()){
+			worlds(ws, f0);
+		}
+	}
 }
 
 void Editor::run(){
@@ -24,9 +42,66 @@ void Editor::run(){
 	manager = new Manager();
 	manager->initialize(window);
 	world = new World(manager);
-	file = c::worldDir.child("world.txt");
+
+	vector<string> ws;
+	worlds(ws, c::worldDir);
+	Menu* worldsC = new Menu();
+	worldsC->hidden = false;
+	worldsC->type = VERTICAL;
+	worldsC->position = Vector(gi::TARGET_WIDTH / 2.0f - 200, gi::TARGET_HEIGHT / 2);
+	worldsC->size = Vector(400, std::min(ws.size() * 50.0f, gi::TARGET_HEIGHT / 2 - 20));
+	worldsC->position.y -= worldsC->size.y / 2.0f;
+	for(string s : ws){
+		MenuItem* ti = new MenuItem();
+		ti->title = s;
+		ti->type = TEXT;
+		ti->closeOnClick = true;
+		ti->selectedString = selectedWorld;
+		worldsC->items.push_back(ti);
+	}
+	manager->menuManager->menus["worlds"] = worldsC;
+
+	while(selectedWorld->length() == 0 && gi::startOfFrame()){
+		gi::drawLog();
+
+		manager->menuManager->draw(world->time());
+
+		manager->tick(window, world->time(), world->dt());
+
+		gi::endOfFrame();
+
+		if(manager->inputManager->isPressed(Keyboard::Escape)){
+			window->close();
+		}
+	}
+	if(selectedWorld->size() == 0){
+		return;
+	}
+	file = c::worldDir.child(*selectedWorld + ".txt");
 	world->load(file);
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
+
+	Configuration bs;
+	if(bs.load(c::baseDir.child("brushes.txt"))){
+		for(std::string brushName : bs.children("")){
+			Brush* b = new Brush();
+			b->scaleLower = bs.floatValue(brushName + ".scaleLower");
+			b->scaleUpper = bs.floatValue(brushName + ".scaleUpper");
+			for(std::string category : bs.children(brushName + ".objects", false)){
+				for(std::string name : bs.children(brushName + ".objects." + category, false)){
+					for(int i = 0; i < bs.intValue(brushName + ".objects." + category + "." + name); i++){
+						b->objects.push_back(category + "." + name);
+					}
+				}
+			}
+			brushes[brushName] = b;
+		}
+		*selectedBrush = (*brushes.begin()).first;
+	}
+	else{
+		brushes[*selectedBrush = "Empty"] = new Brush();
+	}
+	random::initialize();
 
 	vector<string> cs = manager->spriteManager->categories();
 	Menu* cm = new Menu();
@@ -46,10 +121,10 @@ void Editor::run(){
 		tm->position.x = w * c;
 		tm->position.y = 50;
 		tm->size.x = w;
-		tm->size.y = gi::TARGET_HEIGHT - 50 - 70;
+		vector<string> ms = manager->spriteManager->members(mi->title);
+		tm->size.y = std::min(ms.size() * 100.0f, gi::TARGET_HEIGHT - 50 - 70);
 		tm->type = VERTICAL;
 		tm->hidden = true;
-		vector<string> ms = manager->spriteManager->members(mi->title);
 		for(string t : ms){
 			MenuItem* ti = new MenuItem();
 			ti->title = t;
@@ -102,12 +177,42 @@ void Editor::run(){
 	spriteM->items.push_back(spriteMenu);
 	manager->menuManager->menus["sprite"] = spriteM;
 
+	Menu* brushC = new Menu();
+	brushC->hidden = true;
+	brushC->type = VERTICAL;
+	brushC->position = Vector(gi::TARGET_WIDTH / 2 + 310, gi::TARGET_HEIGHT - 50 - 10);
+	brushC->size = Vector(330, std::min(brushes.size() * 100.0f, gi::TARGET_HEIGHT - 50 - 10 - 50 - 10));
+	brushC->position.y -= brushC->size.y;
+	for(auto &ent : brushes){
+		MenuItem* ti = new MenuItem();
+		ti->title = ent.first;
+		ti->type = TEXT;
+		ti->closeOnClick = true;
+		ti->selectedString = selectedBrush;
+		brushC->items.push_back(ti);
+	}
+	manager->menuManager->menus["brushC"] = brushC;
+
+	Menu* brushM = new Menu();
+	brushM->hidden = false;
+	brushM->position = Vector(gi::TARGET_WIDTH / 2 + 310, gi::TARGET_HEIGHT - 50 - 10);
+	brushM->size = Vector(330, 50);
+	brushM->type = HORIZONTAL;
+	brushMenu = new MenuItem();
+	brushMenu->toggle = brushC;
+	brushMenu->closeOnClick = false;
+	brushMenu->type = TEXTURE;
+	brushMenu->title = *selectedBrush;
+	brushM->items.push_back(brushMenu);
+	manager->menuManager->menus["brush"] = brushM;
+
 	cs = manager->spriteManager->backgrounds();
 	Menu* backgroundC = new Menu();
 	backgroundC->hidden = true;
 	backgroundC->type = VERTICAL;
-	backgroundC->position = Vector(gi::TARGET_WIDTH - 310, gi::TARGET_HEIGHT - 50 - 10 - 400);
-	backgroundC->size = Vector(300, 400);
+	backgroundC->position = Vector(gi::TARGET_WIDTH - 310, gi::TARGET_HEIGHT - 50 - 10);
+	backgroundC->size = Vector(300, std::min(cs.size() * 100.0f, gi::TARGET_HEIGHT - 50 - 10 - 50 - 10));
+	backgroundC->position.y -= backgroundC->size.y;
 	for(string b : cs){
 		MenuItem* ti = new MenuItem();
 		ti->title = b;
@@ -143,45 +248,13 @@ void Editor::run(){
 	gi::smoothCamera = true;
 	gi::cameraSmoothness = 25.0f;
 
-	Brush* b = new Brush();
-	for(int i = 1; i < 6; i++){
-		b->objects.push_back("Big Trees.Bigtree " + std::to_string(i));
-		b->objects.push_back("Big Trees.Bigtree " + std::to_string(i));
-		b->objects.push_back("Big Trees.Bigtree " + std::to_string(i));
-	}
-	for(int i = 1; i < 6; i++){
-		b->objects.push_back("Small Props.Stone " + std::to_string(i));
-	}
-	for(int i = 1; i < 6; i++){
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-		b->objects.push_back("Big Props.Pine " + std::to_string(i));
-	}
-	brushes["Forest"] = b;
-	brush = "Forest";
-	random::initialize();
-
 	while(gi::startOfFrame()){
 		if(swapClock.getElapsedTime().asSeconds() > 1.0f){
 			if(world->isOrdering()){
 				swapMenu->title = layerToString(world->swapLayer) + " - " + to_string(world->swapPosition[world->swapLayer]) + "/" + to_string(world->drawables[world->swapLayer].size());
 			}
 			else{
-				swapMenu->title = "Idle";
+				swapMenu->title = "Idle (" + std::to_string(world->numDrawables()) + ")";
 			}
 			swapClock.restart();
 		}
@@ -210,11 +283,23 @@ void Editor::run(){
 				deleteClock.restart();
 				first = true;
 			}
-			if((first || deleteClock.getElapsedTime() >= deleteTime) && target != NULL){
-				target->drawable->kill();
-				delete target;
-				target = NULL;
-				targeting = false;
+			if((first || deleteClock.getElapsedTime() >= deleteTime)){
+				if(target != NULL){
+					target->drawable->kill();
+					delete target;
+					target = NULL;
+					targeting = false;
+				}
+				if(usingBrush){
+					Brush* b = brushes[*selectedBrush];
+					b->erase(
+						gi::wx(float(manager->inputManager->mouseX())),
+						gi::wy(float(manager->inputManager->mouseY())),
+						brushRadius,
+						world,
+						selectedLayer
+						);
+				}
 			}
 			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 		}
@@ -223,7 +308,7 @@ void Editor::run(){
 		}
 
 		if(usingBrush && draggingLeft){
-			Brush* b = brushes[brush];
+			Brush* b = brushes[*selectedBrush];
 			for(int i = 0; i < max(1, int(brushRadius / 1000)); i++){
 				b->paint(
 					gi::wx(float(manager->inputManager->mouseX())),
@@ -256,6 +341,14 @@ void Editor::run(){
 			cs.setOutlineColor(Color(255, 0, 0, 255));
 			cs.setOutlineThickness(3.0f / std::min(gi::dx(), gi::dy()));
 			cs.setPointCount(size_t(std::max(10.0f, brushRadius / 4.5f)));
+			gi::renderWindow->draw(cs);
+
+			cs.setRadius(brushDensity);
+			cs.setOrigin(brushDensity, brushDensity);
+			cs.setFillColor(Color(0, 0, 0, 15));
+			cs.setOutlineColor(Color(0, 255, 0, 255));
+			cs.setOutlineThickness(1.0f / std::min(gi::dx(), gi::dy()));
+			cs.setPointCount(size_t(std::max(10.0f, brushDensity / 4.5f)));
 			gi::renderWindow->draw(cs);
 		}
 
@@ -317,12 +410,45 @@ void Editor::on(KeyboardEvent& event){
 						target = NULL;
 					}
 					targeting = false;
-					logger::info("Using brush: " + brush);
 				}
 				else{
 					on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 				}
 			}
+			break;
+		case Keyboard::Num0:
+		case Keyboard::Num1:
+		case Keyboard::Num2:
+		case Keyboard::Num3:
+		case Keyboard::Num4:
+		case Keyboard::Numpad0:
+		case Keyboard::Numpad1:
+		case Keyboard::Numpad2:
+		case Keyboard::Numpad3:
+		case Keyboard::Numpad4:
+			if(event.key() > 74){
+				selectedLayer = Layer(event.key() - 75);
+			}
+			else{
+				selectedLayer = Layer(event.key() - 26);
+			}
+			if(target != NULL && targeting){
+				drawable::Drawable* d = target->drawable;
+
+				world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
+				world->addDrawable(d, selectedLayer);
+				target->layer = selectedLayer;
+			}
+			else{
+				targeting = false;
+				if(target != NULL){
+					target->drawable->highlight = false;
+					delete target;
+					target = NULL;
+				}
+			}
+			layerMenu->title = layerToString(selectedLayer);
+			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 			break;
 		}
 	}
@@ -340,6 +466,9 @@ void Editor::on(MouseButtonEvent& event){
 				backgroundMenu->sprite = new Sprite(*manager->spriteManager->getBackground(*selectedBackground));
 				world->backgroundName = *selectedBackground;
 				world->background = manager->spriteManager->getBackground(*selectedBackground);
+			}
+			if(selectedBrush->length() > 0){
+				brushMenu->title = *selectedBrush;
 			}
 		}
 		return;
@@ -361,7 +490,7 @@ void Editor::on(MouseButtonEvent& event){
 		draggingLeft = event.pressed();
 		targeting = target != NULL && event.pressed();
 
-		if(!targeting && event.pressed()){
+		if(!usingBrush && !targeting && event.pressed()){
 			if(selectedString != NULL && selectedString->length() > 0){
 				CoreSprite* s = manager->spriteManager->getSprite(*selectedString);
 				drawable::Drawable* d = new drawable::Drawable();
@@ -522,37 +651,23 @@ void Editor::on(MouseWheelEvent& event){
 		return;
 	}
 	if(usingBrush){
-		brushRadius += brushRadius * 0.1f * event.delta();
-		if(brushRadius < 100.0f){
-			brushRadius = 100.0f;
-		}
-		else if(brushRadius > 50000.0f){
-			brushRadius = 50000.0f;
-		}
-	}
-	else{
-		if(event.delta() > 0){
-			selectedLayer = nextLayer(selectedLayer);
-		}
-		else{
-			selectedLayer = previousLayer(selectedLayer);
-		}
-		if(target != NULL && targeting){
-			drawable::Drawable* d = target->drawable;
-
-			world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
-			world->addDrawable(d, selectedLayer);
-			target->layer = selectedLayer;
-		}
-		else{
-			targeting = false;
-			if(target != NULL){
-				target->drawable->highlight = false;
-				delete target;
-				target = NULL;
+		if(manager->inputManager->isPressed(Keyboard::LControl)){
+			brushDensity += brushDensity * 0.05f * event.delta();
+			if(brushDensity < 50.0f){
+				brushDensity = 50.0f;
+			}
+			else if(brushDensity > 1000.0f){
+				brushDensity = 1000.0f;
 			}
 		}
-		layerMenu->title = layerToString(selectedLayer);
-		on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+		else{
+			brushRadius += brushRadius * 0.1f * event.delta();
+			if(brushRadius < 100.0f){
+				brushRadius = 100.0f;
+			}
+			else if(brushRadius > 50000.0f){
+				brushRadius = 50000.0f;
+			}
+		}
 	}
 }

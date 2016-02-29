@@ -11,11 +11,11 @@ Level::~Level(){
 
 void Level::begin(){
 	// Load level (levelFileName)
-	worldFileName = "world.txt";
+	worldFileName = "world1.txt";
 	//spawn = Vector(1550.0f, 2050.0f);
 	//useTruck = false;
 
-	spawn = Vector(-3000.0f, 440.0f);
+	spawn = Vector(-3000.0f, 560.0f);
 	useTruck = true;
 	timeBeforeBreak = 2.0f;
 
@@ -72,9 +72,9 @@ void Level::begin(){
 	world->load(c::worldDir.child(worldFileName));
 	world->background = manager->spriteManager->getBackground(world->backgroundName);
 
-	/*for(Injured* inj : injured){
+	for(Injured* inj : injured){
 		world->addDrawable(inj, LAYER2);
-	}*/
+	}
 
 	if(player == NULL){
 		player = new Player();

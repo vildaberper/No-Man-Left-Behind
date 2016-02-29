@@ -39,6 +39,8 @@ private:
 	bool targeting = false;
 	Target* target = NULL;
 
+	std::string* selectedWorld = NULL;
+
 	std::string* selectedBackground = NULL;
 
 	std::string* selectedString = NULL;
@@ -48,6 +50,7 @@ private:
 	MenuItem* spriteMenu;
 	MenuItem* backgroundMenu;
 	MenuItem* swapMenu;
+	MenuItem* brushMenu;
 
 	sf::Clock swapClock;
 
@@ -59,5 +62,5 @@ private:
 	float brushRadius = 1000.0f;
 	float brushDensity = 150.0f;
 	std::map<std::string, Brush*> brushes;
-	std::string brush;
+	std::string* selectedBrush = NULL;
 };

@@ -141,6 +141,8 @@ public:
 
 	const float dt();
 
+	size_t numDrawables();
+
 	bool isOrdering();
 
 	void orderDrawables(const Layer& layer);

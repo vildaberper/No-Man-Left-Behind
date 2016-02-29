@@ -39,8 +39,8 @@ void MenuManager::on(MouseButtonEvent& event){
 				float y = ent.second->position.y * gi::dyiz();
 				float w = ent.second->size.x * gi::dxiz();
 				float h = ent.second->size.y * gi::dyiz();
-				if (event.x() > x && event.x() < x + w){
-					if (event.y() > y && event.y() < y + h){
+				if (event.x() >= x && event.x() <= x + w){
+					if (event.y() >= y && event.y() <= y + h){
 						event.setCancelled(true);
 
 						size_t index;
@@ -59,8 +59,9 @@ void MenuManager::on(MouseButtonEvent& event){
 										 break;
 						}
 						}
-						if (mi->toggle != NULL)
+						if(mi->toggle != NULL){
 							mi->toggle->hidden = !mi->toggle->hidden;
+						}
 						if (mi->closeOnClick){
 							ent.second->hidden = true;
 						}
@@ -72,5 +73,4 @@ void MenuManager::on(MouseButtonEvent& event){
 			}
 		}
 	}
-	//cout << (event.pressed() ? "press " : "release ") << event.button() << " " << event.doubleClick() << " " << event.x() << " " << event.y() << endl;
 }
