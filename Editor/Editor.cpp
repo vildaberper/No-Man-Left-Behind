@@ -143,33 +143,36 @@ void Editor::run(){
 	gi::smoothCamera = true;
 	gi::cameraSmoothness = 25.0f;
 
+	Brush* b = new Brush();
 	for(int i = 1; i < 6; i++){
-		brushObjects.push_back("Big Trees.Bigtree " + std::to_string(i));
-		brushObjects.push_back("Big Trees.Bigtree " + std::to_string(i));
-		brushObjects.push_back("Big Trees.Bigtree " + std::to_string(i));
+		b->objects.push_back("Big Trees.Bigtree " + std::to_string(i));
+		b->objects.push_back("Big Trees.Bigtree " + std::to_string(i));
+		b->objects.push_back("Big Trees.Bigtree " + std::to_string(i));
 	}
 	for(int i = 1; i < 6; i++){
-		brushObjects.push_back("Small Props.Stone " + std::to_string(i));
+		b->objects.push_back("Small Props.Stone " + std::to_string(i));
 	}
 	for(int i = 1; i < 6; i++){
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
-		brushObjects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
+		b->objects.push_back("Big Props.Pine " + std::to_string(i));
 	}
+	brushes["Forest"] = b;
+	brush = "Forest";
 	random::initialize();
 
 	while(gi::startOfFrame()){
@@ -199,55 +202,38 @@ void Editor::run(){
 			}
 			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 		}
-		if(manager->inputManager->isPressed(sf::Keyboard::Key::B)){
+
+		if(manager->inputManager->isPressed(sf::Keyboard::Key::Delete)){
+			bool first = false;
+			if(!deleting){
+				deleting = true;
+				deleteClock.restart();
+				first = true;
+			}
+			if((first || deleteClock.getElapsedTime() >= deleteTime) && target != NULL){
+				target->drawable->kill();
+				delete target;
+				target = NULL;
+				targeting = false;
+			}
+			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+		}
+		else{
+			deleting = false;
+		}
+
+		if(usingBrush && draggingLeft){
+			Brush* b = brushes[brush];
 			for(int i = 0; i < max(1, int(brushRadius / 1000)); i++){
-				float angle = 2.0f * PI * random::random();
-				float radius = brushRadius * random::random();
-				float x = cos(angle) * radius;
-				float y = sin(angle) * radius;
-
-				x += gi::cameraX - gi::WIDTH / 2 + manager->inputManager->mouseX() / gi::dx();
-				y += gi::cameraY - gi::HEIGHT / 2 + manager->inputManager->mouseY() / gi::dy();
-
-				std::string sprite = brushObjects[random::random(brushObjects.size() - 1)];
-				CoreSprite* s = manager->spriteManager->getSprite(sprite);
-				drawable::Drawable* d = new drawable::Drawable();
-				drawable::Animation* a = new drawable::Animation();
-				d->scale = brushScaleLower + (brushScaleUpper - brushScaleLower) * random::random();
-				a->textures.push_back(sprite);
-				a->sprites.push_back(s);
-				a->timing = milliseconds(0);
-				d->animations["default"] = a;
-				d->currentAnimation = d->nextAnimation = "default";
-				FloatRect frb = d->getSprite(world->time())->sprite()->getLocalBounds();
-				d->position.x = x - (d->cb.offset.x * frb.width + d->cb.size.x / 2 * frb.width);
-				d->position.y = y - (d->cb.offset.y * frb.height + d->cb.size.y / 2 * frb.height);
-				FloatRect fr = d->bounds(world->time());
-				float cx = fr.left + fr.width / 2.0f;
-				float cy = fr.top + fr.height / 2.0f;
-				bool passed = true;
-				d->calcRenderOffset();
-				size_t min = world->binarySearchRenderOffset(d->renderOffset() - MAX_COLLISION_DISTANCE, selectedLayer);
-				size_t max = world->binarySearchRenderOffset(d->renderOffset() + MAX_COLLISION_DISTANCE, selectedLayer);
-				for(size_t i = min; i <= max; i++){
-					drawable::Drawable* d0 = world->drawables[selectedLayer][i];
-					if(interv(cx, d0->position.x) + interv(cy, d0->position.y) > MAX_COLLISION_DISTANCE){
-						continue;
-					}
-					FloatRect fr0 = d0->bounds(world->time());
-
-					if(fr.intersects(fr0) || math::distance(cx, cy, fr0.left + fr0.width / 2.0f, fr0.top + fr0.height / 2.0f) < brushDensity){
-						passed = false;
-						break;
-					}
-				}
-				if(passed){
-					world->addDrawable(d, selectedLayer);
-				}
-				else{
-					delete d;
-					delete a;
-				}
+				b->paint(
+					gi::wx(float(manager->inputManager->mouseX())),
+					gi::wy(float(manager->inputManager->mouseY())),
+					brushRadius,
+					brushDensity,
+					manager,
+					world,
+					selectedLayer
+					);
 			}
 		}
 
@@ -259,6 +245,19 @@ void Editor::run(){
 		gi::camera(world->dt());
 
 		world->render();
+
+		if(usingBrush){
+			CircleShape cs;
+			cs.setPosition(float(manager->inputManager->mouseX()), float(manager->inputManager->mouseY()));
+			cs.setRadius(brushRadius);
+			cs.setOrigin(brushRadius, brushRadius);
+			cs.scale(gi::dx(), gi::dy());
+			cs.setFillColor(Color(0, 0, 0, 15));
+			cs.setOutlineColor(Color(255, 0, 0, 255));
+			cs.setOutlineThickness(3.0f / std::min(gi::dx(), gi::dy()));
+			cs.setPointCount(size_t(std::max(10.0f, brushRadius / 4.5f)));
+			gi::renderWindow->draw(cs);
+		}
 
 		gi::drawLog();
 
@@ -281,14 +280,6 @@ void Editor::on(KeyboardEvent& event){
 		switch(event.key()){
 		case Keyboard::Escape:
 			window->close();
-			break;
-		case Keyboard::Delete:
-			if(target != NULL){
-				target->drawable->kill();
-				delete target;
-				target = NULL;
-				targeting = false;
-			}
 			break;
 		case Keyboard::S:
 			if(event.first()){
@@ -317,6 +308,22 @@ void Editor::on(KeyboardEvent& event){
 				gi::logAlwaysActive = !gi::logAlwaysActive;
 			}
 			break;
+		case Keyboard::B:
+			if(event.first()){
+				if(usingBrush = !usingBrush){
+					if(target != NULL){
+						target->drawable->highlight = false;
+						delete target;
+						target = NULL;
+					}
+					targeting = false;
+					logger::info("Using brush: " + brush);
+				}
+				else{
+					on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+				}
+			}
+			break;
 		}
 	}
 }
@@ -339,7 +346,7 @@ void Editor::on(MouseButtonEvent& event){
 	}
 	switch(event.button()){
 	case Mouse::Button::Right:
-		dragging = event.pressed();
+		draggingRight = event.pressed();
 		break;
 	case Mouse::Button::Middle:
 		if(event.pressed() && target != NULL){
@@ -351,6 +358,7 @@ void Editor::on(MouseButtonEvent& event){
 		}
 		break;
 	case Mouse::Button::Left:
+		draggingLeft = event.pressed();
 		targeting = target != NULL && event.pressed();
 
 		if(!targeting && event.pressed()){
@@ -382,149 +390,169 @@ void Editor::on(MouseMoveEvent& event){
 	if(event.isCancelled()){
 		return;
 	}
-	if(dragging){
+	if(draggingRight){
 		gi::cameraTargetX -= event.dx() / gi::dx();
 		gi::cameraTargetY -= event.dy() / gi::dy();
 	}
 	if(!targeting){
-		Target* nt;
-		if((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != NULL){
-			if(target != NULL){
-				target->drawable->highlight = false;
-				delete target;
+		if(!usingBrush){
+			Target* nt;
+			if((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != NULL){
+				if(target != NULL){
+					target->drawable->highlight = false;
+					delete target;
+				}
+				target = nt;
+				target->drawable->highlight = true;
 			}
-			target = nt;
-			target->drawable->highlight = true;
-		}
-		else{
-			if(target != NULL){
-				target->drawable->highlight = false;
-				delete target;
+			else{
+				if(target != NULL){
+					target->drawable->highlight = false;
+					delete target;
+					target = NULL;
+				}
 			}
-			target = NULL;
+			if(target == NULL && selectedLayer == LAYER0 && manager->inputManager->isPressed(Keyboard::N)){
+				on(MouseButtonEvent(Mouse::Left, true, false, event.x(), event.y()));
+				targeting = false;
+			}
 		}
 	}
 	else{
-		if(!dragging){
-			if(target->layer == LAYER0){
-				if(world->background != NULL){
-					int w = world->background->getSize().x;
-					int h = world->background->getSize().y;
-					float x = target->drawable->position.x - w / 2;
-					float y = target->drawable->position.y - h / 2;
-					x = ceil(x / w) * w;
-					y = ceil(y / h) * h;
-					target->drawable->position.x = x;
-					target->drawable->position.y = y;
-				}
+		if(target->layer == LAYER0){
+			if(world->background != NULL){
+				int w = world->background->getSize().x;
+				int h = world->background->getSize().y;
+				float x = gi::wx(float(event.x())) - float(w);
+				float y = gi::wy(float(event.y())) - float(h);
+				x = ceil(x / w) * w;
+				y = ceil(y / h) * h;
+				target->drawable->position.x = x;
+				target->drawable->position.y = y;
+				return;
 			}
-			else if(manager->inputManager->isPressed(sf::Keyboard::Key::S)){
-				FloatRect tr = target->drawable->getSprite(world->time())->sprite()->getGlobalBounds();
-				for(drawable::Drawable* d : world->drawables[target->layer]){
-					FloatRect dr = d->getSprite(world->time())->sprite()->getGlobalBounds();
-					if(interv(dr.left + dr.width, tr.left) < SNAP){
-						if(interv(dr.top + dr.height, tr.top) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
-							break;
-						}
-						else if(interv(dr.top, tr.top) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy()) / gi::dy();
-							break;
-						}
-						else if(interv(dr.top, tr.top + tr.height) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
-							break;
-						}
-						else if(interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() - tr.height + dr.height) / gi::dy();
-							break;
-						}
+		}
+
+		target->drawable->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
+		target->drawable->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
+
+		if(manager->inputManager->isPressed(sf::Keyboard::Key::S)){
+			FloatRect tr = target->drawable->getSprite(world->time())->sprite()->getGlobalBounds();
+			size_t min = world->binarySearchRenderOffset(target->drawable->renderOffset() - MAX_COLLISION_DISTANCE, selectedLayer);
+			size_t max = std::min(world->binarySearchRenderOffset(target->drawable->renderOffset() + MAX_COLLISION_DISTANCE, selectedLayer), world->drawables[selectedLayer].size() - 1);
+
+			for(size_t i = min; i <= max; i++){
+				drawable::Drawable* d = world->drawables[selectedLayer][i];
+				FloatRect dr = d->getSprite(world->time())->sprite()->getGlobalBounds();
+				if(interv(dr.left + dr.width, tr.left) < SNAP){
+					if(interv(dr.top + dr.height, tr.top) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
+						break;
 					}
-					else if(interv(dr.left, tr.left + tr.width) < SNAP){
-						if(interv(dr.top + dr.height, tr.top) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
-							break;
-						}
-						else if(interv(dr.top, tr.top) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy()) / gi::dy();
-							break;
-						}
-						else if(interv(dr.top, tr.top + tr.height) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
-							break;
-						}
-						else if(interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() - tr.height + dr.height) / gi::dy();
-							break;
-						}
-					}
-					else if(interv(dr.top + dr.height, tr.top) < SNAP){
-						if(interv(dr.left, tr.left) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx()) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
-							break;
-						}
-						else if(interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() + dr.width - tr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
-							break;
-						}
+					else if(interv(dr.top, tr.top) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy()) / gi::dy();
+						break;
 					}
 					else if(interv(dr.top, tr.top + tr.height) < SNAP){
-						if(interv(dr.left, tr.left) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx()) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
-							break;
-						}
-						else if(interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
-							target->drawable->position.x = (d->position.x * gi::dx() + dr.width - tr.width) / gi::dx();
-							target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
-							break;
-						}
+						target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
+						break;
+					}
+					else if(interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() + dr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() - tr.height + dr.height) / gi::dy();
+						break;
+					}
+				}
+				else if(interv(dr.left, tr.left + tr.width) < SNAP){
+					if(interv(dr.top + dr.height, tr.top) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
+						break;
+					}
+					else if(interv(dr.top, tr.top) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy()) / gi::dy();
+						break;
+					}
+					else if(interv(dr.top, tr.top + tr.height) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
+						break;
+					}
+					else if(interv(dr.top + dr.height, tr.top + tr.height) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() - tr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() - tr.height + dr.height) / gi::dy();
+						break;
+					}
+				}
+				else if(interv(dr.top + dr.height, tr.top) < SNAP){
+					if(interv(dr.left, tr.left) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx()) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
+						break;
+					}
+					else if(interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() + dr.width - tr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() + dr.height) / gi::dy();
+						break;
+					}
+				}
+				else if(interv(dr.top, tr.top + tr.height) < SNAP){
+					if(interv(dr.left, tr.left) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx()) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
+						break;
+					}
+					else if(interv(dr.left + dr.width, tr.left + tr.width) < SNAP){
+						target->drawable->position.x = (d->position.x * gi::dx() + dr.width - tr.width) / gi::dx();
+						target->drawable->position.y = (d->position.y * gi::dy() - tr.height) / gi::dy();
+						break;
 					}
 				}
 			}
-			else{
-				target->drawable->position.x = gi::cameraX - gi::WIDTH / 2 + (event.x() - target->dx) / gi::dx();
-				target->drawable->position.y = gi::cameraY - gi::HEIGHT / 2 + (event.y() - target->dy) / gi::dy();
-			}
-			target->drawable->updateOrder = true;
 		}
+		target->drawable->updateOrder = true;
 	}
 }
 void Editor::on(MouseWheelEvent& event){
 	if(event.isCancelled()){
 		return;
 	}
-	if(event.delta() > 0){
-		selectedLayer = nextLayer(selectedLayer);
-	}
-	else{
-		selectedLayer = previousLayer(selectedLayer);
-	}
-	if(target != NULL && targeting){
-		drawable::Drawable* d = target->drawable;
-
-		world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
-		world->addDrawable(d, selectedLayer);
-		target->layer = selectedLayer;
-	}
-	else{
-		targeting = false;
-		if(target != NULL){
-			target->drawable->highlight = false;
-			delete target;
-			target = NULL;
+	if(usingBrush){
+		brushRadius += brushRadius * 0.1f * event.delta();
+		if(brushRadius < 100.0f){
+			brushRadius = 100.0f;
+		}
+		else if(brushRadius > 50000.0f){
+			brushRadius = 50000.0f;
 		}
 	}
-	layerMenu->title = layerToString(selectedLayer);
-	on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+	else{
+		if(event.delta() > 0){
+			selectedLayer = nextLayer(selectedLayer);
+		}
+		else{
+			selectedLayer = previousLayer(selectedLayer);
+		}
+		if(target != NULL && targeting){
+			drawable::Drawable* d = target->drawable;
+
+			world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
+			world->addDrawable(d, selectedLayer);
+			target->layer = selectedLayer;
+		}
+		else{
+			targeting = false;
+			if(target != NULL){
+				target->drawable->highlight = false;
+				delete target;
+				target = NULL;
+			}
+		}
+		layerMenu->title = layerToString(selectedLayer);
+		on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+	}
 }

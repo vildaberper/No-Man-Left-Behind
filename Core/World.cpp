@@ -205,12 +205,14 @@ void World::insertDrawableAt(drawable::Drawable* drawable, const Layer& layer, c
 }
 
 size_t World::binarySearchRenderOffset(const float& co, const Layer& layer){
-	if(drawables[layer].size() == 0){
+	size_t size = drawables[layer].size();
+
+	if(size == 0){
 		return 1;
 	}
 
 	size_t lo = 0;
-	size_t hi = drawables[layer].size() - 1;
+	size_t hi = size - 1;
 	size_t mi;
 
 	float loo = drawables[layer][lo]->renderOffset();
@@ -222,8 +224,8 @@ size_t World::binarySearchRenderOffset(const float& co, const Layer& layer){
 	if(co >= hio){
 		return drawables[layer].size();
 	}
-	size_t mini = drawables[layer].size() - min(drawables[layer].size() - 1, 20);
-	for(size_t i = drawables[layer].size() - 1; i >= mini; i--){
+	size_t mini = size - min(size - 1, 20);
+	for(size_t i = size - 1; i >= mini; i--){
 		hi = i;
 		hio = drawables[layer][hi]->renderOffset();
 		if(co >= hio){

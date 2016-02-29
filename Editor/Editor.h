@@ -3,9 +3,9 @@
 #include <cstdlib>
 
 #include "GI.h"
+#include "Brush.h"
 #include "SFMLI.h"
 #include "World.h"
-#include "Random.h"
 #include "Manager.h"
 #include "Constants.h"
 #include "MathHelper.h"
@@ -34,7 +34,8 @@ private:
 
 	unsigned long inputListenerId;
 
-	bool dragging = false;
+	bool draggingRight = false;
+	bool draggingLeft = false;
 	bool targeting = false;
 	Target* target = NULL;
 
@@ -50,9 +51,13 @@ private:
 
 	sf::Clock swapClock;
 
+	bool deleting = false;
+	sf::Clock deleteClock;
+	sf::Time deleteTime = sf::milliseconds(700);
+
+	bool usingBrush = false;
 	float brushRadius = 1000.0f;
 	float brushDensity = 150.0f;
-	float brushScaleLower = 1.0f;
-	float brushScaleUpper = 2.0f;
-	std::vector<std::string> brushObjects;
+	std::map<std::string, Brush*> brushes;
+	std::string brush;
 };
