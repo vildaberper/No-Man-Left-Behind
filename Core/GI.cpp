@@ -217,24 +217,29 @@ namespace gi{
 	}
 
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h){
-		sf::RectangleShape rs = sf::RectangleShape();
-		rs.setPosition(x, y);
-		rs.setSize(sf::Vector2f(w, h));
-
-		if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
-			rs.setFillColor(sf::Color(55, 55, 0, 255));
+		if(item->background != NULL && item->background->isValid()){
+			draw(item->background, x, y, w, h);
 		}
 		else{
-			rs.setFillColor(sf::Color(0, 0, 0, 185));
+			sf::RectangleShape rs = sf::RectangleShape();
+			rs.setPosition(x, y);
+			rs.setSize(sf::Vector2f(w, h));
+
+			if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
+				rs.setFillColor(sf::Color(55, 55, 0, 255));
+			}
+			else{
+				rs.setFillColor(sf::Color(0, 0, 0, 185));
+			}
+			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
+			rs.setOutlineThickness(1);
+			renderWindow->draw(rs);
 		}
-		rs.setOutlineColor(sf::Color(255, 255, 0, 255));
-		rs.setOutlineThickness(1);
-		renderWindow->draw(rs);
 
 		float tw = w;
 		switch(item->type){
 		case TEXTURE:
-			sf::Sprite* s = item->sprite;
+			sf::Sprite* s = item->sprite->sprite();
 			if(s == NULL){
 				break;
 			}
@@ -268,6 +273,10 @@ namespace gi{
 		float dx_ = menu->size.x * dxiz();
 		float dy_ = menu->size.y * dyiz();
 
+		if(menu->background != NULL && menu->background->isValid()){
+			draw(menu->background, x, y, dx_, dy_);
+		}
+
 		switch(menu->type){
 		case VERTICAL:
 		{
@@ -289,33 +298,86 @@ namespace gi{
 	}
 
 	void draw(ProgressBar* progressbar, const sf::Time& time){
-		/*sf::RectangleShape rs = sf::RectangleShape();
-		rs.setPosition(progressbar->position.x * dx(), progressbar->position.y* dy());
-		rs.setSize(sf::Vector2f(progressbar->size.x, progressbar->size.y));
-		rs.setFillColor(sf::Color(255, 0, 0, 255));
-		rs.setOutlineColor(sf::Color(255, 0, 0, 255));
-		rs.setOutlineThickness(1);
-		gi::renderWindow->draw(rs);
-		*/
+		float x = progressbar->position.x * dxiz();
+		float y = progressbar->position.y * dyiz();
+		float w = progressbar->size.x * dxiz();
+		float pw = w * progressbar->progress;
+		float h = progressbar->size.y * dyiz();
 
-		sf::Sprite* s = progressbar->bleft;
-		s->setPosition(
-			progressbar->position.x * dx(),
-			progressbar->position.y * dy()
+		if(progressbar->background != NULL && progressbar->background->isValid()){
+			draw(progressbar->background, x, y, w, h);
+		}
+		else{
+			sf::RectangleShape rs = sf::RectangleShape();
+			rs.setPosition(x, y);
+			rs.setSize(sf::Vector2f(w, h));
+			rs.setFillColor(sf::Color(0, 0, 0, 185));
+			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
+			rs.setOutlineThickness(1);
+			renderWindow->draw(rs);
+		}
+
+		if(progressbar->progressbar != NULL && progressbar->progressbar->isValid()){
+			draw(progressbar->progressbar, x, y, pw, h);
+		}
+		else{
+			sf::RectangleShape rs = sf::RectangleShape();
+			rs.setPosition(x, y);
+			rs.setSize(sf::Vector2f(pw, h));
+			rs.setFillColor(sf::Color(55, 55, 0, 255));
+			rs.setOutlineThickness(0);
+			renderWindow->draw(rs);
+		}
+	}
+
+	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h){
+		float leftscale = h / texbar->left->getSize().y;
+		float leftw = texbar->left->getSize().x * leftscale;
+		int leftrw = int(ceil(leftw / leftscale));
+
+		float rightscale = h / texbar->right->getSize().y;
+		float rightw = texbar->right->getSize().x * rightscale;
+		int rightrw = int(ceil(rightw / rightscale));
+		
+		float middlescale = h / texbar->middle->getSize().y;
+		float middlew = w - leftw - rightw;
+		int middlerw = int(ceil(middlew / middlescale));
+
+		sf::Sprite s;
+
+		if(leftw + rightw < w){
+			s = sf::Sprite(*texbar->middle, sf::IntRect(0, 0, middlerw, int(ceil(h / middlescale))));
+			s.setPosition(
+				x + leftw,
+				y
+				);
+			s.scale(middlescale, middlescale);
+			renderWindow->draw(s);
+		}
+		else{
+			float dw = w / 2;
+			leftw = dw;
+			leftrw = int(ceil(leftw / leftscale));
+
+			rightw = dw;
+			rightrw = int(ceil(rightw / rightscale));
+		}
+
+		s = sf::Sprite(*texbar->left, sf::IntRect(0, 0, leftrw, int(ceil(h / leftscale))));
+		s.setPosition(
+			x,
+			y
 			);
-		sf::FloatRect fl = s->getLocalBounds();
-		s->scale(1.0f / s->getScale().x, 1.0f / s->getScale().y);
-		float sc = (progressbar->size.y * dy()) / fl.height;
-		s->scale(sc, sc);
-		renderWindow->draw(*s);
+		s.scale(leftscale, leftscale);
+		renderWindow->draw(s);
 
-		sf::RectangleShape rs = sf::RectangleShape();
-		rs.setPosition(progressbar->position.x * dx(), progressbar->position.y * dy());
-		rs.setSize(sf::Vector2f(progressbar->size.x * progressbar->progress * dx(), progressbar->size.y * dy()));
-		rs.setFillColor(sf::Color(0, 255, 0, 100));
-		rs.setOutlineColor(sf::Color(0, 0, 0, 0));
-		rs.setOutlineThickness(0);
-		renderWindow->draw(rs);
+		s = sf::Sprite(*texbar->right, sf::IntRect(0, 0, -rightrw, int(ceil(h / rightscale))));
+		s.setPosition(
+			x + w,
+			y
+			);
+		s.scale(-rightscale, rightscale);
+		renderWindow->draw(s);
 	}
 
 	void darken(const float& darkness){

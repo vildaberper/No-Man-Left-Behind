@@ -129,7 +129,7 @@ void Editor::run(){
 			MenuItem* ti = new MenuItem();
 			ti->title = t;
 			ti->type = TEXTURE;
-			ti->sprite = manager->spriteManager->getSprite(mi->title, t)->sprite();
+			ti->sprite = manager->spriteManager->getSprite(mi->title, t);
 			ti->closeOnClick = true;
 			ti->selectedPrefix = cs[c] + '.';
 			ti->selectedString = selectedString;
@@ -217,7 +217,7 @@ void Editor::run(){
 		MenuItem* ti = new MenuItem();
 		ti->title = b;
 		ti->type = TEXTURE;
-		ti->sprite = new Sprite(*manager->spriteManager->getBackground(b));
+		ti->sprite = new CoreSprite(manager->spriteManager->getBackground(b));
 		ti->closeOnClick = true;
 		ti->selectedString = selectedBackground;
 		backgroundC->items.push_back(ti);
@@ -236,7 +236,7 @@ void Editor::run(){
 	if(world->backgroundName.length() > 0){
 		backgroundMenu->title = world->backgroundName;
 		if(world->background != NULL){
-			backgroundMenu->sprite = new Sprite(*world->background);
+			backgroundMenu->sprite = new CoreSprite(world->background);
 		}
 	}
 	else{
@@ -458,12 +458,12 @@ void Editor::on(MouseButtonEvent& event){
 		if(event.button() == Mouse::Button::Left && event.pressed()){
 			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
-				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString)->sprite();
+				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
 			}
 			if(selectedBackground->length() > 0){
 				backgroundMenu->title = *selectedBackground;
 				delete backgroundMenu->sprite;
-				backgroundMenu->sprite = new Sprite(*manager->spriteManager->getBackground(*selectedBackground));
+				backgroundMenu->sprite = new CoreSprite(manager->spriteManager->getBackground(*selectedBackground));
 				world->backgroundName = *selectedBackground;
 				world->background = manager->spriteManager->getBackground(*selectedBackground);
 			}
@@ -482,7 +482,7 @@ void Editor::on(MouseButtonEvent& event){
 			*selectedString = target->drawable->reference;
 			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
-				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString)->sprite();
+				spriteMenu->sprite = manager->spriteManager->getSprite(*selectedString);
 			}
 		}
 		break;

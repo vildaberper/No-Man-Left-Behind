@@ -20,6 +20,8 @@ public:
 
 	bool hidden = true;
 
+	TexBar* background = NULL;
+
 	MenuType type = VERTICAL;
 
 	std::vector<MenuItem*> items;

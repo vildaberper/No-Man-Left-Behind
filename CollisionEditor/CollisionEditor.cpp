@@ -47,7 +47,7 @@ void CollisionEditor::run(){
 			MenuItem* ti = new MenuItem();
 			ti->title = t;
 			ti->type = TEXTURE;
-			ti->sprite = manager->spriteManager->getSprite(mi->title, t)->sprite();
+			ti->sprite = manager->spriteManager->getSprite(mi->title, t);
 			ti->closeOnClick = true;
 			ti->selectedPrefix = cs[c] + '.';
 			ti->selectedString = selectedString;

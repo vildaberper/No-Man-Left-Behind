@@ -268,7 +268,7 @@ void Level::updateInventoryMenu(){
 		if(is.amount > 0){
 			ti->title = resourceToString(is.item.type) + " " + std::to_string(is.amount);
 			ti->type = TEXTURE;
-			ti->sprite = new sf::Sprite(*manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type))->sprite());
+			ti->sprite = manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type));
 		}
 		else{
 			ti->title = "";

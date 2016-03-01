@@ -3,10 +3,12 @@
 #include "Menu.h"
 #include "SFMLI.h"
 #include "Logger.h"
+#include "TexBar.h"
 #include "Drawable.h"
 #include "Constants.h"
-#include "ProgressBar.h"
+#include "CoreSprite.h"
 #include "MathHelper.h"
+#include "ProgressBar.h"
 
 namespace gi{
 	static const float TARGET_WIDTH = 1920;
@@ -72,6 +74,8 @@ namespace gi{
 	void draw(Menu* menu, const sf::Time& time);
 
 	void draw(ProgressBar* progressbar, const sf::Time& time);
+
+	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h);
 
 	void darken(const float& darkness);
 

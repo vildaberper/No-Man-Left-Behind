@@ -5,6 +5,7 @@
 class CoreSprite{
 public:
 	CoreSprite(sf::Sprite* sprite, int w, int h);
+	CoreSprite(sf::Texture* texture);
 	~CoreSprite();
 
 	sf::Sprite* sprite();

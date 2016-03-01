@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Vector.h"
 #include "SFMLI.h"
+#include "TexBar.h"
+#include "Vector.h"
 
 class ProgressBar{
 public:
@@ -11,9 +12,8 @@ public:
 	Vector position;
 	Vector size;
 
-	sf::Sprite* bleft;
-	sf::Sprite* bright;
-	sf::Sprite* bmiddle;
+	TexBar* background = NULL;
+	TexBar* progressbar = NULL;
 
-	float progress;
+	float progress = 0.0f;
 };

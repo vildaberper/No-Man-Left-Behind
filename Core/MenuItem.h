@@ -3,6 +3,8 @@
 #include <string>
 
 #include "SFMLI.h"
+#include "TexBar.h"
+#include "CoreSprite.h"
 
 class Menu;
 
@@ -20,11 +22,13 @@ public:
 	~MenuItem();
 	std::string title;
 	std::string value;
-	sf::Sprite* sprite;
+	CoreSprite* sprite;
 	MenuItemType type = TEXT;
 	Menu* toggle = NULL;
 	bool closeOnClick;
 	bool highlight = false;
+
+	TexBar* background = NULL;
 
 	std::string selectedPrefix;
 	std::string* selectedString = NULL;
