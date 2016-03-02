@@ -71,32 +71,35 @@ void CollisionEditor::run(){
 
 		if(current->length() > 0){
 			CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
-			if(manager->inputManager->isPressed(Keyboard::LShift)){
-				if(manager->inputManager->isPressed(Keyboard::W)){
-					cb->size.y -= 0.1f * world->dt();
+
+			if(!manager->inputManager->isPressed(Keyboard::LControl)){
+				if(manager->inputManager->isPressed(Keyboard::LShift)){
+					if(manager->inputManager->isPressed(Keyboard::W)){
+						cb->size.y -= 0.1f * world->dt();
+					}
+					if(manager->inputManager->isPressed(Keyboard::S)){
+						cb->size.y += 0.1f * world->dt();
+					}
+					if(manager->inputManager->isPressed(Keyboard::A)){
+						cb->size.x -= 0.1f * world->dt();
+					}
+					if(manager->inputManager->isPressed(Keyboard::D)){
+						cb->size.x += 0.1f * world->dt();
+					}
 				}
-				if(manager->inputManager->isPressed(Keyboard::S)){
-					cb->size.y += 0.1f * world->dt();
-				}
-				if(manager->inputManager->isPressed(Keyboard::A)){
-					cb->size.x -= 0.1f * world->dt();
-				}
-				if(manager->inputManager->isPressed(Keyboard::D)){
-					cb->size.x += 0.1f * world->dt();
-				}
-			}
-			else{
-				if(manager->inputManager->isPressed(Keyboard::W)){
-					cb->offset.y -= 0.1f * world->dt();
-				}
-				if(manager->inputManager->isPressed(Keyboard::S)){
-					cb->offset.y += 0.1f * world->dt();
-				}
-				if(manager->inputManager->isPressed(Keyboard::A)){
-					cb->offset.x -= 0.1f * world->dt();
-				}
-				if(manager->inputManager->isPressed(Keyboard::D)){
-					cb->offset.x += 0.1f * world->dt();
+				else{
+					if(manager->inputManager->isPressed(Keyboard::W)){
+						cb->offset.y -= 0.1f * world->dt();
+					}
+					if(manager->inputManager->isPressed(Keyboard::S)){
+						cb->offset.y += 0.1f * world->dt();
+					}
+					if(manager->inputManager->isPressed(Keyboard::A)){
+						cb->offset.x -= 0.1f * world->dt();
+					}
+					if(manager->inputManager->isPressed(Keyboard::D)){
+						cb->offset.x += 0.1f * world->dt();
+					}
 				}
 			}
 			update();

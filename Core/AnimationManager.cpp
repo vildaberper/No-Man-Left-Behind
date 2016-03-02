@@ -59,14 +59,14 @@ void AnimationManager::loadFromDir(File& dir, SpriteManager* sm){
 	if(!dir.exists() || !dir.isDirectory()){
 		return;
 	}
-	for(File f : dir.listFiles()){
-		if(f.isDirectory()){
-			loadFromDir(f, sm);
+	for(File pngFile : dir.listFiles()){
+		if(pngFile.isDirectory()){
+			loadFromDir(pngFile, sm);
 		}
-		if(!f.isFile() || f.extension() != "txt"){
+		if(!pngFile.isFile() || pngFile.extension() != "png"){
 			continue;
 		}
-		File pngFile = dir.child(f.nameNoExtension() + ".png");
+		File txtFile = dir.child(pngFile.nameNoExtension() + ".txt");
 
 		Texture* texture = new Texture();
 		if(!texture->loadFromFile(pngFile.path())){
@@ -76,35 +76,58 @@ void AnimationManager::loadFromDir(File& dir, SpriteManager* sm){
 		}
 		sm->texMan->textures.insert(texture);
 
-		Configuration config;
-		if(!config.load(f)){
-			logger::warning("Failed to load animation configuration: " + f.path());
-			continue;
+		string category = dir.nameNoExtension() + "." + pngFile.nameNoExtension();
+		if(!txtFile.isFile()){
+			TexI* ti = new TexI();
+			ti->texture = texture;
+			ti->width = 1;
+			ti->height = 1;
+
+			drawable::Animation* a = new drawable::Animation();
+			a->timing = sf::milliseconds(0);
+
+			string name = "0";
+			SubTexture* st = new SubTexture();
+			st->texi = ti;
+			st->x = 0;
+			st->y = 0;
+			st->hidden = true;
+			sm->texMan->textureMap[category][name] = st;
+			a->sprites.push_back(sm->getSprite(category, name));
+			a->textures.push_back(category + "." + name);
+
+			animations[category] = a;
 		}
-		TexI* ti = new TexI();
-		ti->texture = texture;
-		ti->width = config.intVector("textures")[0];
-		ti->height = config.intVector("textures")[1];
-
-		drawable::Animation* a = new drawable::Animation();
-		a->timing = sf::milliseconds(config.intValue("timing"));
-
-		int frame = 0;
-		int maxFrames = ti->width * ti->height - config.intValue("exclude");
-		string category = dir.nameNoExtension() + "." + f.nameNoExtension();
-		for(unsigned char y = 0; y < ti->height && frame < maxFrames; y++){
-			for(unsigned char x = 0; x < ti->width && frame < maxFrames; x++){
-				string name = to_string(frame++);
-				SubTexture* st = new SubTexture();
-				st->texi = ti;
-				st->x = x;
-				st->y = y;
-				st->hidden = true;
-				sm->texMan->textureMap[category][name] = st;
-				a->sprites.push_back(sm->getSprite(category, name));
-				a->textures.push_back(category + "." + name);
+		else{
+			Configuration config;
+			if(!config.load(txtFile)){
+				logger::warning("Failed to load animation configuration: " + txtFile.path());
+				continue;
 			}
+			TexI* ti = new TexI();
+			ti->texture = texture;
+			ti->width = config.intVector("textures")[0];
+			ti->height = config.intVector("textures")[1];
+
+			drawable::Animation* a = new drawable::Animation();
+			a->timing = sf::milliseconds(config.intValue("timing"));
+
+			int frame = 0;
+			int maxFrames = ti->width * ti->height - config.intValue("exclude");
+			for(unsigned char y = 0; y < ti->height && frame < maxFrames; y++){
+				for(unsigned char x = 0; x < ti->width && frame < maxFrames; x++){
+					string name = to_string(frame++);
+					SubTexture* st = new SubTexture();
+					st->texi = ti;
+					st->x = x;
+					st->y = y;
+					st->hidden = true;
+					sm->texMan->textureMap[category][name] = st;
+					a->sprites.push_back(sm->getSprite(category, name));
+					a->textures.push_back(category + "." + name);
+				}
+			}
+			animations[category] = a;
 		}
-		animations[category] = a;
 	}
 }

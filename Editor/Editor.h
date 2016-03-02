@@ -6,6 +6,7 @@
 #include "Brush.h"
 #include "SFMLI.h"
 #include "World.h"
+#include "Cursor.h"
 #include "Manager.h"
 #include "Constants.h"
 #include "MathHelper.h"

@@ -237,6 +237,8 @@ void Editor::run(){
 	gi::smoothCamera = true;
 	gi::cameraSmoothness = 25.0f;
 
+	gi::cursor = new Cursor(manager, "cursor");
+
 	while(gi::startOfFrame()){
 		switch(state){
 		case FILE_SELECT:
@@ -255,6 +257,7 @@ void Editor::run(){
 				state = EDIT;
 				worldMenu->hidden = true;
 				*selectedWorld = "";
+				gi::resetCamera();
 				break;
 			}
 			break;
@@ -390,6 +393,13 @@ void Editor::on(KeyboardEvent& event){
 				if(saveOnExit){
 					world->save(file);
 				}
+				world->cleanAll(true);
+				if(target != NULL){
+					delete target;
+					target = NULL;
+				}
+				targeting = false;
+				draggingLeft = draggingRight = false;
 				state = FILE_SELECT;
 				worldMenu->hidden = false;
 			}

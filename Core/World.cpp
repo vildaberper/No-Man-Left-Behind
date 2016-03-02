@@ -46,6 +46,7 @@ size_t World::numDrawables(){
 }
 
 void World::tick(){
+	cleanAll(false);
 	if(firstTick){
 		clock.restart();
 		firstTick = false;
@@ -150,9 +151,6 @@ void World::tick(){
 	if(orderLayerI >= NUM_LAYERS - 1){
 		orderLayerI = 0;
 	}
-
-
-	cleanAll(false);
 }
 
 
@@ -371,30 +369,30 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 
 unsigned int save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::string layer){
 	for(size_t i = 0; i < ds.size(); i++){
-		drawable::Drawable d = *ds[i];
-		if(!d.isAlive()){
+		drawable::Drawable* d = ds[i];
+		if(!d->isAlive()){
 			continue;
 		}
 		std::string sub = "drawables." + layer + "." + std::to_string(i);
-		if(d.currentAnimation != "default"){
-			c.set(sub + ".currentAnimation", d.currentAnimation);
+		if(d->currentAnimation != "default"){
+			c.set(sub + ".currentAnimation", d->currentAnimation);
 		}
-		if(d.nextAnimation != d.currentAnimation){
-			c.set(sub + ".nextAnimation", d.nextAnimation);
+		if(d->nextAnimation != d->currentAnimation){
+			c.set(sub + ".nextAnimation", d->nextAnimation);
 		}
-		if(d.scale != 1.0f){
-			c.set(sub + ".scale", d.scale);
+		if(d->scale != 1.0f){
+			c.set(sub + ".scale", d->scale);
 		}
-		if(d.health != 1.0f){
-			c.set(sub + ".health", d.health);
+		if(d->health != 1.0f){
+			c.set(sub + ".health", d->health);
 		}
-		c.set(sub + ".position", d.position.fv());
-		if(d.velocity.length() > 0.0f){
-			c.set(sub + ".velocity", d.velocity.fv());
+		c.set(sub + ".position", d->position.fv());
+		if(d->velocity.length() > 0.0f){
+			c.set(sub + ".velocity", d->velocity.fv());
 		}
 		sub += ".animations";
-		for(auto &ent : d.animations){
-			drawable::Animation* a = d.animations[ent.first];
+		for(auto &ent : d->animations){
+			drawable::Animation* a = d->animations[ent.first];
 			std::string suba = sub + "." + ent.first;
 			c.set(suba + ".textures", a->textures);
 			if(a->timing.asMilliseconds() != 0){
@@ -413,11 +411,10 @@ void World::save(File& f){
 		c.set("background", backgroundName);
 	}
 	unsigned int total = 0;
-	total += save_helper(c, drawables[LAYER0], "LAYER0");
-	total += save_helper(c, drawables[LAYER1], "LAYER1");
-	total += save_helper(c, drawables[LAYER2], "LAYER2");
-	total += save_helper(c, drawables[LAYER3], "LAYER3");
-	total += save_helper(c, drawables[LAYER4], "LAYER4");
+	for(size_t l = 0; l < NUM_LAYERS; l++){
+		Layer layer = Layer(l);
+		total += save_helper(c, drawables[layer], layerToString(layer));
+	}
 	logger::timing(std::to_string(total) + " objects read in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	cl.restart();
 	c.save(f);
@@ -472,18 +469,17 @@ void World::load(File& f){
 	firstTick = true;
 
 	sf::Clock cl;
-	Configuration c;
+	Configuration* c = new Configuration();
 
-	c.load(f);
+	c->load(f);
 	logger::timing("World configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	cl.restart();
-	backgroundName = c.stringValue("background");
+	backgroundName = c->stringValue("background");
 	unsigned int total = 0;
-	total += load_helper(c, this, "LAYER0", manager);
-	total += load_helper(c, this, "LAYER1", manager);
-	total += load_helper(c, this, "LAYER2", manager);
-	total += load_helper(c, this, "LAYER3", manager);
-	total += load_helper(c, this, "LAYER4", manager);
+	for(size_t l = 0; l < NUM_LAYERS; l++){
+		total += load_helper(*c, this, layerToString(Layer(l)), manager);
+	}
+	delete c;
 	logger::timing(std::to_string(total) + " objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	logger::info("World loaded: " + f.parent().name() + "\\" + f.name());
 }
@@ -492,13 +488,13 @@ void World::cleanAll(const bool& all){
 	for(auto &ent : drawables){
 		ent.second.erase(
 			remove_if(ent.second.begin(), ent.second.end(),
-				[all](drawable::Drawable* e){ return all || !((Entity*) e)->isAlive(); }),
+				[all](drawable::Drawable* d){ return all || !d->isAlive(); }),
 			ent.second.end());
 	}
 
 	for(size_t i = 0; i < entities.size(); i++){
 		if(all || !entities[i]->isAlive()){
-			// delete entities[i]; TODO Fix memory leak
+			delete entities[i]; //TODO Fix memory leak
 			entities.erase(entities.begin() + (i--));
 		}
 	}

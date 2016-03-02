@@ -11,7 +11,7 @@ enum AnimatableType{
 class Animatable : public drawable::Drawable{
 public:
 	Animatable();
-	~Animatable();
+	virtual ~Animatable();
 
 	void applyAnimation(Manager* m, const std::string& animation);
 

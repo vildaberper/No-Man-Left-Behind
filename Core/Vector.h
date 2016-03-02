@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "SFMLI.h"
 #include "MathHelper.h"
 
 enum Direction{
@@ -75,6 +76,16 @@ public:
 	const Vector norm(){
 		float l = length();
 		return (*this) / (l != 0.0f ? l : 1.0f);
+	}
+
+	void operator=(const sf::Vector2f& sv){
+		x = sv.x;
+		y = sv.y;
+	}
+
+	void operator=(const sf::Vector2i& iv){
+		x = float(iv.x);
+		y = float(iv.y);
 	}
 
 	bool operator==(const Vector& v){

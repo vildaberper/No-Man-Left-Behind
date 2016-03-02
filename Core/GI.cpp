@@ -4,7 +4,7 @@ namespace gi{
 	sf::RenderWindow* renderWindow;
 	float cameraX;
 	float cameraY;
-	float cameraZ = 1.0f;
+	float cameraZ;
 
 	bool smoothCamera = false;
 	float cameraSmoothness = 5.0f;
@@ -19,6 +19,14 @@ namespace gi{
 	bool collisionBoxes = false;
 
 	sf::Font menuFont;
+
+	bool showCursor = true;
+	bool hasCursor = false;
+	drawable::Drawable* cursor = NULL;
+
+	bool defaultCursor = true;
+
+	sf::Clock clock;
 
 	void zoom(const float& zoom){
 		cameraZ = zoom > 0.01f ? zoom : 0.01f;
@@ -42,6 +50,14 @@ namespace gi{
 		}
 	}
 
+	void resetCamera(){
+		cameraZ = 1.0f;
+		cameraX = cameraTargetX = TARGET_WIDTH / 2;
+		cameraY = cameraTargetY = TARGET_HEIGHT / 2;
+		WIDTH = TARGET_WIDTH / cameraZ;
+		HEIGHT = TARGET_HEIGHT / cameraZ;
+	}
+
 	bool initalize(sf::RenderWindow*& rw){
 		sf::Clock cl;
 
@@ -59,9 +75,8 @@ namespace gi{
 		renderWindow->setFramerateLimit(c::frameLimit);
 		renderWindow->setVerticalSyncEnabled(c::verticalSync);
 
-		cameraX = cameraTargetX = TARGET_WIDTH / 2;
-		cameraY = cameraTargetY = TARGET_HEIGHT / 2;
-		bool success = menuFont.loadFromFile(c::fontDir.child("Arial.ttf").path());
+		resetCamera();
+		bool success = menuFont.loadFromFile(c::menuFont.path());
 
 		logger::timing("Graphics interface initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return success;
@@ -139,20 +154,10 @@ namespace gi{
 
 		CoreSprite* s = drawable->getSprite(time);
 
-		if(drawable->highlight){
-			sf::RectangleShape rs = sf::RectangleShape();
-			rs.setPosition(s->sprite()->getGlobalBounds().left + 1, s->sprite()->getGlobalBounds().top + 1);
-			rs.setSize(sf::Vector2f(s->sprite()->getGlobalBounds().width - 2, s->sprite()->getGlobalBounds().height - 2));
-			rs.setFillColor(sf::Color(0, 0, 0, 0));
-			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
-			rs.setOutlineThickness(1);
-			renderWindow->draw(rs);
-		}
-
 		draw(*s);
 
 		if(collisionBoxes && !drawable->viewRelative){
-			sf::RectangleShape rs = sf::RectangleShape();
+			sf::RectangleShape rs;
 			rs.setPosition(sx(drawable->position.x) + 1, sy(drawable->position.y) + 1);
 			rs.setSize(sf::Vector2f(s->w() * drawable->scale * dx() - 2, s->h() * drawable->scale * dy() - 2));
 			rs.setFillColor(sf::Color(0, 0, 0, 0));
@@ -185,7 +190,7 @@ namespace gi{
 	void draw(const logger::LogEntry& logEntry, const float& x, const float& y, const float& w, const float& h){
 		sf::Uint8 a = sf::Uint8(logAlwaysActive ? 185 : (185 * logEntry.fadeValue(sf::seconds(3.0f), sf::seconds(1.0f))));
 		sf::Uint8 ta = sf::Uint8((float(a) / 185.0f) * 255.0f);
-		sf::RectangleShape rs = sf::RectangleShape();
+		sf::RectangleShape rs;
 
 		rs.setPosition(x, y);
 
@@ -221,7 +226,7 @@ namespace gi{
 			draw(item->background, x, y, w, h);
 		}
 		else{
-			sf::RectangleShape rs = sf::RectangleShape();
+			sf::RectangleShape rs;
 			rs.setPosition(x, y);
 			rs.setSize(sf::Vector2f(w, h));
 
@@ -308,7 +313,7 @@ namespace gi{
 			draw(progressbar->background, x, y, w, h);
 		}
 		else{
-			sf::RectangleShape rs = sf::RectangleShape();
+			sf::RectangleShape rs;
 			rs.setPosition(x, y);
 			rs.setSize(sf::Vector2f(w, h));
 			rs.setFillColor(sf::Color(0, 0, 0, 185));
@@ -321,7 +326,7 @@ namespace gi{
 			draw(progressbar->progressbar, x, y, pw, h);
 		}
 		else{
-			sf::RectangleShape rs = sf::RectangleShape();
+			sf::RectangleShape rs;
 			rs.setPosition(x, y);
 			rs.setSize(sf::Vector2f(pw, h));
 			rs.setFillColor(sf::Color(55, 55, 0, 255));
@@ -381,10 +386,10 @@ namespace gi{
 	}
 
 	void darken(const float& darkness){
-		sf::RectangleShape rs = sf::RectangleShape();
+		sf::RectangleShape rs;
 		rs.setFillColor(sf::Color(0, 0, 0, int(255 * darkness)));
-		rs.setOutlineThickness(0);
-		rs.setPosition(0, 0);
+		rs.setOutlineThickness(0.0f);
+		rs.setPosition(0.0f, 0.0f);
 		rs.setSize(sf::Vector2f(float(renderWindow->getSize().x), float(renderWindow->getSize().y)));
 		renderWindow->draw(rs);
 	}
@@ -404,6 +409,30 @@ namespace gi{
 
 	// endOfFrame
 	bool endOfFrame(){
+		if(showCursor){
+			if(cursor != NULL){
+				if(defaultCursor){
+					renderWindow->setMouseCursorVisible(defaultCursor = false);
+				}
+				cursor->position = sf::Mouse::getPosition(*renderWindow);
+				cursor->position.x /= dx();
+				cursor->position.y /= dy();
+				CoreSprite* cs = cursor->getSprite(clock.getElapsedTime());
+				cs->sprite()->setPosition(
+					cs->sprite()->getPosition().x - cursor->cb.offset.x * cs->w(),
+					cs->sprite()->getPosition().y - cursor->cb.offset.y * cs->h()
+					);
+				draw(*cs->sprite());
+			}
+			else{
+				renderWindow->setMouseCursorVisible(defaultCursor = true);
+			}
+		}
+		else{
+			if(defaultCursor){
+				renderWindow->setMouseCursorVisible(defaultCursor = false);
+			}
+		}
 		renderWindow->display();
 
 		return true;

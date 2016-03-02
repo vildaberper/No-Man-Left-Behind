@@ -15,6 +15,17 @@ namespace drawable{
 		std::vector<CoreSprite*> sprites;
 		sf::Time timing;
 
+		Animation(){
+			
+		}
+
+		~Animation(){
+			for(CoreSprite* cs : sprites){
+				delete cs;
+			}
+			sprites.clear();
+		}
+
 		Animation* clone(){
 			Animation* a = new Animation();
 
@@ -35,9 +46,10 @@ namespace drawable{
 		float scale = 1.0f;
 		bool highlight = false;
 		bool viewRelative = false;
+		bool scaleRelative = true;
 
 		Drawable();
-		~Drawable();
+		virtual ~Drawable();
 
 		virtual void move(const float& dt);
 

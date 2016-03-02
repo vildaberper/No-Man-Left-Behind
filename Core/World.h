@@ -174,6 +174,8 @@ public:
 	Layer swapLayer;
 	std::map<Layer, bool> doSwap;
 	std::map<Layer, size_t> swapPosition;
+
+	void cleanAll(const bool& all);
 private:
 	bool firstTick = true;
 	bool paused = false;
@@ -184,6 +186,4 @@ private:
 
 	size_t orderLayerI = 0;
 	size_t orderIndexI = 0;
-
-	void cleanAll(const bool& all);
 };

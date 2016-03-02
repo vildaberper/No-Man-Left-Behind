@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "World.h"
+#include "Cursor.h"
 #include "Configuration.h"
 
 using namespace sf;
@@ -49,8 +50,6 @@ void Game::run(){
 	gi::initalize(window);
 	gi::smoothCamera = true;
 
-	gi::renderWindow->setMouseCursorVisible(false);
-
 	Level* level = NULL;
 
 	Time lastTime;
@@ -64,6 +63,8 @@ void Game::run(){
 			controller->initialize(manager);
 			managerInitialized = true;
 			inputListenerId = manager->inputManager->registerListener(this);
+			gi::cursor = new Cursor(manager, "cursor");
+			gi::showCursor = true;
 			continue;
 		}
 		if(level == NULL){

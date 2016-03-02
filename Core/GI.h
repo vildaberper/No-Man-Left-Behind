@@ -33,9 +33,15 @@ namespace gi{
 
 	extern sf::Font menuFont;
 
+	extern bool showCursor;
+	extern bool hasCursor;
+	extern drawable::Drawable* cursor;
+
 	void zoom(const float& zoom);
 
 	void camera(const float& dt);
+
+	void resetCamera();
 
 	// Initialize \ Finalize
 	bool initalize(sf::RenderWindow*& rw);

@@ -21,6 +21,8 @@ namespace c{
 	float masterVolume;
 	float musicVolume;
 
+	File menuFont;
+
 	int frameLimit;
 	int resX;
 	int resY;
@@ -59,6 +61,8 @@ namespace c{
 
 		masterVolume = config.floatValue("volume.masterVolume");
 		musicVolume = config.floatValue("volume.musicVolume");
+
+		menuFont = fontDir.child(config.stringValue("fonts.menuFont"));
 
 		logger::timing("Constants initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	}

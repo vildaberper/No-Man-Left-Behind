@@ -9,7 +9,11 @@ Drawable::Drawable(){
 
 
 Drawable::~Drawable(){
-
+	for(auto &ent : animations){
+		delete ent.second;
+		ent.second = NULL;
+	}
+	animations.clear();
 }
 
 void Drawable::move(const float& dt){
@@ -45,7 +49,7 @@ CoreSprite* Drawable::getSprite(const sf::Time& time){
 	else{
 		sf::Time elapsed = time - startTime;
 		sf::Time maxDuration = sf::milliseconds(a->timing.asMilliseconds() * (a->sprites.size()));
-		size_t index = size_t(floor((a->sprites.size()) * (elapsed / maxDuration)));
+		size_t index = size_t(floor((a->sprites.size() * (elapsed / maxDuration))));
 
 		if(index > a->sprites.size() - 1){
 			currentAnimation = nextAnimation;
@@ -68,15 +72,24 @@ CoreSprite* Drawable::getSprite(const sf::Time& time){
 			);
 	}
 	if(highlight){
-		s->sprite()->setColor(sf::Color(255, 255, 255, int(205 + 50 * sin(time.asMilliseconds() / 100.0f))));
+		int c = int(205 + 50 * sin(time.asMilliseconds() / 100.0f));
+		s->sprite()->setColor(sf::Color(c, c, c, 255));
 	}
 	else{
 		s->sprite()->setColor(sf::Color(255, 255, 255, 255));
 	}
-	s->sprite()->scale(
-		(1.0f / s->sprite()->getScale().x) * scale * gi::dx(),
-		(1.0f / s->sprite()->getScale().y) * scale * gi::dy()
-		);
+	if(scaleRelative){
+		s->sprite()->scale(
+			(1.0f / s->sprite()->getScale().x) * scale * gi::dx(),
+			(1.0f / s->sprite()->getScale().y) * scale * gi::dy()
+			);
+	}
+	else{
+		s->sprite()->scale(
+			(1.0f / s->sprite()->getScale().x) * scale,
+			(1.0f / s->sprite()->getScale().y) * scale
+			);
+	}
 	return s;
 }
 
