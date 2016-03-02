@@ -77,6 +77,10 @@ public:
 		return (*this) / (l != 0.0f ? l : 1.0f);
 	}
 
+	bool operator==(const Vector& v){
+		return x == v.x && y == v.y;
+	}
+
 	void operator()(const float& x, const float& y){
 		Vector::x = x;
 		Vector::y = y;

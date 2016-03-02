@@ -45,41 +45,30 @@ void Editor::run(){
 
 	vector<string> ws;
 	worlds(ws, c::worldDir);
-	Menu* worldsC = new Menu();
-	worldsC->hidden = false;
-	worldsC->type = VERTICAL;
-	worldsC->position = Vector(gi::TARGET_WIDTH / 2.0f - 200, gi::TARGET_HEIGHT / 2);
-	worldsC->size = Vector(400, std::min(ws.size() * 50.0f, gi::TARGET_HEIGHT / 2 - 20));
-	worldsC->position.y -= worldsC->size.y / 2.0f;
+	worldMenu = new Menu();
+	worldMenu->hidden = false;
+	worldMenu->type = VERTICAL;
+	worldMenu->position = Vector(gi::TARGET_WIDTH / 2.0f - 200, gi::TARGET_HEIGHT / 2 - 5);
+	worldMenu->size = Vector(400, std::min(ws.size() * 50.0f, gi::TARGET_HEIGHT - 130));
+	worldMenu->position.y -= worldMenu->size.y / 2.0f;
 	for(string s : ws){
 		MenuItem* ti = new MenuItem();
 		ti->title = s;
 		ti->type = TEXT;
-		ti->closeOnClick = true;
+		ti->closeOnClick = false;
 		ti->selectedString = selectedWorld;
-		worldsC->items.push_back(ti);
+		worldMenu->items.push_back(ti);
 	}
-	manager->menuManager->menus["worlds"] = worldsC;
+	manager->menuManager->menus["worldMenu"] = worldMenu;
 
-	while(selectedWorld->length() == 0 && gi::startOfFrame()){
-		gi::drawLog();
+	Configuration config;
+	config.load(File().child("editor.txt"));
 
-		manager->menuManager->draw(world->time());
-
-		manager->tick(window, world->time(), world->dt());
-
-		gi::endOfFrame();
-
-		if(manager->inputManager->isPressed(Keyboard::Escape)){
-			window->close();
-		}
+	fileSelectBackground = config.stringValue("fileSelectBackground");
+	if(fileSelectBackground.length() > 0){
+		fileselect = manager->spriteManager->getSprite(fileSelectBackground);
 	}
-	if(selectedWorld->size() == 0){
-		return;
-	}
-	file = c::worldDir.child(*selectedWorld + ".txt");
-	world->load(file);
-	world->background = manager->spriteManager->getBackground(world->backgroundName);
+	saveOnExit = config.boolValue("saveOnExit");
 
 	Configuration bs;
 	if(bs.load(c::baseDir.child("brushes.txt"))){
@@ -249,120 +238,145 @@ void Editor::run(){
 	gi::cameraSmoothness = 25.0f;
 
 	while(gi::startOfFrame()){
-		if(swapClock.getElapsedTime().asSeconds() > 1.0f){
-			if(world->isOrdering()){
-				swapMenu->title = layerToString(world->swapLayer) + " - " + to_string(world->swapPosition[world->swapLayer]) + "/" + to_string(world->drawables[world->swapLayer].size());
+		switch(state){
+		case FILE_SELECT:
+			gi::background(*fileselect);
+
+			gi::drawLog();
+
+			manager->menuManager->draw(world->time());
+
+			manager->tick(window, world->time(), world->dt());
+
+			if(selectedWorld->size() != 0){
+				file = c::worldDir.child(*selectedWorld + ".txt");
+				world->load(file);
+				world->background = manager->spriteManager->getBackground(world->backgroundName);
+				state = EDIT;
+				worldMenu->hidden = true;
+				*selectedWorld = "";
+				break;
+			}
+			break;
+		case EDIT:
+			if(swapClock.getElapsedTime().asSeconds() > 1.0f){
+				if(world->isOrdering()){
+					swapMenu->title = layerToString(world->swapLayer) + " - " + to_string(world->swapPosition[world->swapLayer]) + "/" + to_string(world->drawables[world->swapLayer].size());
+				}
+				else{
+					swapMenu->title = "Idle (" + std::to_string(world->numDrawables()) + ")";
+				}
+				swapClock.restart();
+			}
+
+			if(manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
+				gi::zoom(gi::cameraZ + gi::cameraZ * world->dt());
+				if(target != NULL){
+					target->dx += target->dx * world->dt();
+					target->dy += target->dy * world->dt();
+				}
+				on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+			}
+			if(manager->inputManager->isPressed(sf::Keyboard::Key::X)){
+				gi::zoom(gi::cameraZ - gi::cameraZ * world->dt());
+				if(target != NULL){
+					target->dx -= target->dx * world->dt();
+					target->dy -= target->dy * world->dt();
+				}
+				on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
+			}
+
+			if(manager->inputManager->isPressed(sf::Keyboard::Key::Delete)){
+				bool first = false;
+				if(!deleting){
+					deleting = true;
+					deleteClock.restart();
+					first = true;
+				}
+				if((first || deleteClock.getElapsedTime() >= deleteTime)){
+					if(target != NULL){
+						target->drawable->kill();
+						delete target;
+						target = NULL;
+						targeting = false;
+					}
+					if(usingBrush){
+						Brush* b = brushes[*selectedBrush];
+						b->erase(
+							gi::wx(float(manager->inputManager->mouseX())),
+							gi::wy(float(manager->inputManager->mouseY())),
+							brushRadius,
+							world,
+							selectedLayer
+							);
+					}
+				}
+				on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
 			}
 			else{
-				swapMenu->title = "Idle (" + std::to_string(world->numDrawables()) + ")";
+				deleting = false;
 			}
-			swapClock.restart();
-		}
 
-		if(manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
-			gi::zoom(gi::cameraZ + gi::cameraZ * world->dt());
-			if(target != NULL){
-				target->dx += target->dx * world->dt();
-				target->dy += target->dy * world->dt();
-			}
-			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
-		}
-		if(manager->inputManager->isPressed(sf::Keyboard::Key::X)){
-			gi::zoom(gi::cameraZ - gi::cameraZ * world->dt());
-			if(target != NULL){
-				target->dx -= target->dx * world->dt();
-				target->dy -= target->dy * world->dt();
-			}
-			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
-		}
-
-		if(manager->inputManager->isPressed(sf::Keyboard::Key::Delete)){
-			bool first = false;
-			if(!deleting){
-				deleting = true;
-				deleteClock.restart();
-				first = true;
-			}
-			if((first || deleteClock.getElapsedTime() >= deleteTime)){
-				if(target != NULL){
-					target->drawable->kill();
-					delete target;
-					target = NULL;
-					targeting = false;
-				}
-				if(usingBrush){
-					Brush* b = brushes[*selectedBrush];
-					b->erase(
+			if(usingBrush && draggingLeft){
+				Brush* b = brushes[*selectedBrush];
+				for(int i = 0; i < max(1, int(brushRadius / 1000)); i++){
+					b->paint(
 						gi::wx(float(manager->inputManager->mouseX())),
 						gi::wy(float(manager->inputManager->mouseY())),
 						brushRadius,
+						brushDensity,
+						manager,
 						world,
 						selectedLayer
 						);
 				}
 			}
-			on(MouseMoveEvent(manager->inputManager->mouseX(), manager->inputManager->mouseY(), 0, 0));
-		}
-		else{
-			deleting = false;
-		}
 
-		if(usingBrush && draggingLeft){
-			Brush* b = brushes[*selectedBrush];
-			for(int i = 0; i < max(1, int(brushRadius / 1000)); i++){
-				b->paint(
-					gi::wx(float(manager->inputManager->mouseX())),
-					gi::wy(float(manager->inputManager->mouseY())),
-					brushRadius,
-					brushDensity,
-					manager,
-					world,
-					selectedLayer
-					);
+			world->tick();
+			manager->tick(window, world->time(), world->dt());
+
+			window->clear();
+
+			gi::camera(world->dt());
+
+			world->render();
+
+			if(usingBrush){
+				CircleShape cs;
+				cs.setPosition(float(manager->inputManager->mouseX()), float(manager->inputManager->mouseY()));
+				cs.setRadius(brushRadius);
+				cs.setOrigin(brushRadius, brushRadius);
+				cs.scale(gi::dx(), gi::dy());
+				cs.setFillColor(Color(0, 0, 0, 15));
+				cs.setOutlineColor(Color(255, 0, 0, 255));
+				cs.setOutlineThickness(3.0f / std::min(gi::dx(), gi::dy()));
+				cs.setPointCount(size_t(std::max(10.0f, brushRadius / 4.5f)));
+				gi::renderWindow->draw(cs);
+
+				cs.setRadius(brushDensity);
+				cs.setOrigin(brushDensity, brushDensity);
+				cs.setFillColor(Color(0, 0, 0, 15));
+				cs.setOutlineColor(Color(0, 255, 0, 255));
+				cs.setOutlineThickness(1.0f / std::min(gi::dx(), gi::dy()));
+				cs.setPointCount(size_t(std::max(10.0f, brushDensity / 4.5f)));
+				gi::renderWindow->draw(cs);
 			}
+
+			gi::drawLog();
+
+			manager->menuManager->draw(world->time());
+			break;
 		}
-
-		world->tick();
-		manager->tick(window, world->time(), world->dt());
-
-		window->clear();
-
-		gi::camera(world->dt());
-
-		world->render();
-
-		if(usingBrush){
-			CircleShape cs;
-			cs.setPosition(float(manager->inputManager->mouseX()), float(manager->inputManager->mouseY()));
-			cs.setRadius(brushRadius);
-			cs.setOrigin(brushRadius, brushRadius);
-			cs.scale(gi::dx(), gi::dy());
-			cs.setFillColor(Color(0, 0, 0, 15));
-			cs.setOutlineColor(Color(255, 0, 0, 255));
-			cs.setOutlineThickness(3.0f / std::min(gi::dx(), gi::dy()));
-			cs.setPointCount(size_t(std::max(10.0f, brushRadius / 4.5f)));
-			gi::renderWindow->draw(cs);
-
-			cs.setRadius(brushDensity);
-			cs.setOrigin(brushDensity, brushDensity);
-			cs.setFillColor(Color(0, 0, 0, 15));
-			cs.setOutlineColor(Color(0, 255, 0, 255));
-			cs.setOutlineThickness(1.0f / std::min(gi::dx(), gi::dy()));
-			cs.setPointCount(size_t(std::max(10.0f, brushDensity / 4.5f)));
-			gi::renderWindow->draw(cs);
-		}
-
-		gi::drawLog();
-
-		manager->menuManager->draw(world->time());
-
 		gi::endOfFrame();
 	}
-	world->save(file);
+	if(saveOnExit && state == EDIT){
+		world->save(file);
+	}
 	manager->finalize(window);
 	delete manager;
 	gi::finalize();
 	delete world;
+	delete fileselect;
 }
 
 void Editor::on(KeyboardEvent& event){
@@ -372,8 +386,29 @@ void Editor::on(KeyboardEvent& event){
 	if(event.pressed()){
 		switch(event.key()){
 		case Keyboard::Escape:
-			window->close();
+			if(state == EDIT){
+				if(saveOnExit){
+					world->save(file);
+				}
+				state = FILE_SELECT;
+				worldMenu->hidden = false;
+			}
+			else{
+				window->close();
+			}
 			break;
+		case Keyboard::L:
+			if(event.first()){
+				gi::logAlwaysActive = !gi::logAlwaysActive;
+			}
+			break;
+		}
+	}
+	if(state != EDIT){
+		return;
+	}
+	if(event.pressed()){
+		switch(event.key()){
 		case Keyboard::S:
 			if(event.first()){
 				if(manager->inputManager->isPressed(Keyboard::LControl)){
@@ -394,11 +429,6 @@ void Editor::on(KeyboardEvent& event){
 		case Keyboard::C:
 			if(event.first()){
 				gi::collisionBoxes = !gi::collisionBoxes;
-			}
-			break;
-		case Keyboard::L:
-			if(event.first()){
-				gi::logAlwaysActive = !gi::logAlwaysActive;
 			}
 			break;
 		case Keyboard::B:
@@ -473,6 +503,9 @@ void Editor::on(MouseButtonEvent& event){
 		}
 		return;
 	}
+	if(state != EDIT){
+		return;
+	}
 	switch(event.button()){
 	case Mouse::Button::Right:
 		draggingRight = event.pressed();
@@ -517,6 +550,9 @@ void Editor::on(MouseButtonEvent& event){
 }
 void Editor::on(MouseMoveEvent& event){
 	if(event.isCancelled()){
+		return;
+	}
+	if(state != EDIT){
 		return;
 	}
 	if(draggingRight){
@@ -648,6 +684,9 @@ void Editor::on(MouseMoveEvent& event){
 }
 void Editor::on(MouseWheelEvent& event){
 	if(event.isCancelled()){
+		return;
+	}
+	if(state != EDIT){
 		return;
 	}
 	if(usingBrush){

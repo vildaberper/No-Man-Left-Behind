@@ -469,6 +469,7 @@ unsigned int load_helper(Configuration& c, World* w, std::string layer, Manager*
 
 void World::load(File& f){
 	cleanAll(true);
+	firstTick = true;
 
 	sf::Clock cl;
 	Configuration c;

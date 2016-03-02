@@ -12,6 +12,11 @@
 
 static const float SNAP = 20.0f;
 
+enum EditorState{
+	FILE_SELECT,
+	EDIT
+};
+
 class Editor : public InputListener{
 public:
 	Editor();
@@ -24,6 +29,8 @@ public:
 	virtual void on(MouseMoveEvent& event);
 	virtual void on(MouseWheelEvent& event);
 private:
+	EditorState state = FILE_SELECT;
+
 	sf::RenderWindow* window;
 
 	Manager* manager;
@@ -38,6 +45,12 @@ private:
 	bool draggingLeft = false;
 	bool targeting = false;
 	Target* target = NULL;
+
+	std::string fileSelectBackground = "";
+	bool saveOnExit = false;
+
+	CoreSprite* fileselect;
+	Menu* worldMenu;
 
 	std::string* selectedWorld = NULL;
 

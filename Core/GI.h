@@ -79,6 +79,8 @@ namespace gi{
 
 	void darken(const float& darkness);
 
+	void background(CoreSprite& sprite);
+
 	// endOfFrame
 	bool endOfFrame();
 }

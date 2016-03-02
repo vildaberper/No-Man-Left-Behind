@@ -138,15 +138,15 @@ bool TextureManager::loadTexturesFromDir(File& dir){
 		return false;
 	}
 	bool success = true;
-	for (File txtFile : dir.listFiles()){
-		if (txtFile.isDirectory()){
-			success = !loadTexturesFromDir(txtFile) ? false : success;
+	for (File pngFile : dir.listFiles()){
+		if (pngFile.isDirectory()){
+			success = !loadTexturesFromDir(pngFile) ? false : success;
 		}
-		if (!txtFile.isFile() || txtFile.extension() != "txt"){
+		if (!pngFile.isFile() || pngFile.extension() != "png"){
 			continue;
 		}
 
-		File pngFile = dir.child(txtFile.nameNoExtension() + ".png");
+		File txtFile = dir.child(pngFile.nameNoExtension() + ".txt");
 
 		Texture* localTexture = new Texture();
 		if (!localTexture->loadFromFile(pngFile.path())){
@@ -156,29 +156,67 @@ bool TextureManager::loadTexturesFromDir(File& dir){
 			continue;
 		}
 
-		Configuration config;
-		if (!config.load(txtFile)){
-			logger::warning("Failed to load texture configuration: " + txtFile.path());
-			success = false;
-			continue;
+		bool hidden = false;
+		if(dir.nameNoExtension().at(0) == '-'){
+			hidden = true;
 		}
 
-		TexI* localTexi = new TexI();
-		localTexture->setSmooth(false);
-		localTexi->texture = localTexture;
-		int temp;
-		localTexi->width = (temp = config.intVector("textures")[0]) == 0 ? 1 : temp;
-		localTexi->height = (temp = config.intVector("textures")[1]) == 0 ? 1 : temp;
-		textures.insert(localTexture);
+		if(!txtFile.isFile()){
+			if(dir == c::textureDir && pngFile.nameNoExtension() == "undefined"){
+				continue;
+			}
+			TexI* localTexi = new TexI();
+			localTexture->setSmooth(false);
+			localTexi->texture = localTexture;
+			localTexi->width = 1;
+			localTexi->height = 1;
+			textures.insert(localTexture);
 
-		for (std::string texid : config.children("textures", false)){
-			// Add subtexture (texid, x, y)
 			SubTexture* sub = new SubTexture();
 			sub->texi = localTexi;
-			sub->x = config.intVector("textures." + texid)[0];
-			sub->y = config.intVector("textures." + texid)[1];
+			sub->x = 0;
+			sub->y = 0;
+			sub->hidden = hidden;
 
-			textureMap[pngFile.nameNoExtension()][texid] = sub;
+			if(hidden){
+				textureMap[dir.nameNoExtension().substr(1)][pngFile.nameNoExtension()] = sub;
+			}
+			else{
+				textureMap[dir.nameNoExtension()][pngFile.nameNoExtension()] = sub;
+			}
+
+		}
+		else{
+			Configuration config;
+			if(!config.load(txtFile)){
+				logger::warning("Failed to load texture configuration: " + txtFile.path());
+				success = false;
+				continue;
+			}
+
+			TexI* localTexi = new TexI();
+			localTexture->setSmooth(false);
+			localTexi->texture = localTexture;
+			int temp;
+			localTexi->width = (temp = config.intVector("textures")[0]) == 0 ? 1 : temp;
+			localTexi->height = (temp = config.intVector("textures")[1]) == 0 ? 1 : temp;
+			textures.insert(localTexture);
+
+			for(std::string texid : config.children("textures", false)){
+				// Add subtexture (texid, x, y)
+				SubTexture* sub = new SubTexture();
+				sub->texi = localTexi;
+				sub->x = config.intVector("textures." + texid)[0];
+				sub->y = config.intVector("textures." + texid)[1];
+				sub->hidden = hidden;
+
+				if(hidden){
+					textureMap[dir.nameNoExtension().substr(1)][texid] = sub;
+				}
+				else{
+					textureMap[dir.nameNoExtension()][texid] = sub;
+				}
+			}
 		}
 	}
 	// All Texture loaded

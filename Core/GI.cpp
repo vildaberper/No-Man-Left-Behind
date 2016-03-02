@@ -239,10 +239,10 @@ namespace gi{
 		float tw = w;
 		switch(item->type){
 		case TEXTURE:
-			sf::Sprite* s = item->sprite->sprite();
-			if(s == NULL){
+			if(item->sprite == NULL){
 				break;
 			}
+			sf::Sprite* s = item->sprite->sprite();
 			float scx = w / s->getGlobalBounds().width;
 			float scy = h / s->getGlobalBounds().height;
 			float sc = scx < scy ? scx : scy;
@@ -387,6 +387,19 @@ namespace gi{
 		rs.setPosition(0, 0);
 		rs.setSize(sf::Vector2f(float(renderWindow->getSize().x), float(renderWindow->getSize().y)));
 		renderWindow->draw(rs);
+	}
+
+	void background(CoreSprite& sprite){
+		sf::Sprite s = *sprite.sprite();
+
+		s.setPosition(0.0f, 0.0f);
+
+		s.scale(
+			(1.0f / s.getScale().x) *  wx() / sprite.w(),
+			(1.0f / s.getScale().y) * wy() / sprite.h()
+			);
+
+		renderWindow->draw(s);
 	}
 
 	// endOfFrame

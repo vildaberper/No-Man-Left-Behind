@@ -8,7 +8,7 @@ public:
 
 	File();
 
-	const std::string path();
+	const std::string path() const;
 
 	const std::string name();
 
@@ -39,6 +39,10 @@ public:
 	std::vector<std::string>* readTextFile();
 
 	const bool writeTextFile(const std::vector<std::string>* content);
+
+	bool operator==(const File& f){
+		return path() == f.path();
+	}
 private:
 	std::string path_;
 };

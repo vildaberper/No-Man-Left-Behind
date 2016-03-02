@@ -10,7 +10,7 @@ File::File(){
 	path_ = file::workingDir();
 }
 
-const std::string File::path(){
+const std::string File::path() const{
 	return path_;
 }
 
