@@ -74,7 +74,6 @@ bool Brush::paint(const float& x, const float& y, const float& radius, const flo
 		}
 		else{
 			delete d;
-			delete a;
 		}
 		return passed;
 	}

@@ -61,7 +61,7 @@ void World::tick(){
 
 	dt_ = clock.restart() * getTimeScale();
 
-	if(paused){
+	if(dt_.asMicroseconds() == 0 || paused){
 		return;
 	}
 
