@@ -24,3 +24,7 @@ int CoreSprite::w(){
 int CoreSprite::h(){
 	return h_;
 }
+
+CoreSprite* CoreSprite::clone(){
+	return new CoreSprite(new sf::Sprite(*sprite_), w(), h());
+}

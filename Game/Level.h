@@ -17,6 +17,10 @@ public:
 	Level(Manager* manager, Controller* controller);
 	~Level();
 
+	void load(File& file);
+
+	void save(File& file);
+
 	void begin();
 
 	void tick();
@@ -36,6 +40,11 @@ public:
 	std::string worldFileName;
 	World* world;
 
+	std::string musicIntro;
+	std::string musicMain;
+	unsigned long introId;
+	unsigned long mainId;
+
 	bool useTruck;
 	Truck* truck;
 	Vector spawn;
@@ -44,6 +53,8 @@ public:
 	Player* player = NULL;
 	int selectedSlot = 0;
 
+	Menu* invM;
+	bool firstInventoryFrame = true;
 	bool firstFrame = true;
 	LevelState state;
 	float fadeValue;

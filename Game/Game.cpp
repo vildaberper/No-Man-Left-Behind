@@ -47,6 +47,7 @@ void Game::on(KeyboardEvent& event){
 void Game::run(){
 	sf::Clock clock;
 	c::initialize();
+	gc::initialize();
 	gi::initalize(window);
 	gi::smoothCamera = true;
 
@@ -67,13 +68,6 @@ void Game::run(){
 			gi::showCursor = true;
 			continue;
 		}
-		if(level == NULL){
-			gi::darken(1.0f);
-			gi::endOfFrame();
-			level = new Level(manager, controller);
-			level->begin();
-			clock.restart();
-		}
 
 		Time time = clock.getElapsedTime();
 		float dt = (time - lastTime).asSeconds();
@@ -82,7 +76,45 @@ void Game::run(){
 
 		window->clear();
 
-		level->tick();
+		switch(state){
+		case MAIN_MENU:
+			state = LEVEL;
+			break;
+		case LEVEL:
+			if(level == NULL){
+				gi::darken(1.0f);
+				gi::endOfFrame();
+				level = new Level(manager, controller);
+				level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
+				level->begin();
+				clock.restart();
+				continue;
+			}
+			level->tick();
+
+			if(level->done()){
+				//transition
+				currentLevel++;
+				if(currentLevel >= gc::levelProgression.size()){
+					delete level;
+					state = COMPLETE;
+				}
+				else{
+					gi::darken(1.0f);
+					gi::endOfFrame();
+					delete level;
+					level = new Level(manager, controller);
+					level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
+					level->begin();
+					clock.restart();
+					continue;
+				}
+			}
+
+			break;
+		case COMPLETE:
+			break;
+		}
 
 		gi::drawLog();
 
@@ -91,9 +123,8 @@ void Game::run(){
 		lastTime = time;
 		gi::endOfFrame();
 	}
-	delete level;
 	manager->finalize(window);
-	delete manager;
 	gi::finalize();
+	delete manager;
 	delete controller;
 }

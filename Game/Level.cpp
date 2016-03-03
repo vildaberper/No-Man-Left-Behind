@@ -7,18 +7,34 @@ Level::Level(Manager* manager, Controller* controller){
 
 Level::~Level(){
 	delete world;
+	si::stopMusic(introId);
+	si::stopMusic(mainId);
+}
+
+void Level::load(File& file){
+	Configuration c;
+	sf::Clock cl;
+	c.load(file);
+	logger::timing("Level configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+	cl.restart();
+	worldFileName = c.stringValue("general.worldFileName");
+	spawn = c.floatVector("general.spawn");
+	useTruck = c.boolValue("general.useTruck");
+	timeBeforeBreak = c.floatValue("general.timeBeforeBreak");
+	musicIntro = c.stringValue("music.intro");
+	musicMain = c.stringValue("music.main");
+	logger::timing("Level configuration applied in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+
+	logger::info("Level loaded: " + file.parent().name() + "\\" + file.name());
+}
+
+void Level::save(File& file){
+	Configuration c;
+	// TODO
+	c.save(file);
 }
 
 void Level::begin(){
-	// Load level (levelFileName)
-	worldFileName = "world1.txt";
-	//spawn = Vector(1550.0f, 2050.0f);
-	//useTruck = false;
-
-	spawn = Vector(-3000.0f, 560.0f);
-	useTruck = true;
-	timeBeforeBreak = 2.0f;
-
 	Injured* in = new Injured();
 	in->initialize(manager, "soldier1", OPEN_WOUND, 0); // soldier
 	in->position = Vector(1644.000000f, -20.000000f);
@@ -91,6 +107,7 @@ void Level::begin(){
 	}
 	else{
 		player->position = spawn;
+		player->position.y -= player->getSprite(world->time())->h() * player->scale * player->cb.renderOffset / gi::dy();
 		world->addDrawable(player, LAYER2);
 	}
 
@@ -106,6 +123,19 @@ void Level::begin(){
 	player->inventory->put(ItemStack(SCALPEL, 16));
 	player->inventory->put(ItemStack(GAUZE, 16));
 
+	invM = new Menu();
+	invM->hidden = false;
+	invM->type = HORIZONTAL;
+	invM->position = Vector(5.0f, gi::TARGET_HEIGHT - 85.0f);
+	invM->size = Vector(gi::TARGET_WIDTH - 10, 80);
+	mis = &invM->items;
+	for(size_t i = 0; i < player->inventory->getSize(); i++){
+		MenuItem* ti = new MenuItem();
+		ti->closeOnClick = false;
+		mis->push_back(ti);
+	}
+	updateInventoryMenu();
+
 	journal = new Animatable();
 	journal->setAnimationType(STATES);
 	journal->applyAnimation(manager, "journal");
@@ -114,8 +144,9 @@ void Level::begin(){
 	journal->viewRelative = true;
 	world->addDrawable(journal, LAYER4);
 
-	si::playMusic("level1", "main", true, true, true);
-	//si::playMusic("WIND", "Vind_Inside", true, false, true);
+	//introId = si::playMusic(musicIntro, true, true, true);
+	mainId = si::playMusic(musicMain, true, true, true);
+	// music queue
 }
 
 void Level::tick(){
@@ -177,28 +208,17 @@ void Level::tick(){
 			sf::FloatRect pr = player->getSprite(world->time())->sprite()->getLocalBounds();
 			player->position.x = tr.left + tr.width * 0.55f;
 			player->position.y = tr.top + tr.height - pr.height * player->cb.offset.y;
-			if(useTruck){
-				world->addDrawable(player, LAYER2);
-			}
-
-			Menu* invM = new Menu();
-			invM->hidden = false;
-			invM->type = HORIZONTAL;
-			invM->position = Vector(5.0f, gi::TARGET_HEIGHT - 85.0f);
-			invM->size = Vector(gi::TARGET_WIDTH - 10, 80);
-			mis = &invM->items;
-			for(size_t i = 0; i < player->inventory->getSize(); i++){
-				MenuItem* ti = new MenuItem();
-				ti->closeOnClick = false;
-				mis->push_back(ti);
-			}
-			updateInventoryMenu();
-			manager->menuManager->menus["inventory"] = invM;
+			world->addDrawable(player, LAYER2);
 		}
 		break;
 	}
 	case PLAYING:
 	{
+		if(firstInventoryFrame){
+			firstInventoryFrame = false;
+			manager->menuManager->menus["inventory"] = invM;
+		}
+
 		player->velocity = controller->movement();
 		world->tick();
 		gi::cameraTargetX = player->position.x + player->getSprite(world->time())->sprite()->getGlobalBounds().width / gi::dx() / 2;
@@ -257,7 +277,7 @@ void Level::tick(){
 }
 
 bool Level::done(){
-	return false;
+	return manager->inputManager->isFirstPressed(sf::Keyboard::Q);
 }
 
 void Level::updateInventoryMenu(){

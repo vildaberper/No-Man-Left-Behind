@@ -60,7 +60,7 @@ void MusicManager::tick(sf::RenderWindow* window, const sf::Time& time, const fl
 
 	// check channels mm::Music for special treatments
 	for(auto &id : channels){
-		Time elapsed = time - id.second->start;
+		Time elapsed = clock.getElapsedTime() - id.second->start;
 
 		if(elapsed > id.second->duration && id.second->duration.asMilliseconds() != 0){
 			id.second->music->stop();

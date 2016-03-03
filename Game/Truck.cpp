@@ -5,7 +5,9 @@ Truck::Truck(){
 }
 
 Truck::~Truck(){
-
+	if(playingStopping || playingRunning){
+		si::stopSound(soundId);
+	}
 }
 
 void Truck::initialize(Manager* m){

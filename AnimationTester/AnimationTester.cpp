@@ -56,13 +56,6 @@ void AnimationTester::load(){
 	if (world != NULL){
 		delete world;
 	}
-	if (d != NULL){
-		logger::info("Reloading");
-		delete d;
-	}
-	if (a != NULL){
-		delete a;
-	}
 	world = new World(manager);
 
 	TextureManager* tm = manager->spriteManager->texMan;

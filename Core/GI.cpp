@@ -419,8 +419,8 @@ namespace gi{
 				cursor->position.y /= dy();
 				CoreSprite* cs = cursor->getSprite(clock.getElapsedTime());
 				cs->sprite()->setPosition(
-					cs->sprite()->getPosition().x - cursor->cb.offset.x * cs->w(),
-					cs->sprite()->getPosition().y - cursor->cb.offset.y * cs->h()
+					cs->sprite()->getPosition().x - cursor->cb.offset.x * cs->w() * cursor->scale,
+					cs->sprite()->getPosition().y - cursor->cb.offset.y * cs->h() * cursor->scale
 					);
 				draw(*cs->sprite());
 			}

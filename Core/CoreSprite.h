@@ -12,6 +12,8 @@ public:
 
 	int w();
 	int h();
+
+	CoreSprite* clone();
 private:
 	sf::Sprite* sprite_;
 

@@ -10,6 +10,13 @@
 #include "Controller.h"
 #include "MathHelper.h"
 #include "ProgressBar.h"
+#include "GameConstants.h"
+
+enum GameState{
+	MAIN_MENU,
+	LEVEL,
+	COMPLETE
+};
 
 class Game : public InputListener{
 public:
@@ -20,6 +27,10 @@ public:
 
 	void run();
 private:
+	GameState state = MAIN_MENU;
+
+	size_t currentLevel = 0;
+
 	unsigned long inputListenerId;
 
 	sf::RenderWindow* window;

@@ -30,7 +30,9 @@ namespace drawable{
 			Animation* a = new Animation();
 
 			a->textures = textures;
-			a->sprites = sprites;
+			for(CoreSprite* cs : sprites){
+				a->sprites.push_back(cs->clone());
+			}
 			a->timing = timing;
 
 			return a;

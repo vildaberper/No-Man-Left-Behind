@@ -11,7 +11,7 @@ World::World(Manager* manager){
 }
 
 World::~World(){
-
+	cleanAll(true);
 }
 
 void World::setPaused(const bool& paused){
