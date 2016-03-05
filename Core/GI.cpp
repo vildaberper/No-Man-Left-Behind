@@ -410,7 +410,7 @@ namespace gi{
 		rs.setFillColor(sf::Color(0, 0, 0, int(255 * darkness)));
 		rs.setOutlineThickness(0.0f);
 		rs.setPosition(0.0f, 0.0f);
-		rs.setSize(sf::Vector2f(float(renderWindow->getSize().x), float(renderWindow->getSize().y)));
+		rs.setSize(sf::Vector2f(wx(), wy()));
 		renderWindow->draw(rs);
 	}
 

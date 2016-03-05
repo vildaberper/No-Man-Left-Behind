@@ -44,6 +44,12 @@ static const bool isFloat(string value){
 	return true;
 }
 
+int h(string& s){
+	string::size_type i = s.find_first_not_of(' ');
+	s = s.substr(i);
+	return i / INDENT_WIDTH;
+}
+
 const enum Type{
 	TYPEUNDEFINED,
 	TYPEBOOL,
@@ -291,6 +297,7 @@ public:
 				while((index = val.find_first_of(',')) != string::npos){
 					vector.push_back(val.substr(1, index - 2));
 					val = val.substr(index + 1);
+					h(val);
 				}
 				vector.push_back(val.substr(1, val.length() - 2));
 				set(vector);
@@ -306,6 +313,7 @@ public:
 					while((index = val.find_first_of(',')) != string::npos){
 						vector.push_back(stoi(val.substr(0, index)));
 						val = val.substr(index + 1);
+						h(val);
 					}
 					vector.push_back(stoi(val));
 					set(vector);
@@ -316,6 +324,7 @@ public:
 					while((index = val.find_first_of(',')) != string::npos){
 						vector.push_back(stof(val.substr(0, index)));
 						val = val.substr(index + 1);
+						h(val);
 					}
 					vector.push_back(stof(val));
 					set(vector);
@@ -417,12 +426,6 @@ Configuration::~Configuration(){
 		WTF FIX PLS
 	*/
 	//delete root;
-}
-
-int h(string& s){
-	string::size_type i = s.find_first_not_of(' ');
-	s = s.substr(i);
-	return i / INDENT_WIDTH;
 }
 
 bool Configuration::load(File& file){

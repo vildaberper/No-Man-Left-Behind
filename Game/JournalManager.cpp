@@ -5,6 +5,7 @@ JournalManager::JournalManager(){
 
 	undefined = new Journal();
 	undefined->lines.push_back("MISSING JOURNAL");
+	undefined->injured.push_back("civil1");
 }
 
 JournalManager::~JournalManager(){
@@ -46,7 +47,14 @@ void JournalManager::loadFromDir(File& file){
 		}
 		j->requirements.push_back(parseResource(r));
 
-		for(size_t i = 1; i < lines->size(); i++){
+		r = (*lines)[1];
+		while((s = r.find_first_of(',')) != std::string::npos){
+			j->injured.push_back(r.substr(0, s));
+			r = r.substr(s + 1);
+		}
+		j->injured.push_back(r);
+
+		for(size_t i = 2; i < lines->size(); i++){
 			j->lines.push_back((*lines)[i]);
 		}
 

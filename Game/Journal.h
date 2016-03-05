@@ -10,6 +10,8 @@ public:
 	Journal();
 	~Journal();
 
+	std::vector<std::string> injured;
+
 	std::vector<std::string> lines;
 
 	std::vector<Resource> requirements;

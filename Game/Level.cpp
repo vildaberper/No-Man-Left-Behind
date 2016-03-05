@@ -18,12 +18,21 @@ void Level::load(File& file){
 	c.load(file);
 	logger::timing("Level configuration loaded in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	cl.restart();
+
 	worldFileName = c.stringValue("general.worldFileName");
 	spawn = c.floatVector("general.spawn");
 	useTruck = c.boolValue("general.useTruck");
 	timeBeforeBreak = c.floatValue("general.timeBeforeBreak");
+
 	musicIntro = c.stringValue("music.intro");
 	musicMain = c.stringValue("music.main");
+
+	journals = c.stringVector("journals");
+	size_t m = c.children("injuredPositions").size();
+	for(size_t i = 0; i < m; i++){
+		injuredPositions.push_back(c.floatVector("injuredPositions." + std::to_string(i)));
+	}
+
 	logger::timing("Level configuration applied in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 
 	logger::info("Level loaded: " + file.parent().name() + "\\" + file.name());
@@ -36,53 +45,22 @@ void Level::save(File& file){
 }
 
 void Level::begin(){
-	Journal* j = jmanager->getJournal("test");
+	for(size_t i = 0; i < journals.size(); i++){
+		if(injuredPositions.size() == 0){
+			logger::warning("Not enough spawn positions for injured.");
+			break;
+		}
 
-	Injured* in = new Injured();
-	in->initialize(manager, "soldier1", j); // soldier
-	in->position = Vector(1644.000000f, -20.000000f);
-	injured.push_back(in);
+		Journal* j = jmanager->getJournal(journals[i]);
+		size_t pos = random::random(injuredPositions.size() - 1);
+		size_t type = random::random(j->injured.size() - 1);
 
-	in = new Injured();
-	in->initialize(manager, "civil1", j); // civil
-	in->position = Vector(2079.000000f, -11.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "soldier1", j); // soldier
-	in->position = Vector(838.000000f, 6.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "soldier1", j); // soldier
-	in->position = Vector(1240.000000f, 6.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "civil2", j); // civil
-	in->position = Vector(2163.000000f, 374.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "general1", j); // officer
-	in->position = Vector(2156.000000f, 827.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "soldier1", j); // soldier
-	in->position = Vector(1762.000000f, 878.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "soldier1", j); // soldier
-	in->position = Vector(1343.000000f, 896.000000f);
-	injured.push_back(in);
-
-	in = new Injured();
-	in->initialize(manager, "soldier1", j); // soldier
-	in->position = Vector(994.000000f, 907.000000f);
-	injured.push_back(in);
-	//
+		Injured* in = new Injured();
+		in->initialize(manager, j->injured[type], j);
+		in->position = injuredPositions[pos];
+		injured.push_back(in);
+		injuredPositions.erase(injuredPositions.begin() + pos);
+	}
 
 	state = TRUCKMOVING;
 	fadeValue = 1.0f;
@@ -231,7 +209,13 @@ void Level::tick(){
 		gi::cameraTargetX += camera.x * 250.0f;
 		gi::cameraTargetY += camera.y * 250.0f;
 
+		if(closest != NULL){
+			closest->highlight = false;
+		}
 		closest = nearestInjured(150.0f);
+		if(closest != NULL){
+			closest->highlight = true;
+		}
 
 		if(controller->isPressed(LB)){
 			selectedSlot--;

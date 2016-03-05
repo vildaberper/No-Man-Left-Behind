@@ -51,6 +51,8 @@ void Game::run(){
 	gi::initalize(window);
 	gi::smoothCamera = true;
 
+	random::initialize();
+
 	Level* level = NULL;
 
 	Time lastTime;

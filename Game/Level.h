@@ -3,6 +3,7 @@
 #include "Truck.h"
 #include "World.h"
 #include "Player.h"
+#include "Random.h"
 #include "Injured.h"
 #include "Controller.h"
 #include "JournalManager.h"
@@ -51,6 +52,10 @@ public:
 	Truck* truck;
 	Vector spawn;
 	float timeBeforeBreak;
+
+	std::vector<Vector> injuredPositions;
+
+	std::vector<std::string> journals;
 
 	Player* player = NULL;
 	int selectedSlot = 0;
