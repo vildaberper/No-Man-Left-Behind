@@ -11,6 +11,7 @@
 #include "MathHelper.h"
 #include "ProgressBar.h"
 #include "GameConstants.h"
+#include "JournalManager.h"
 
 enum GameState{
 	MAIN_MENU,
@@ -36,6 +37,8 @@ private:
 	sf::RenderWindow* window;
 
 	Manager* manager;
+
+	JournalManager* jmanager;
 
 	Controller* controller;
 

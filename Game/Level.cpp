@@ -1,8 +1,9 @@
 #include "Level.h"
 
-Level::Level(Manager* manager, Controller* controller){
+Level::Level(Manager* manager, Controller* controller, JournalManager* jmanager){
 	Level::manager = manager;
 	Level::controller = controller;
+	Level::jmanager = jmanager;
 }
 
 Level::~Level(){
@@ -35,48 +36,50 @@ void Level::save(File& file){
 }
 
 void Level::begin(){
+	Journal* j = jmanager->getJournal("test");
+
 	Injured* in = new Injured();
-	in->initialize(manager, "soldier1", OPEN_WOUND, 0); // soldier
+	in->initialize(manager, "soldier1", j); // soldier
 	in->position = Vector(1644.000000f, -20.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "civil1", OPEN_WOUND, 1); // civil
+	in->initialize(manager, "civil1", j); // civil
 	in->position = Vector(2079.000000f, -11.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "soldier1", OPEN_WOUND, 2); // soldier
+	in->initialize(manager, "soldier1", j); // soldier
 	in->position = Vector(838.000000f, 6.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "soldier1", OPEN_WOUND, 0); // soldier
+	in->initialize(manager, "soldier1", j); // soldier
 	in->position = Vector(1240.000000f, 6.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "civil2", OPEN_WOUND, 1); // civil
+	in->initialize(manager, "civil2", j); // civil
 	in->position = Vector(2163.000000f, 374.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "general1", OPEN_WOUND, 2); // officer
+	in->initialize(manager, "general1", j); // officer
 	in->position = Vector(2156.000000f, 827.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "soldier1", OPEN_WOUND, 0); // soldier
+	in->initialize(manager, "soldier1", j); // soldier
 	in->position = Vector(1762.000000f, 878.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "soldier1", OPEN_WOUND, 1); // soldier
+	in->initialize(manager, "soldier1", j); // soldier
 	in->position = Vector(1343.000000f, 896.000000f);
 	injured.push_back(in);
 
 	in = new Injured();
-	in->initialize(manager, "soldier1", OPEN_WOUND, 2); // soldier
+	in->initialize(manager, "soldier1", j); // soldier
 	in->position = Vector(994.000000f, 907.000000f);
 	injured.push_back(in);
 	//
@@ -274,6 +277,10 @@ void Level::tick(){
 	journal->position.x = 50;
 	journal->position.y = 50 - actual;
 	journal->movedY = true;
+
+	if(closest != NULL){
+		gi::draw(closest->journal->lines, (journal->position.x + 100) * gi::dxiz(), (journal->position.y + 240) * gi::dyiz(), 430 * gi::dxiz(), 600 * gi::dyiz());
+	}
 }
 
 bool Level::done(){

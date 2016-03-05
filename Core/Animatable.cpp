@@ -24,7 +24,6 @@ void Animatable::applyAnimation(Manager* m, const std::string& animation){
 		for(unsigned int i = 0; i < numStates; i++){
 			applyAnimation(m, animation, "state" + std::to_string(i));
 		}
-		setAnimation("state0");
 		break;
 	}
 }
@@ -102,6 +101,7 @@ void Animatable::applyAnimation(Manager* m, const std::string& category, const s
 
 	if(m->animationManager->hasAnimation(full)){
 		animations[name] = m->animationManager->getAnimation(full);
+		setAnimation(name);
 	}
 }
 

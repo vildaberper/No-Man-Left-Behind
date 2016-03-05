@@ -7,6 +7,7 @@ namespace gc{
 	extern Configuration config;
 
 	extern File levelDir;
+	extern File journalDir;
 
 	extern std::vector<std::string> levelProgression;
 

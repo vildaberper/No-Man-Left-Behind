@@ -8,10 +8,10 @@ Injured::~Injured(){
 
 }
 
-void Injured::initialize(Manager* manager, const std::string& animation, const Injure& injure, const size_t& progress){
+void Injured::initialize(Manager* manager, const std::string& animation, Journal* journal){
 	setAnimationType(STATES, 5);
 	applyAnimation(manager, id = animation);
-	Injured::injure = injure;
+	Injured::journal = journal;
 	Injured::progress = progress;
 	updateAnimation();
 	cb.shouldCollide = true;
@@ -21,7 +21,7 @@ void Injured::initialize(Manager* manager, const std::string& animation, const I
 }
 
 void Injured::updateAnimation(){
-	currentAnimation = nextAnimation = state(INJURED_STATES - 1 + progress - requirements.at(injure).size());
+	setAnimation(state(INJURED_STATES - 1 + progress - journal->requirements.size()));
 	if(isHealed()){
 		if(voice){
 			si::stopSound(currentVoice);
@@ -36,11 +36,11 @@ void Injured::updateAnimation(){
 }
 
 bool Injured::isHealed(){
-	return progress >= requirements.at(injure).size();
+	return progress >= journal->requirements.size();
 }
 
 bool Injured::use(ItemStack& is){
-	if(is.amount > 0 && !isHealed() && is.item.type == requirements.at(injure).at(progress)){
+	if(is.amount > 0 && !isHealed() && is.item.type == journal->requirements[progress]){
 		progress++;
 		updateAnimation();
 		is.amount--;

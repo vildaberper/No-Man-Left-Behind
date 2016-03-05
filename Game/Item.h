@@ -39,6 +39,31 @@ static const std::string resourceToString(const Resource& resource){
 	return "Penicillin";
 }
 
+static const Resource parseResource(const std::string& resource){
+	if(resource == "Penicillin"){
+		return PENICILLIN;
+	}
+	else if(resource == "Forceps"){
+		return FORCEPS;
+	}
+	else if(resource == "Alcohol"){
+		return ALCOHOL;
+	}
+	else if(resource == "Morphine"){
+		return MORPHINE;
+	}
+	else if(resource == "Suture"){
+		return SUTURE_KIT;
+	}
+	else if(resource == "Scalpel"){
+		return SCALPEL;
+	}
+	else if(resource == "Gauze"){
+		return GAUZE;
+	}
+	return PENICILLIN;
+}
+
 class Item{
 public:
 	Item();

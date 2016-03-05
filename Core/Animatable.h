@@ -26,9 +26,9 @@ public:
 
 	void setNumStates(const unsigned int& numStates);
 	unsigned int getNumStates();
+	void setAnimation(const std::string& animation);
 private:
 	void applyAnimation(Manager* m, const std::string& category, const std::string& name);
-	void setAnimation(const std::string& animation);
 	AnimatableType animatableType;
 	unsigned int numStates = 1;
 };

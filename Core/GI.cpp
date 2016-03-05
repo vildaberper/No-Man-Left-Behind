@@ -19,6 +19,7 @@ namespace gi{
 	bool collisionBoxes = false;
 
 	sf::Font menuFont;
+	sf::Font textFont;
 
 	bool showCursor = true;
 	bool hasCursor = false;
@@ -76,7 +77,7 @@ namespace gi{
 		renderWindow->setVerticalSyncEnabled(c::verticalSync);
 
 		resetCamera();
-		bool success = menuFont.loadFromFile(c::menuFont.path());
+		bool success = menuFont.loadFromFile(c::menuFont.path()) && textFont.loadFromFile(c::textFont.path());
 
 		logger::timing("Graphics interface initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 		return success;
@@ -383,6 +384,25 @@ namespace gi{
 			);
 		s.scale(-rightscale, rightscale);
 		renderWindow->draw(s);
+	}
+
+	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font){
+		float dh = std::min(18.0f, h / float(text.size()));
+		float dhh = dh + 25.0f;
+		for(size_t i = 0; i < text.size(); i++){
+			sf::Text title = sf::Text();
+			title.setFont(font);
+			title.setColor(sf::Color(0, 0, 0, 255));
+			title.setString(text[i]);
+
+			float scx = w / (title.getGlobalBounds().width + 10);
+			float scy = dh / (title.getGlobalBounds().height + 10);
+			float sc = scx < scy ? scx : scy;
+			title.scale(sc, sc);
+			title.setOrigin(0, float(title.getCharacterSize() / 2));
+			title.setPosition(x + 5 * dxiz(), y + i * (dhh / 2 - 5 * dyiz()));
+			renderWindow->draw(title);
+		}
 	}
 
 	void darken(const float& darkness){

@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "Injured.h"
 #include "Controller.h"
+#include "JournalManager.h"
 
 enum LevelState{
 	TRUCKMOVING,
@@ -14,7 +15,7 @@ enum LevelState{
 
 class Level{
 public:
-	Level(Manager* manager, Controller* controller);
+	Level(Manager* manager, Controller* controller, JournalManager* jmanager);
 	~Level();
 
 	void load(File& file);
@@ -34,6 +35,7 @@ public:
 
 	Manager* manager;
 	Controller* controller;
+	JournalManager* jmanager;
 
 	std::string levelFileName;
 

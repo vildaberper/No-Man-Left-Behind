@@ -32,6 +32,7 @@ namespace gi{
 	extern bool collisionBoxes;
 
 	extern sf::Font menuFont;
+	extern sf::Font textFont;
 
 	extern bool showCursor;
 	extern bool hasCursor;
@@ -82,6 +83,8 @@ namespace gi{
 	void draw(ProgressBar* progressbar, const sf::Time& time);
 
 	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h);
+
+	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font = textFont);
 
 	void darken(const float& darkness);
 

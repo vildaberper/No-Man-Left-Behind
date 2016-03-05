@@ -29,6 +29,7 @@ namespace c{
 	extern float musicVolume;
 
 	extern File menuFont;
+	extern File textFont;
 
 	const void initialize();
 }

@@ -66,6 +66,7 @@ void Game::run(){
 			inputListenerId = manager->inputManager->registerListener(this);
 			gi::cursor = new Cursor(manager, "cursor");
 			gi::showCursor = true;
+			jmanager = new JournalManager();
 			continue;
 		}
 
@@ -84,7 +85,7 @@ void Game::run(){
 			if(level == NULL){
 				gi::darken(1.0f);
 				gi::endOfFrame();
-				level = new Level(manager, controller);
+				level = new Level(manager, controller, jmanager);
 				level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 				level->begin();
 				clock.restart();
@@ -103,7 +104,7 @@ void Game::run(){
 					gi::darken(1.0f);
 					gi::endOfFrame();
 					delete level;
-					level = new Level(manager, controller);
+					level = new Level(manager, controller, jmanager);
 					level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 					level->begin();
 					clock.restart();
@@ -127,4 +128,5 @@ void Game::run(){
 	gi::finalize();
 	delete manager;
 	delete controller;
+	delete jmanager;
 }
