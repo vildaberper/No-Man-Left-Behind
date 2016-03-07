@@ -19,29 +19,23 @@ PlayerInventory::PlayerInventory(Manager* manager, const unsigned char& size){
 	menu = new Menu();
 	menu->hidden = false;
 	menu->type = HORIZONTAL;
-	menu->position = Vector(gi::TARGET_WIDTH / 2 - 350, gi::TARGET_HEIGHT - 100.0f);
-	menu->size = Vector(700, 100);
-	for(unsigned char i = 0; i < getSize(); i++){
-		MenuItem* ti = new MenuItem();
-		ti->closeOnClick = false;
-		ti->alternativeText = true;
-		ti->selectedString = pressed;
-		ti->selectedPrefix = std::to_string(i) + ":";
-		menu->items.push_back(ti);
-	}
 	menu->background = new TexBar(
 		manager->spriteManager->getTexture("bag.left"),
 		manager->spriteManager->getTexture("bag.middle"),
 		manager->spriteManager->getTexture("bag.right")
 		);
 	menu->drawElementBackgrounds = false;
-	menu->leftOffset = menu->rightOffset = 10.0f;
-	menu->topOffset = 20.0f;
+	menu->leftOffset = menu->rightOffset = 20.0f;
+	menu->topOffset = 30.0f;
 	manager->menuManager->menus[id] = menu;
+
+	handle = manager->spriteManager->getSprite("bag.handle");
 
 	listenerId = manager->inputManager->registerListener(this);
 
 	menu->hidden = true;
+
+	update();
 }
 
 PlayerInventory::~PlayerInventory(){
@@ -61,6 +55,15 @@ void PlayerInventory::update(){
 }
 
 void PlayerInventory::render(){
+	handle->sprite()->setPosition(
+		(gi::TARGET_WIDTH / 2.0f - handle->w() / 2.0f) * gi::dxiz(),
+		(gi::TARGET_HEIGHT - 120.0f - handle->h() / 2.0f) * gi::dyiz()
+		);
+	handle->sprite()->scale(
+		(1.0f / handle->sprite()->getScale().x) * 1.0f * gi::dx(),
+		(1.0f / handle->sprite()->getScale().y) * 1.0f * gi::dy()
+		);
+	gi::draw(*handle->sprite());
 	if(itemInHand.amount > 0){
 		float w = 80.0f * gi::dxiz();
 		float h = 80.0f * gi::dyiz();
@@ -84,7 +87,23 @@ void PlayerInventory::on(MouseButtonEvent& event){
 }
 
 void PlayerInventory::updateMenu(){
+	float w = getSize() * 80.0f + 40;
+	menu->position = Vector(gi::TARGET_WIDTH / 2 - w / 2.0f, gi::TARGET_HEIGHT - 120.0f);
+	menu->size = Vector(w, 120.0f);
+
 	selectedSlot = math::range(selectedSlot, getSize() - 1);
+
+	while(menu->items.size() > getSize()){
+		menu->items.pop_back();
+	}
+	while(menu->items.size() < getSize()){
+		MenuItem* ti = new MenuItem();
+		ti->closeOnClick = false;
+		ti->alternativeText = true;
+		ti->selectedString = pressed;
+		ti->selectedPrefix = std::to_string(menu->items.size()) + ":";
+		menu->items.push_back(ti);
+	}
 	for(unsigned char i = 0; i < getSize(); i++){
 		ItemStack is = at(i);
 		MenuItem* ti = menu->items[i];

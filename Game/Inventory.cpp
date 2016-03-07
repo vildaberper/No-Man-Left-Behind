@@ -14,6 +14,10 @@ Inventory::~Inventory(){
 }
 
 std::vector<ItemStack> Inventory::setSize(const unsigned char& size){
+	if(size == 0){
+		return std::vector<ItemStack>();
+	}
+
 	if(firstSet){
 		firstSet = false;
 		Inventory::size = size;

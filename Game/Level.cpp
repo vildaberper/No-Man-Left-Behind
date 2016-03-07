@@ -146,6 +146,15 @@ void Level::tick(){
 		world->setTimeScale(16.0f);
 	}
 
+	if(manager->inputManager->isFirstPressed(sf::Keyboard::H)){
+		playerInventory->setSize(playerInventory->getSize() - 1);
+		playerInventory->update();
+	}
+	else if(manager->inputManager->isFirstPressed(sf::Keyboard::J)){
+		playerInventory->setSize(playerInventory->getSize() + 1);
+		playerInventory->update();
+	}
+
 	if(fadeValue > 0.0f){
 		fadeValue -= world->dt();
 	}

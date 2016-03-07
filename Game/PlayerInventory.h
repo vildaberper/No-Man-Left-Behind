@@ -27,6 +27,7 @@ public:
 	int selectedSlot;
 	ItemStack itemInHand;
 	MenuItem* menuInHand;
+	CoreSprite* handle;
 private:
 	void updateMenu();
 
