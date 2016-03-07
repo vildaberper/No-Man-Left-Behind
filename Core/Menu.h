@@ -20,6 +20,13 @@ public:
 
 	bool hidden = true;
 
+	bool drawElementBackgrounds = true;
+
+	float topOffset = 0.0f;
+	float bottomOffset = 0.0f;
+	float leftOffset = 0.0f;
+	float rightOffset = 0.0f;
+
 	TexBar* background = NULL;
 
 	MenuType type = VERTICAL;

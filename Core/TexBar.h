@@ -6,6 +6,8 @@ class TexBar{
 public:
 	TexBar();
 
+	TexBar(sf::Texture* left, sf::Texture* middle, sf::Texture* right);
+
 	~TexBar();
 
 	bool isValid();

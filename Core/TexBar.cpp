@@ -4,6 +4,12 @@ TexBar::TexBar(){
 
 }
 
+TexBar::TexBar(sf::Texture* left, sf::Texture* middle, sf::Texture* right){
+	TexBar::left = left;
+	TexBar::middle = middle;
+	TexBar::right = right;
+}
+
 TexBar::~TexBar(){
 
 }

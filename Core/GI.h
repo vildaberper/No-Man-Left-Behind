@@ -76,7 +76,7 @@ namespace gi{
 	void draw(const logger::LogEntry& logEntry, const float& x, const float& y, const float& w, const float& h);
 	void drawLog();
 
-	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h);
+	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h, const bool& drawElementBackgrounds);
 
 	void draw(Menu* menu, const sf::Time& time);
 

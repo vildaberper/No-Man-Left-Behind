@@ -107,14 +107,23 @@ void Level::begin(){
 	invM = new Menu();
 	invM->hidden = false;
 	invM->type = HORIZONTAL;
-	invM->position = Vector(5.0f, gi::TARGET_HEIGHT - 85.0f);
-	invM->size = Vector(gi::TARGET_WIDTH - 10, 80);
+	invM->position = Vector(gi::TARGET_WIDTH / 2 - 350, gi::TARGET_HEIGHT - 100.0f);
+	invM->size = Vector(700, 100);
 	mis = &invM->items;
 	for(size_t i = 0; i < player->inventory->getSize(); i++){
 		MenuItem* ti = new MenuItem();
 		ti->closeOnClick = false;
+		ti->alternativeText = true;
 		mis->push_back(ti);
 	}
+	invM->background = new TexBar(
+		manager->spriteManager->getTexture("bag.left"),
+		manager->spriteManager->getTexture("bag.middle"),
+		manager->spriteManager->getTexture("bag.right")
+		);
+	invM->drawElementBackgrounds = false;
+	invM->leftOffset = invM->rightOffset = 10.0f;
+	invM->topOffset = 20.0f;
 	updateInventoryMenu();
 
 	journal = new Animatable();
@@ -277,7 +286,7 @@ void Level::updateInventoryMenu(){
 		ItemStack is = player->inventory->content[i];
 		MenuItem* ti = (*mis)[i];
 		if(is.amount > 0){
-			ti->title = resourceToString(is.item.type) + " " + std::to_string(is.amount);
+			ti->title = std::to_string(is.amount);
 			ti->type = TEXTURE;
 			ti->sprite = manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type));
 		}

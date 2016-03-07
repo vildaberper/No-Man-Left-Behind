@@ -222,24 +222,26 @@ namespace gi{
 		}
 	}
 
-	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h){
-		if(item->background != NULL && item->background->isValid()){
-			draw(item->background, x, y, w, h);
-		}
-		else{
-			sf::RectangleShape rs;
-			rs.setPosition(x, y);
-			rs.setSize(sf::Vector2f(w, h));
-
-			if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
-				rs.setFillColor(sf::Color(55, 55, 0, 255));
+	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h, const bool& drawElementBackgrounds){
+		if(drawElementBackgrounds){
+			if(item->background != NULL && item->background->isValid()){
+				draw(item->background, x, y, w, h);
 			}
 			else{
-				rs.setFillColor(sf::Color(0, 0, 0, 185));
+				sf::RectangleShape rs;
+				rs.setPosition(x, y);
+				rs.setSize(sf::Vector2f(w, h));
+
+				if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
+					rs.setFillColor(sf::Color(55, 55, 0, 255));
+				}
+				else{
+					rs.setFillColor(sf::Color(0, 0, 0, 185));
+				}
+				rs.setOutlineColor(sf::Color(255, 255, 0, 255));
+				rs.setOutlineThickness(1);
+				renderWindow->draw(rs);
 			}
-			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
-			rs.setOutlineThickness(1);
-			renderWindow->draw(rs);
 		}
 
 		float tw = w;
@@ -254,6 +256,15 @@ namespace gi{
 			float sc = scx < scy ? scx : scy;
 			s->scale(sc, sc);
 			s->setPosition(x + w - s->getGlobalBounds().width, y);
+
+			if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
+				int c = int(205 + 50 * sin(time.asMilliseconds() / 100.0f));
+				s->setColor(sf::Color(c, c, c, 255));
+			}
+			else{
+				s->setColor(sf::Color(255, 255, 255, 255));
+			}
+
 			renderWindow->draw(*s);
 			tw -= s->getGlobalBounds().width;
 			break;
@@ -264,13 +275,37 @@ namespace gi{
 		title.setColor(sf::Color(255, 255, 255, 255));
 		title.setString(item->title);
 
-		float scx = tw / (title.getGlobalBounds().width + 10);
-		float scy = h / (title.getGlobalBounds().height + 10);
-		float sc = scx < scy ? scx : scy;
-		title.scale(sc, sc);
-		title.setOrigin(0, float(title.getCharacterSize() / 2));
-		title.setPosition(x + 5 * dxiz(), y + h / 2 - 5 * dyiz());
-		renderWindow->draw(title);
+		if(item->alternativeText){
+			float scx = w / 2.0f / (title.getGlobalBounds().width + 10);
+			float scy = h / 2.0f / (title.getGlobalBounds().height + 10);
+			float sc = scx < scy ? scx : scy;
+			title.scale(sc, sc);
+			title.setOrigin(0, float(title.getCharacterSize()));
+
+			float xp = x + w / 2 + 5 * dxiz();
+			float yp = y + h - 5 * dyiz();
+			float r = sc * 1.5f;
+
+			title.setColor(sf::Color(0, 0, 0, 255));
+			float a = 0.0f;
+			for(unsigned int i = 0; i < 8; i++){
+				title.setPosition(xp + r * cos(a), yp + r * sin(a));
+				renderWindow->draw(title);
+				a += PI / 4;
+			}
+			title.setColor(sf::Color(255, 255, 255, 255));
+			title.setPosition(xp, yp);
+			renderWindow->draw(title);
+		}
+		else{
+			float scx = tw / (title.getGlobalBounds().width + 10);
+			float scy = h / (title.getGlobalBounds().height + 10);
+			float sc = scx < scy ? scx : scy;
+			title.scale(sc, sc);
+			title.setOrigin(0, float(title.getCharacterSize() / 2));
+			title.setPosition(x + 5 * dxiz(), y + h / 2 - 5 * dyiz());
+			renderWindow->draw(title);
+		}
 	}
 
 	void draw(Menu* menu, const sf::Time& time){
@@ -283,12 +318,18 @@ namespace gi{
 			draw(menu->background, x, y, dx_, dy_);
 		}
 
+		x += menu->leftOffset * dxiz();
+		y += menu->topOffset * dyiz();
+
+		dx_ = (menu->size.x - menu->leftOffset - menu->rightOffset) * dxiz();
+		dy_ = (menu->size.y - menu->topOffset - menu->bottomOffset) * dyiz();
+
 		switch(menu->type){
 		case VERTICAL:
 		{
 			dy_ /= menu->items.size();
 			for(size_t i = 0; i < menu->items.size(); i++){
-				draw(menu->items[i], time, x, y + dy_ * i, dx_, dy_);
+				draw(menu->items[i], time, x, y + dy_ * i, dx_, dy_, menu->drawElementBackgrounds);
 			}
 			break;
 		}
@@ -296,7 +337,7 @@ namespace gi{
 		{
 			dx_ /= menu->items.size();
 			for(size_t i = 0; i < menu->items.size(); i++){
-				draw(menu->items[i], time, x + dx_ * i, y, dx_, dy_);
+				draw(menu->items[i], time, x + dx_ * i, y, dx_, dy_, menu->drawElementBackgrounds);
 			}
 			break;
 		}
@@ -337,6 +378,12 @@ namespace gi{
 	}
 
 	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h){
+		bool mrepeated = texbar->middle->isRepeated();
+		texbar->middle->setRepeated(true);
+
+		bool rrepeated = texbar->right->isRepeated();
+		texbar->right->setRepeated(true);
+
 		float leftscale = h / texbar->left->getSize().y;
 		float leftw = texbar->left->getSize().x * leftscale;
 		int leftrw = int(ceil(leftw / leftscale));
@@ -384,6 +431,9 @@ namespace gi{
 			);
 		s.scale(-rightscale, rightscale);
 		renderWindow->draw(s);
+
+		texbar->middle->setRepeated(mrepeated);
+		texbar->right->setRepeated(rrepeated);
 	}
 
 	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font){

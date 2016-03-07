@@ -24,6 +24,7 @@ public:
 	std::string value;
 	CoreSprite* sprite;
 	MenuItemType type = TEXT;
+	bool alternativeText = false;
 	Menu* toggle = NULL;
 	bool closeOnClick;
 	bool highlight = false;

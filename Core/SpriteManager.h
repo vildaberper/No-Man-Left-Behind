@@ -26,6 +26,18 @@ public:
 
 	}
 
+	sf::Texture* getTexture(const std::string& catKey, const std::string& subKey){
+		SubTexture localSubTex = *texMan->getTextureMap(catKey, subKey);
+
+		return localSubTex.texi->texture;
+	}
+
+	sf::Texture* getTexture(const std::string& key){
+		std::string::size_type index = key.find_first_of('.');
+
+		return getTexture(key.substr(0, index), key.substr(index + 1));
+	}
+
 	CoreSprite* getSprite(const std::string& catKey, const std::string& subKey){
 		SubTexture localSubTex = *texMan->getTextureMap(catKey, subKey);
 		int dx = int(ceil(localSubTex.texi->texture->getSize().x) / float(localSubTex.texi->width));
