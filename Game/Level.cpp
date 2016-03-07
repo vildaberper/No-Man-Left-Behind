@@ -76,7 +76,6 @@ void Level::begin(){
 	if(player == NULL){
 		player = new Player();
 		player->initialize(manager);
-		player->inventory = new Inventory(9);
 	}
 
 	if(useTruck){
@@ -90,41 +89,22 @@ void Level::begin(){
 		player->position = spawn;
 		player->position.y -= player->getSprite(world->time())->h() * player->scale * player->cb.renderOffset / gi::dy();
 		world->addDrawable(player, LAYER2);
+		playerInventory->menu->hidden = false;
 	}
 
 	if(!useTruck){
 		state = PLAYING;
 	}
 
-	player->inventory->put(ItemStack(PENICILLIN, 16));
-	player->inventory->put(ItemStack(FORCEPS, 16));
-	player->inventory->put(ItemStack(ALCOHOL, 16));
-	player->inventory->put(ItemStack(MORPHINE, 16));
-	player->inventory->put(ItemStack(SUTURE_KIT, 16));
-	player->inventory->put(ItemStack(SCALPEL, 16));
-	player->inventory->put(ItemStack(GAUZE, 16));
-
-	invM = new Menu();
-	invM->hidden = false;
-	invM->type = HORIZONTAL;
-	invM->position = Vector(gi::TARGET_WIDTH / 2 - 350, gi::TARGET_HEIGHT - 100.0f);
-	invM->size = Vector(700, 100);
-	mis = &invM->items;
-	for(size_t i = 0; i < player->inventory->getSize(); i++){
-		MenuItem* ti = new MenuItem();
-		ti->closeOnClick = false;
-		ti->alternativeText = true;
-		mis->push_back(ti);
-	}
-	invM->background = new TexBar(
-		manager->spriteManager->getTexture("bag.left"),
-		manager->spriteManager->getTexture("bag.middle"),
-		manager->spriteManager->getTexture("bag.right")
-		);
-	invM->drawElementBackgrounds = false;
-	invM->leftOffset = invM->rightOffset = 10.0f;
-	invM->topOffset = 20.0f;
-	updateInventoryMenu();
+	playerInventory = new PlayerInventory(manager, 9);
+	playerInventory->put(ItemStack(PENICILLIN, 16));
+	playerInventory->put(ItemStack(FORCEPS, 16));
+	playerInventory->put(ItemStack(ALCOHOL, 16));
+	playerInventory->put(ItemStack(MORPHINE, 16));
+	playerInventory->put(ItemStack(SUTURE_KIT, 16));
+	playerInventory->put(ItemStack(SCALPEL, 16));
+	playerInventory->put(ItemStack(GAUZE, 16));
+	playerInventory->update();
 
 	journal = new Animatable();
 	journal->setAnimationType(STATES);
@@ -199,16 +179,12 @@ void Level::tick(){
 			player->position.x = tr.left + tr.width * 0.55f;
 			player->position.y = tr.top + tr.height - pr.height * player->cb.offset.y;
 			world->addDrawable(player, LAYER2);
+			playerInventory->menu->hidden = false;
 		}
 		break;
 	}
 	case PLAYING:
 	{
-		if(firstInventoryFrame){
-			firstInventoryFrame = false;
-			manager->menuManager->menus["inventory"] = invM;
-		}
-
 		player->velocity = controller->movement();
 		world->tick();
 		gi::cameraTargetX = player->position.x + player->getSprite(world->time())->sprite()->getGlobalBounds().width / gi::dx() / 2;
@@ -227,25 +203,26 @@ void Level::tick(){
 		}
 
 		if(controller->isPressed(LB)){
-			selectedSlot--;
-			updateInventoryMenu();
+			playerInventory->selectedSlot--;
+			playerInventory->update();
 		}
 		if(controller->isPressed(RB)){
-			selectedSlot++;
-			updateInventoryMenu();
+			playerInventory->selectedSlot++;
+			playerInventory->update();
 		}
 
 		if(closest != NULL && controller->isPressed(INTERACT)){
-			closest->use(player->inventory->at(selectedSlot));
-			updateInventoryMenu();
+			closest->use(playerInventory->selectedItem());
+			playerInventory->update();
 		}
 		target = closest != NULL && !closest->isHealed() ? 0.0f : dist;
 
 		gi::camera(world->dt());
 		world->render();
 
-		// Inventory
 		manager->menuManager->draw(world->time());
+
+		playerInventory->render();
 
 		break;
 	}
@@ -278,24 +255,6 @@ void Level::tick(){
 
 bool Level::done(){
 	return manager->inputManager->isFirstPressed(sf::Keyboard::Q);
-}
-
-void Level::updateInventoryMenu(){
-	selectedSlot = math::range(selectedSlot, player->inventory->getSize() - 1);
-	for(size_t i = 0; i < player->inventory->getSize(); i++){
-		ItemStack is = player->inventory->content[i];
-		MenuItem* ti = (*mis)[i];
-		if(is.amount > 0){
-			ti->title = std::to_string(is.amount);
-			ti->type = TEXTURE;
-			ti->sprite = manager->spriteManager->getSprite("Resources." + resourceToString(is.item.type));
-		}
-		else{
-			ti->title = "";
-			ti->type = TEXT;
-		}
-		ti->highlight = i == selectedSlot;
-	}
 }
 
 Injured* Level::nearestInjured(const float& maxDistance){

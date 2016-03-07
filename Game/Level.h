@@ -7,6 +7,7 @@
 #include "Injured.h"
 #include "Controller.h"
 #include "JournalManager.h"
+#include "PlayerInventory.h"
 
 enum LevelState{
 	TRUCKMOVING,
@@ -31,7 +32,6 @@ public:
 
 	Injured* nearestInjured(const float& maxDistance);
 
-	void updateInventoryMenu();
 	std::vector<MenuItem*>* mis;
 
 	Manager* manager;
@@ -58,10 +58,8 @@ public:
 	std::vector<std::string> journals;
 
 	Player* player = NULL;
-	int selectedSlot = 0;
+	PlayerInventory* playerInventory;
 
-	Menu* invM;
-	bool firstInventoryFrame = true;
 	bool firstFrame = true;
 	LevelState state;
 	float fadeValue;

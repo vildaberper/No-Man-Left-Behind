@@ -7,26 +7,28 @@
 
 class Inventory {
 public:
-	Inventory(const unsigned char size);
+	Inventory();
+	Inventory(const unsigned char& size);
 	~Inventory();
 
-	std::vector<ItemStack> setSize(unsigned char size);
+	virtual std::vector<ItemStack> setSize(const unsigned char& size);
 	unsigned char getSize() const;
 
-	ItemStack& put(ItemStack& is, unsigned char slot);
-	ItemStack& put(ItemStack& is);
+	virtual ItemStack& put(ItemStack& is, unsigned char slot);
+	virtual ItemStack& put(ItemStack& is);
 
-	ItemStack& swap(ItemStack& is, unsigned char slot);
-	ItemStack& take(unsigned char slot);
+	virtual bool swap(ItemStack& is, unsigned char slot);
+	virtual ItemStack take(unsigned char slot);
 	ItemStack& at(unsigned char slot);
 
-	bool take(ItemStack is);
+	virtual bool take(ItemStack is);
 
 	bool has(ItemStack is) const;
 
-	void clear();
+	virtual void clear();
 
 	ItemStack* content;
 private:
 	unsigned char size;
+	bool firstSet = true;
 };

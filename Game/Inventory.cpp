@@ -2,15 +2,26 @@
 
 #include "MathHelper.h"
 
-Inventory::Inventory(const unsigned char size){
-	Inventory::size = size;
-	content = new ItemStack[size];
+Inventory::Inventory(){
+
+}
+
+Inventory::Inventory(const unsigned char& size){
+	setSize(size);
 }
 Inventory::~Inventory(){
 	delete[] content;
 }
 
-std::vector<ItemStack> Inventory::setSize(unsigned char size){
+std::vector<ItemStack> Inventory::setSize(const unsigned char& size){
+	if(firstSet){
+		firstSet = false;
+		Inventory::size = size;
+		content = new ItemStack[size];
+
+		return std::vector<ItemStack>();
+	}
+
 	ItemStack* old = content;
 	content = new ItemStack[size];
 	std::vector<ItemStack> left;
@@ -24,6 +35,7 @@ std::vector<ItemStack> Inventory::setSize(unsigned char size){
 		}
 	}
 	delete[] old;
+	Inventory::size = size;
 
 	return left;
 }
@@ -62,20 +74,24 @@ ItemStack& Inventory::put(ItemStack& is){
 	return is;
 }
 
-ItemStack& Inventory::swap(ItemStack& is, unsigned char slot){
-	if(slot >= size)
-		return is;
-	if(is.amount > stackLimit(is.item.type)){
-		return is;
+bool Inventory::swap(ItemStack& is, unsigned char slot){
+	if(slot >= size || (is.amount > stackLimit(is.item.type))){
+		return false;
 	}
 
-	ItemStack* r = &content[slot];
+	ItemStack r = content[slot];
 	content[slot] = is;
 
-	return *r;
+	is = r;
+	return true;
 }
-ItemStack& Inventory::take(unsigned char slot){
-	return swap(ItemStack(), slot);
+
+ItemStack Inventory::take(unsigned char slot){
+	if(slot >= size){
+		return ItemStack();
+	}
+
+	return content[slot];
 }
 
 bool Inventory::take(ItemStack is){

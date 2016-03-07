@@ -121,8 +121,6 @@ void Game::run(){
 
 		gi::drawLog();
 
-		manager->menuManager->draw(time);
-
 		lastTime = time;
 		gi::endOfFrame();
 	}
