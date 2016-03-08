@@ -1,24 +1,30 @@
-#include "PlayerInventory.h"
+#include "ResourceBox.h"
 
-namespace container{
-	long id = 0;
-}
+ResourceBox::ResourceBox(Controller* controller, Manager* manager, const unsigned char& size, PlayerInventory* pi, drawable::Drawable* box){
+	for(auto &ent : box->animations){
+		animations[ent.first] = ent.second->clone();
+	}
+	currentAnimation = box->currentAnimation;
+	nextAnimation = box->nextAnimation;
+	cb = box->cb;
+	position = box->position;
+	reference = box->reference;
+	scale = box->scale;
+	startTime = box->startTime;
+	box->kill();
 
-PlayerInventory::PlayerInventory(Controller* controller, Manager* manager, const unsigned char& size){
 	id = "container" + std::to_string(container::id++);
 
-	pressed = new std::string();
-	menuInHand = new MenuItem();
-	menuInHand->closeOnClick = false;
-	menuInHand->alternativeText = true;
-	menuInHand->type = TEXTURE;
+	ResourceBox::pi = pi;
 
-	PlayerInventory::manager = manager;
-	PlayerInventory::controller = controller;
+	pressed = new std::string();
+
+	ResourceBox::manager = manager;
+	ResourceBox::controller = controller;
 	setSize(size);
 
 	menu = new Menu();
-	menu->hidden = false;
+	menu->hidden = true;
 	menu->type = HORIZONTAL;
 	menu->background = new TexBar(
 		manager->spriteManager->getTexture("bag.left"),
@@ -39,71 +45,40 @@ PlayerInventory::PlayerInventory(Controller* controller, Manager* manager, const
 	update();
 }
 
-PlayerInventory::~PlayerInventory(){
+ResourceBox::~ResourceBox(){
 	manager->inputManager->unregisterListener(listenerId);
 	manager->menuManager->menus.erase(id);
 	delete menu;
 	delete pressed;
-	delete menuInHand;
 }
 
-ItemStack& PlayerInventory::selectedItem(){
+ItemStack& ResourceBox::selectedItem(){
 	return at(selectedSlot);
 }
 
-void PlayerInventory::update(){
+void ResourceBox::update(){
 	updateMenu();
 }
 
-void PlayerInventory::render(){
-	handle->sprite()->setPosition(
-		(gi::TARGET_WIDTH / 2.0f - handle->w() / 2.0f) * gi::dxiz(),
-		(gi::TARGET_HEIGHT - 115.0f - handle->h() / 2.0f) * gi::dyiz()
-		);
-	handle->sprite()->scale(
-		(1.0f / handle->sprite()->getScale().x) * 1.0f * gi::dx(),
-		(1.0f / handle->sprite()->getScale().y) * 1.0f * gi::dy()
-		);
-	gi::draw(*handle->sprite());
-	if(itemInHand.amount > 0){
-		float w = 80.0f * gi::dxiz();
-		float h = 100.0f * gi::dyiz();
-		gi::draw(
-			menuInHand,
-			sf::milliseconds(0),
-			float(manager->inputManager->mouseX()) - w / 2.0f,
-			float(manager->inputManager->mouseY()) - h / 2.0f,
-			w,
-			h,
-			false
-			);
-	}
-}
-
-void PlayerInventory::on(MouseButtonEvent& event){
+void ResourceBox::on(MouseButtonEvent& event){
+	if(menu->hidden)
+		return;
 	if(event.isCancelled()){
 		if(event.button() == sf::Mouse::Left){
 			size_t index = 0;
 			if((index = pressed->find_first_of(':')) != std::string::npos && pressed->substr(0, index) == id){
-				swap(itemInHand, selectedSlot = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';')))));
+				swap(pi->itemInHand, selectedSlot = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';')))));
+				pi->update();
 				update();
 				*pressed = "";
 			}
 		}
 	}
-	if(event.pressed() && event.button() == sf::Mouse::Right){
-		event.setCancelled(true);
-		put(itemInHand, selectedSlot);
-		if(itemInHand.amount > 0){
-			put(itemInHand);
-		}
-		update();
-	}
 }
 
-void PlayerInventory::updateMenu(){
+void ResourceBox::updateMenu(){
 	float w = getSize() * 80.0f + 40;
-	menu->position = Vector(gi::TARGET_WIDTH / 2 - w / 2.0f, gi::TARGET_HEIGHT - 120.0f);
+	menu->position = Vector(gi::TARGET_WIDTH / 2 - w / 2.0f, gi::TARGET_HEIGHT / 2);
 	menu->size = Vector(w, 120.0f);
 
 	selectedSlot = math::range(selectedSlot, getSize() - 1);
@@ -138,12 +113,4 @@ void PlayerInventory::updateMenu(){
 		}
 		ti->highlight = controller->usingController && i == selectedSlot;
 	}
-
-	if(itemInHand.amount == 1){
-		menuInHand->title = "";
-	}
-	else{
-		menuInHand->title = std::to_string(itemInHand.amount);
-	}
-	menuInHand->sprite = manager->spriteManager->getSprite("Resources." + resourceToString(itemInHand.item.type));
 }

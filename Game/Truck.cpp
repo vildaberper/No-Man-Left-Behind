@@ -54,10 +54,11 @@ void Truck::move(const float& dt){
 		if(playingRunning){
 			si::stopSound(soundId);
 			playingRunning = false;
-		}
-		if(!playingStopping && !playedStopped){
-			playingStopping = true;
-			soundId = si::playSound("truck.stopping");
+
+			if(!playingStopping && !playedStopped){
+				playingStopping = true;
+				soundId = si::playSound("truck.stopping");
+			}
 		}
 	}
 

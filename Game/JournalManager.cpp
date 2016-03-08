@@ -10,18 +10,33 @@ JournalManager::JournalManager(){
 
 JournalManager::~JournalManager(){
 	for(auto &ent : journals){
-		delete ent.second;
-		ent.second = NULL;
+		for(auto &ent0 : ent.second){
+			delete ent0.second;
+			ent0.second = NULL;
+		}
 	}
 	journals.clear();
 	delete undefined;
 }
 
 Journal* JournalManager::getJournal(std::string name){
-	if(journals.count(name) != 0){
-		return journals[name];
+	std::string::size_type index = name.find_first_of('.');
+
+	if(journals.count(name.substr(0, index)) != 0 && journals[name.substr(0, index)].count(name.substr(index + 1)) != 0){
+		return journals[name.substr(0, index)][name.substr(index + 1)];
 	}
 	return undefined;
+}
+
+std::vector<std::string> JournalManager::getJournals(std::string folder){
+	std::vector<std::string> js;
+
+	if(journals.count(folder) != 0){
+		for(auto &ent : journals[folder]){
+			js.push_back(folder + "." + ent.first);
+		}
+	}
+	return js;
 }
 
 void JournalManager::loadFromDir(File& file){
@@ -58,7 +73,7 @@ void JournalManager::loadFromDir(File& file){
 			j->lines.push_back((*lines)[i]);
 		}
 
-		journals[f.nameNoExtension()] = j;
+		journals[file.nameNoExtension()][f.nameNoExtension()] = j;
 
 		delete lines;
 	}

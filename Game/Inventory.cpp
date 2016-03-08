@@ -84,6 +84,13 @@ bool Inventory::swap(ItemStack& is, unsigned char slot){
 	}
 
 	ItemStack r = content[slot];
+
+	if(r.amount > 0 && is.amount > 0 && r.item.type == is.item.type && r.amount + is.amount <= stackLimit(is.item.type)){
+		content[slot].amount += is.amount;
+		is.amount = 0;
+		return true;
+	}
+
 	content[slot] = is;
 
 	is = r;

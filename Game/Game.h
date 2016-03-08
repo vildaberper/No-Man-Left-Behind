@@ -32,6 +32,8 @@ private:
 
 	size_t currentLevel = 0;
 
+	PlayerInventory* playerInventory;
+
 	unsigned long inputListenerId;
 
 	sf::RenderWindow* window;

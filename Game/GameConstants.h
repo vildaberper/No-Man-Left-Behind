@@ -9,6 +9,8 @@ namespace gc{
 	extern File levelDir;
 	extern File journalDir;
 
+	extern int inventorySize;
+
 	extern std::vector<std::string> levelProgression;
 
 	const void initialize();

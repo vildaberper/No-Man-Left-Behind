@@ -253,7 +253,6 @@ void Editor::run(){
 			if(selectedWorld->size() != 0){
 				file = c::worldDir.child(*selectedWorld + ".txt");
 				world->load(file);
-				world->background = manager->spriteManager->getBackground(world->backgroundName);
 				state = EDIT;
 				worldMenu->hidden = true;
 				*selectedWorld = "";
@@ -473,10 +472,7 @@ void Editor::on(KeyboardEvent& event){
 				selectedLayer = Layer(event.key() - 26);
 			}
 			if(target != NULL && targeting){
-				drawable::Drawable* d = target->drawable;
-
-				world->drawables[target->layer].erase(remove(world->drawables[target->layer].begin(), world->drawables[target->layer].end(), d));
-				world->addDrawable(d, selectedLayer);
+				world->changeLayer(target->drawable, target->layer, selectedLayer);
 				target->layer = selectedLayer;
 			}
 			else{
@@ -604,6 +600,7 @@ void Editor::on(MouseMoveEvent& event){
 				y = ceil(y / h) * h;
 				target->drawable->position.x = x;
 				target->drawable->position.y = y;
+				target->drawable->updateOrder = true;
 				return;
 			}
 		}

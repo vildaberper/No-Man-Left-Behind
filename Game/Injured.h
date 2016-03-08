@@ -24,6 +24,7 @@ public:
 	bool use(ItemStack& is);
 
 	Journal* journal;
+	Journal* customJournal;
 	size_t progress;
 
 	sf::Time timer;

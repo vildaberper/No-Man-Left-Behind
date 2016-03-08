@@ -156,6 +156,8 @@ public:
 
 	void addDrawable(drawable::Drawable* drawable, const Layer& layer);
 
+	void changeLayer(drawable::Drawable* drawable, const Layer& from, const Layer& to);
+
 	Target* drawableAt(const float& x, const float& y, const Layer& layer);
 
 	void save(File& f);

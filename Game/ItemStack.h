@@ -8,13 +8,13 @@ namespace itemstack{
 	static std::map<Resource, unsigned char> createStackLimits(){
 		std::map<Resource, unsigned char> r;
 
-		r[PENICILLIN] = 16;
-		r[FORCEPS] = 16;
-		r[ALCOHOL] = 16;
-		r[MORPHINE] = 16;
-		r[SUTURE_KIT] = 16;
-		r[SCALPEL] = 16;
-		r[GAUZE] = 16;
+		r[PENICILLIN] = 5;
+		r[FORCEPS] = 5;
+		r[ALCOHOL] = 5;
+		r[MORPHINE] = 5;
+		r[SUTURE_KIT] = 5;
+		r[SCALPEL] = 5;
+		r[GAUZE] = 5;
 
 		return r;
 	}
@@ -26,7 +26,7 @@ static const unsigned char stackLimit(const Resource& r){
 	if(itemstack::stackLimits.count(r) > 0){
 		return itemstack::stackLimits.at(r);
 	}
-	return 16;
+	return 1;
 }
 
 class ItemStack{

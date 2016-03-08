@@ -1,11 +1,11 @@
 #include "Injured.h"
 
 Injured::Injured(){
-	
+	customJournal = new Journal();
 }
 
 Injured::~Injured(){
-
+	delete customJournal;
 }
 
 void Injured::initialize(Manager* manager, const std::string& animation, Journal* journal){
@@ -21,6 +21,38 @@ void Injured::initialize(Manager* manager, const std::string& animation, Journal
 }
 
 void Injured::updateAnimation(){
+	customJournal->lines.clear();
+	for(size_t i = 0; i < journal->lines.size(); i++){
+		std::string line = journal->lines[i];
+		size_t index;
+
+		if((index = line.find("%state%")) != std::string::npos){
+			std::string state;
+			switch(INJURED_STATES - 1 + progress - journal->requirements.size()){
+			case 0:
+				state = "Dead";
+				break;
+			case 1:
+				state = "Critical";
+				break;
+			case 2:
+				state = "Serious";
+				break;
+			case 3:
+				state = "Fair";
+				break;
+			case 4:
+				state = "Healed";
+				break;
+			}
+			line.replace(index, 7, state);
+		}
+		customJournal->lines.push_back(line);
+	}
+	for(size_t i = 0; i < progress; i++){
+		customJournal->lines.push_back("");
+		customJournal->lines.push_back("Treated with " + resourceToString(journal->requirements[i]) + ".");
+	}
 	setAnimation(state(INJURED_STATES - 1 + progress - journal->requirements.size()));
 	if(isHealed()){
 		if(voice){

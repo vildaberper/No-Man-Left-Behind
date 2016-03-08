@@ -27,6 +27,8 @@ public:
 	Vector camera();
 
 	bool isPressed(const Command& c);
+
+	bool usingController = false;
 private:
 	bool isPressed(const unsigned int& controllerId, const unsigned int& button);
 	bool isFirstPressed(const unsigned int& controllerId, const unsigned int& button);

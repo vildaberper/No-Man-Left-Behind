@@ -69,6 +69,8 @@ void Game::run(){
 			gi::cursor = new Cursor(manager, "cursor");
 			gi::showCursor = true;
 			jmanager = new JournalManager();
+
+			playerInventory = new PlayerInventory(controller, manager, gc::inventorySize);
 			continue;
 		}
 
@@ -88,6 +90,7 @@ void Game::run(){
 				gi::darken(1.0f);
 				gi::endOfFrame();
 				level = new Level(manager, controller, jmanager);
+				level->playerInventory = playerInventory;
 				level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 				level->begin();
 				clock.restart();
@@ -96,17 +99,18 @@ void Game::run(){
 			level->tick();
 
 			if(level->done()){
-				//transition
 				currentLevel++;
 				if(currentLevel >= gc::levelProgression.size()){
 					delete level;
 					state = COMPLETE;
+					continue;
 				}
 				else{
 					gi::darken(1.0f);
 					gi::endOfFrame();
 					delete level;
 					level = new Level(manager, controller, jmanager);
+					level->playerInventory = playerInventory;
 					level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 					level->begin();
 					clock.restart();
@@ -126,7 +130,7 @@ void Game::run(){
 	}
 	manager->finalize(window);
 	gi::finalize();
-	delete manager;
 	delete controller;
+	delete manager;
 	delete jmanager;
 }

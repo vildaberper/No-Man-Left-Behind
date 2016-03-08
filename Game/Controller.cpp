@@ -64,7 +64,7 @@ bool Controller::isPressed(const Command& c){
 bool Controller::isPressed(const unsigned int& controllerId, const unsigned int& button){
 	if(sf::Joystick::isConnected(controllerId)){
 		if(sf::Joystick::getButtonCount(controllerId) > button){
-			return sf::Joystick::isButtonPressed(controllerId, button);
+			return usingController = sf::Joystick::isButtonPressed(controllerId, button);
 		}
 	}
 	return false;
@@ -75,7 +75,7 @@ bool Controller::isFirstPressed(const unsigned int& controllerId, const unsigned
 		if(sf::Joystick::getButtonCount(controllerId) > button){
 			bool state = buttonStates[controllerId][button];
 
-			return (buttonStates[controllerId][button] = sf::Joystick::isButtonPressed(controllerId, button)) && !state;
+			return usingController = (buttonStates[controllerId][button] = sf::Joystick::isButtonPressed(controllerId, button)) && !state;
 		}
 	}
 	return false;
@@ -87,6 +87,7 @@ float Controller::axisPosition(const unsigned int& controllerId, const sf::Joyst
 			float value = sf::Joystick::getAxisPosition(controllerId, axis) / 100.0f;
 
 			if(abs(value) > 0.25f){
+				usingController = true;
 				return value;
 			}
 		}

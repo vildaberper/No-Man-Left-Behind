@@ -327,6 +327,12 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	entities.push_back((Entity*) drawable);
 }
 
+void World::changeLayer(drawable::Drawable* drawable, const Layer& from, const Layer& to){
+	drawables[from].erase(remove(drawables[from].begin(), drawables[from].end(), drawable));
+	doSwap[to] = true;
+	insertDrawableAt(drawable, to, binarySearchRenderOffset(drawable, to));
+}
+
 Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	float rwx = gi::wx(x);
 	float rwy = gi::wy(y);
@@ -480,6 +486,7 @@ void World::load(File& f){
 		total += load_helper(*c, this, layerToString(Layer(l)), manager);
 	}
 	delete c;
+	background = manager->spriteManager->getBackground(backgroundName);
 	logger::timing(std::to_string(total) + " objects added in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	logger::info("World loaded: " + f.parent().name() + "\\" + f.name());
 }

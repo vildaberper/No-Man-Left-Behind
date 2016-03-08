@@ -437,27 +437,43 @@ namespace gi{
 	}
 
 	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font){
-		float dh = std::min(18.0f, h / float(text.size()));
-		float dhh = dh + 25.0f;
+		float dh = std::min(20.0f, h / float(text.size()));
+		float dhh = dh + 10.0f;
 		for(size_t i = 0; i < text.size(); i++){
 			sf::Text title = sf::Text();
 			title.setFont(font);
 			title.setColor(sf::Color(0, 0, 0, 255));
 			title.setString(text[i]);
-
-			float scx = w / (title.getGlobalBounds().width + 10);
-			float scy = dh / (title.getGlobalBounds().height + 10);
-			float sc = scx < scy ? scx : scy;
+			title.setCharacterSize(30);
+			float sc = std::min(0.6f, w / (title.getGlobalBounds().width + 10));
 			title.scale(sc, sc);
 			title.setOrigin(0, float(title.getCharacterSize() / 2));
-			title.setPosition(x + 5 * dxiz(), y + i * (dhh / 2 - 5 * dyiz()));
+			title.setPosition(x + 5 * dxiz(), y + i * dhh * dyiz() - 5 * dyiz());
 			renderWindow->draw(title);
+		}
+
+		if(collisionBoxes){
+			sf::RectangleShape rs;
+			rs.setPosition(x, y);
+			rs.setSize(sf::Vector2f(w, h));
+			rs.setFillColor(sf::Color(0, 0, 0, 0));
+			rs.setOutlineColor(sf::Color(255, 0, 0, 255));
+			rs.setOutlineThickness(1);
+			renderWindow->draw(rs);
 		}
 	}
 
 	void darken(const float& darkness){
 		sf::RectangleShape rs;
-		rs.setFillColor(sf::Color(0, 0, 0, int(255 * darkness)));
+		if(darkness > 1.0f){
+			rs.setFillColor(sf::Color(0, 0, 0, 255));
+		}
+		else if(darkness <= 0.0f){
+			return;
+		}
+		else{
+			rs.setFillColor(sf::Color(0, 0, 0, int(255 * darkness)));
+		}
 		rs.setOutlineThickness(0.0f);
 		rs.setPosition(0.0f, 0.0f);
 		rs.setSize(sf::Vector2f(wx(), wy()));

@@ -14,9 +14,11 @@ public:
 	~JournalManager();
 
 	Journal* getJournal(std::string name);
+
+	std::vector<std::string> getJournals(std::string folder);
 private:
 	void loadFromDir(File& file);
-	std::map<std::string, Journal*> journals;
+	std::map<std::string, std::map<std::string, Journal*>> journals;
 
 	Journal* undefined;
 };
