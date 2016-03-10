@@ -345,7 +345,7 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 	for(size_t i = max; i < drawables[layer].size() && i >= min; i--){
 		drawable::Drawable* d = drawables[layer][i];
 
-		if((dist = rwx - d->position.x + rwy - d->position.y) > MAX_COLLISION_DISTANCE || dist < 0){
+		if(d->hiddenUnderCamera || (dist = rwx - d->position.x + rwy - d->position.y) > MAX_COLLISION_DISTANCE || dist < 0){
 			continue;
 		}
 

@@ -354,8 +354,6 @@ void Level::tick(){
 		gi::camera(world->dt());
 		world->render();
 
-		playerInventory->render();
-
 		/*
 		Journal
 		*/
@@ -371,10 +369,11 @@ void Level::tick(){
 			gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
 		}
 		//
-
 		handBook->render();
 
 		manager->menuManager->draw(world->time());
+
+		playerInventory->render();
 
 		if(timer.asMilliseconds() > 0){
 			gi::draw(*timerHud->getSprite(world->time()));
