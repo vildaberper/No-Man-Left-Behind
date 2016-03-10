@@ -4,11 +4,18 @@
 #include <vector>
 
 #include "Item.h"
+#include "Random.h"
 #include "Journal.h"
 #include "ItemStack.h"
 #include "Animatable.h"
 
 static const unsigned char INJURED_STATES = 5;
+
+typedef std::pair<Resource, bool> rbPair;
+
+namespace injured{
+	extern sf::Time lastVoice;
+}
 
 class Injured: public Animatable{
 public:
@@ -16,6 +23,8 @@ public:
 	~Injured();
 
 	void initialize(Manager* manager, const std::string& animation, Journal* journal);
+
+	virtual void tick(const sf::Time& time, const float& dt);
 
 	void updateAnimation();
 
@@ -29,8 +38,11 @@ public:
 
 	sf::Time timer;
 
+	sf::Time lastVoice;
+	sf::Time nextVoice;
+	unsigned long currentVoice = 0;
+
 	std::string id;
 
-	bool voice = false;
-	unsigned long currentVoice = 0;
+	std::vector<rbPair> applied;
 };

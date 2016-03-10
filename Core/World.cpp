@@ -76,54 +76,48 @@ void World::tick(){
 	bool foundXY = false;
 	float smin = gi::cameraY - gi::HEIGHT / 2;
 	float smax = gi::cameraY + gi::HEIGHT / 2;
-	for(unsigned int il0 = 0; il0 < NUM_LAYERS; il0++){
-		Layer l0 = Layer(il0);
-		size_t d0min = binarySearchRenderOffset(smin - 1500.0f, l0);
-		size_t d0max = binarySearchRenderOffset(smax + 1500.0f, l0);
+	size_t d0min = binarySearchRenderOffset(smin - 1500.0f, LAYER2);
+	size_t d0max = binarySearchRenderOffset(smax + 1500.0f, LAYER2);
 
-		for(size_t di0 = d0min; di0 < drawables[l0].size() && di0 <= d0max; di0++){
-			drawable::Drawable* d0 = drawables[l0][di0];
+	for(size_t di0 = d0min; di0 < drawables[LAYER2].size() && di0 <= d0max; di0++){
+		drawable::Drawable* d0 = drawables[LAYER2][di0];
 
-			if(d0->velocity.direction() == ZERO){
+		if(d0->velocity.direction() == ZERO){
+			continue;
+		}
+
+		size_t d1min = binarySearchRenderOffset(smin - MAX_COLLISION_DISTANCE, LAYER2);
+		size_t d1max = binarySearchRenderOffset(smax + MAX_COLLISION_DISTANCE, LAYER2);
+
+		for(size_t di1 = d1min; di1 < drawables[LAYER2].size() && di1 <= d0max; di1++){
+			drawable::Drawable* d1 = drawables[LAYER2][di1];
+
+			if(d0 == d1){
 				continue;
 			}
-
-			for(unsigned int il1 = 0; il1 < NUM_LAYERS; il1++){
-				Layer l1 = Layer(il1);
-				size_t d1min = binarySearchRenderOffset(smin - MAX_COLLISION_DISTANCE, l1);
-				size_t d1max = binarySearchRenderOffset(smax + MAX_COLLISION_DISTANCE, l1);
-
-				for(size_t di1 = d1min; di1 < drawables[l1].size() && di1 <= d0max; di1++){
-					drawable::Drawable* d1 = drawables[l1][di1];
-
-					if(d0 == d1){
-						continue;
-					}
-					if(math::interv(d0->position.x, d1->position.x) + math::interv(d0->position.y, d1->position.y) > MAX_COLLISION_DISTANCE){
-						continue;
-					}
-					if(d0->collidesWith(d1, time(), d0->position + Vector(d0->velocity.x * dt(), 0.0f))){
-						foundX = true;
-					}
-					if(d0->collidesWith(d1, time(), d0->position + Vector(0.0f, d0->velocity.y * dt()))){
-						foundY = true;
-					}
-					if(d0->collidesWith(d1, time(), d0->position + (d0->velocity * dt()))){
-						foundXY = true;
-					}
-
-					if(foundX && foundY && foundXY){
-						continue;
-					}
-				}
+			if(math::interv(d0->position.x, d1->position.x) + math::interv(d0->position.y, d1->position.y) > MAX_COLLISION_DISTANCE){
+				continue;
+			}
+			if(d0->collidesWith(d1, time(), d0->position + Vector(d0->velocity.x * dt(), 0.0f))){
+				foundX = true;
+			}
+			if(d0->collidesWith(d1, time(), d0->position + Vector(0.0f, d0->velocity.y * dt()))){
+				foundY = true;
+			}
+			if(d0->collidesWith(d1, time(), d0->position + (d0->velocity * dt()))){
+				foundXY = true;
 			}
 
-			if(foundX || (!foundY && foundXY)){
-				d0->velocity.x = 0.0f;
+			if(foundX && foundY && foundXY){
+				continue;
 			}
-			if(foundY || (!foundX && foundXY)){
-				d0->velocity.y = 0.0f;
-			}
+		}
+
+		if(foundX || (!foundY && foundXY)){
+			d0->velocity.x = 0.0f;
+		}
+		if(foundY || (!foundX && foundXY)){
+			d0->velocity.y = 0.0f;
 		}
 	}
 
@@ -207,7 +201,7 @@ void World::orderDrawables(const Layer& layer){
 			}
 		}
 	} while(swapped && ss < MAX_SWAPS_PER_FRAME);
-	if(doSwap[layer] = ss !=0){
+	if(doSwap[layer] = ss != 0){
 		swapLayer = layer;
 	}
 }
@@ -396,6 +390,9 @@ unsigned int save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds,
 		if(d->velocity.length() > 0.0f){
 			c.set(sub + ".velocity", d->velocity.fv());
 		}
+		if(d->hideUnderCamera){
+			c.set(sub + ".hideUnderCamera", d->hideUnderCamera);
+		}
 		sub += ".animations";
 		for(auto &ent : d->animations){
 			drawable::Animation* a = d->animations[ent.first];
@@ -455,6 +452,7 @@ unsigned int load_helper(Configuration& c, World* w, std::string layer, Manager*
 		d->position.x = ceil(d->position.x);
 		d->position.y = ceil(d->position.y);
 		d->velocity = Vector(c.floatVector(sub + ".velocity"));
+		d->hideUnderCamera = c.boolValue(sub + ".hideUnderCamera");
 		sub += ".animations";
 		for(std::string an : c.children(sub, false)){
 			drawable::Animation* a = new drawable::Animation();
@@ -501,6 +499,7 @@ void World::cleanAll(const bool& all){
 
 	for(size_t i = 0; i < entities.size(); i++){
 		if(all || !entities[i]->isAlive()){
+			manager->soundManager->clear(entities[i]);
 			delete entities[i];
 			entities.erase(entities.begin() + (i--));
 		}

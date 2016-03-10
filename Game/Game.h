@@ -6,6 +6,7 @@
 #include "World.h"
 #include "Player.h"
 #include "Manager.h"
+#include "Handbook.h"
 #include "Constants.h"
 #include "Controller.h"
 #include "MathHelper.h"
@@ -33,6 +34,8 @@ private:
 	size_t currentLevel = 0;
 
 	PlayerInventory* playerInventory;
+
+	Handbook* handBook;
 
 	unsigned long inputListenerId;
 

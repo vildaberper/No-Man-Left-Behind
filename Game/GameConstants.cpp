@@ -6,6 +6,8 @@ namespace gc{
 	File levelDir;
 	File journalDir;
 
+	File handBookFile;
+
 	int inventorySize;
 
 	std::vector<std::string> levelProgression;
@@ -20,9 +22,12 @@ namespace gc{
 
 		levelDir = c::baseDir.child(config.stringValue("directories.levelDir"));
 		journalDir = c::baseDir.child(config.stringValue("directories.journalDir"));
-		levelProgression = config.stringVector("levels.progression");
+
+		handBookFile = c::baseDir.child(config.stringValue("files.handBookFile"));
 
 		inventorySize = config.intValue("general.inventorySize");
+
+		levelProgression = config.stringVector("levels.progression");
 
 		logger::timing("Game constants initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	}

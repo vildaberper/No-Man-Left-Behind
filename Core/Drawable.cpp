@@ -24,6 +24,8 @@ void Drawable::move(const float& dt){
 	Entity::move(dt);
 }
 
+const sf::Time fadeTime = sf::milliseconds(250);
+
 CoreSprite* Drawable::getSprite(const sf::Time& time){
 	Animation* a;
 	CoreSprite* s;
@@ -90,6 +92,36 @@ CoreSprite* Drawable::getSprite(const sf::Time& time){
 			(1.0f / s->sprite()->getScale().y) * scale
 			);
 	}
+	if(hideUnderCamera){
+		if(sf::FloatRect(
+			position.x + s->w() * scale * cb.offset.x,
+			position.y + s->h() * scale * cb.offset.y,
+			s->w() * scale * cb.size.x,
+			s->h() * scale * cb.size.y
+			).contains(gi::cameraTargetX + gi::relativeOffset.x, gi::cameraTargetY + gi::relativeOffset.y)){
+			if(!hiddenUnderCamera){
+				hiddenUnderCamera = true;
+				hideTime = time;
+			}
+			float a = 1.0f - ((time - hideTime) / fadeTime);
+			if(a < alpha){
+				alpha = a < 0.0f ? 0.0f : a;
+			}
+		}
+		else{
+			if(hiddenUnderCamera){
+				hiddenUnderCamera = false;
+				hideTime = time;
+			}
+			float a = ((time - hideTime) / fadeTime);
+			if(a > alpha){
+				alpha = a > 1.0f ? 1.0f : a;
+			}
+		}
+		sf::Color c = s->sprite()->getColor();
+		c.a = sf::Uint8(c.a * alpha);
+		s->sprite()->setColor(c);
+	}
 	return s;
 }
 
@@ -115,7 +147,10 @@ bool Drawable::collidesWith(Drawable* d, const sf::Time& time) {
 }
 
 void Drawable::calcRenderOffset(){
-	renderOffset_ = float(animations.begin()->second->sprites[0]->h()) * cb.renderOffset;
+	CoreSprite* cs = animations.begin()->second->sprites[0];
+
+	size = Vector(cs->w() * scale, cs->h() * scale);
+	renderOffset_ = float(cs->h()) * cb.renderOffset;
 }
 
 float Drawable::renderOffset(){

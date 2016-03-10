@@ -27,6 +27,8 @@ namespace gi{
 
 	bool defaultCursor = true;
 
+	Vector relativeOffset;
+
 	sf::Clock clock;
 
 	void zoom(const float& zoom){
@@ -378,62 +380,74 @@ namespace gi{
 	}
 
 	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h){
-		bool mrepeated = texbar->middle->isRepeated();
-		texbar->middle->setRepeated(true);
+		if(texbar->left == NULL || texbar->right == NULL){
+			sf::Sprite s = sf::Sprite(*texbar->middle);
 
-		bool rrepeated = texbar->right->isRepeated();
-		texbar->right->setRepeated(true);
-
-		float leftscale = h / texbar->left->getSize().y;
-		float leftw = texbar->left->getSize().x * leftscale;
-		int leftrw = int(ceil(leftw / leftscale));
-
-		float rightscale = h / texbar->right->getSize().y;
-		float rightw = texbar->right->getSize().x * rightscale;
-		int rightrw = int(ceil(rightw / rightscale));
-		
-		float middlescale = h / texbar->middle->getSize().y;
-		float middlew = w - leftw - rightw;
-		int middlerw = int(ceil(middlew / middlescale));
-
-		sf::Sprite s;
-
-		if(leftw + rightw < w){
-			s = sf::Sprite(*texbar->middle, sf::IntRect(0, 0, middlerw, int(ceil(h / middlescale))));
-			s.setPosition(
-				x + leftw,
-				y
+			s.setPosition(x, y);
+			s.scale(
+				w / texbar->middle->getSize().x,
+				h / texbar->middle->getSize().y
 				);
-			s.scale(middlescale, middlescale);
 			renderWindow->draw(s);
 		}
 		else{
-			float dw = w / 2;
-			leftw = dw;
-			leftrw = int(ceil(leftw / leftscale));
+			bool mrepeated = texbar->middle->isRepeated();
+			texbar->middle->setRepeated(true);
 
-			rightw = dw;
-			rightrw = int(ceil(rightw / rightscale));
+			bool rrepeated = texbar->right->isRepeated();
+			texbar->right->setRepeated(true);
+
+			float leftscale = h / texbar->left->getSize().y;
+			float leftw = texbar->left->getSize().x * leftscale;
+			int leftrw = int(ceil(leftw / leftscale));
+
+			float rightscale = h / texbar->right->getSize().y;
+			float rightw = texbar->right->getSize().x * rightscale;
+			int rightrw = int(ceil(rightw / rightscale));
+
+			float middlescale = h / texbar->middle->getSize().y;
+			float middlew = w - leftw - rightw;
+			int middlerw = int(ceil(middlew / middlescale));
+
+			sf::Sprite s;
+
+			if(leftw + rightw < w){
+				s = sf::Sprite(*texbar->middle, sf::IntRect(0, 0, middlerw, int(ceil(h / middlescale))));
+				s.setPosition(
+					x + leftw,
+					y
+					);
+				s.scale(middlescale, middlescale);
+				renderWindow->draw(s);
+			}
+			else{
+				float dw = w / 2;
+				leftw = dw;
+				leftrw = int(ceil(leftw / leftscale));
+
+				rightw = dw;
+				rightrw = int(ceil(rightw / rightscale));
+			}
+
+			s = sf::Sprite(*texbar->left, sf::IntRect(0, 0, leftrw, int(ceil(h / leftscale))));
+			s.setPosition(
+				x,
+				y
+				);
+			s.scale(leftscale, leftscale);
+			renderWindow->draw(s);
+
+			s = sf::Sprite(*texbar->right, sf::IntRect(0, 0, -rightrw, int(ceil(h / rightscale))));
+			s.setPosition(
+				x + w,
+				y
+				);
+			s.scale(-rightscale, rightscale);
+			renderWindow->draw(s);
+
+			texbar->middle->setRepeated(mrepeated);
+			texbar->right->setRepeated(rrepeated);
 		}
-
-		s = sf::Sprite(*texbar->left, sf::IntRect(0, 0, leftrw, int(ceil(h / leftscale))));
-		s.setPosition(
-			x,
-			y
-			);
-		s.scale(leftscale, leftscale);
-		renderWindow->draw(s);
-
-		s = sf::Sprite(*texbar->right, sf::IntRect(0, 0, -rightrw, int(ceil(h / rightscale))));
-		s.setPosition(
-			x + w,
-			y
-			);
-		s.scale(-rightscale, rightscale);
-		renderWindow->draw(s);
-
-		texbar->middle->setRepeated(mrepeated);
-		texbar->right->setRepeated(rrepeated);
 	}
 
 	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font){
@@ -447,7 +461,7 @@ namespace gi{
 			title.setCharacterSize(30);
 			float sc = std::min(0.6f, w / (title.getGlobalBounds().width + 10));
 			title.scale(sc, sc);
-			title.setOrigin(0, float(title.getCharacterSize() / 2));
+			title.setOrigin(0, 0);
 			title.setPosition(x + 5 * dxiz(), y + i * dhh * dyiz() - 5 * dyiz());
 			renderWindow->draw(title);
 		}

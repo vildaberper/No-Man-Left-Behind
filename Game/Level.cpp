@@ -115,6 +115,8 @@ void Level::begin(){
 	if(player == NULL){
 		player = new Player();
 		player->initialize(manager);
+		CoreSprite* cs = player->getSprite(sf::milliseconds(0));
+		gi::relativeOffset.y = player->scale * (-(cs->h() / 2.0f) + cs->h() * player->cb.offset.y + cs->h() * player->cb.size.y / 2.0f);
 	}
 
 	truck = new Truck();
@@ -122,6 +124,7 @@ void Level::begin(){
 	if(useTruck){
 		truck->position = spawn;
 		truck->position.y -= truck->getSprite(world->time())->h() * truck->scale * truck->cb.renderOffset / gi::dy();
+		manager->soundManager->relative = truck;
 	}
 	else{
 		truck->speed = 0.0f;
@@ -133,6 +136,7 @@ void Level::begin(){
 		player->position.y -= player->getSprite(world->time())->h() * player->scale * player->cb.renderOffset / gi::dy();
 		world->addDrawable(player, LAYER2);
 		playerInventory->menu->hidden = false;
+		manager->soundManager->relative = player;
 	}
 	world->addDrawable(truck, LAYER2);
 
@@ -151,9 +155,13 @@ void Level::begin(){
 	journal->viewRelative = true;
 	world->addDrawable(journal, LAYER4);
 
-	//introId = si::playMusic(musicIntro, true, true, true);
-	mainId = si::playMusic(musicMain, true, true, true);
-	// music queue
+	if(musicIntro.length() > 0){
+		introId = si::playMusic(musicIntro, true, false, false);
+		mainId = si::queueMusic(introId, musicMain, false, true, true);
+	}
+	else{
+		mainId = si::playMusic(musicMain, true, true, true);
+	}
 
 	for(drawable::Drawable* d : world->drawables[LAYER2]){
 		if(
@@ -223,20 +231,8 @@ void Level::tick(){
 		world->setTimeScale(16.0f);
 	}
 
-	if(manager->inputManager->isFirstPressed(sf::Keyboard::H)){
-		playerInventory->setSize(playerInventory->getSize() - 1);
-		playerInventory->update();
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::J)){
-		playerInventory->setSize(playerInventory->getSize() + 1);
-		playerInventory->update();
-	}
-
-	if(manager->inputManager->isFirstPressed(sf::Keyboard::R)){
-		playerInventory->update();
-		for(ResourceBox* rb : resourceBoxes){
-			rb->update();
-		}
+	if(manager->inputManager->isFirstPressed(sf::Keyboard::O)){
+		completeState = IN_TRUCK;
 	}
 
 	if(fadeValue > 0.0f && completeState == IN_GAME){
@@ -277,6 +273,7 @@ void Level::tick(){
 			world->addDrawable(player, LAYER2);
 			playerInventory->menu->hidden = false;
 			clock.restart();
+			manager->soundManager->relative = player;
 		}
 		break;
 	}
@@ -322,6 +319,15 @@ void Level::tick(){
 			}
 		}
 
+		if(handBook->isOpen()){
+			if(controller->isPressed(LB)){
+				handBook->turnLeft();
+			}
+			if(controller->isPressed(RB)){
+				handBook->turnRight();
+			}
+		}
+
 		if(controller->isPressed(LB)){
 			playerInventory->selectedSlot--;
 			playerInventory->update();
@@ -348,9 +354,27 @@ void Level::tick(){
 		gi::camera(world->dt());
 		world->render();
 
-		manager->menuManager->draw(world->time());
-
 		playerInventory->render();
+
+		/*
+		Journal
+		*/
+		Vector cv = Vector(0.0f, target - actual);
+		if(cv.length() > 0.0f){
+			cv *= world->dt() * (d - (d / cv.length()));
+			actual += cv.y;
+		}
+		journal->position.x = 50;
+		journal->position.y = -10 - actual;
+		journal->movedY = true;
+		if(closest != NULL){
+			gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
+		}
+		//
+
+		handBook->render();
+
+		manager->menuManager->draw(world->time());
 
 		if(timer.asMilliseconds() > 0){
 			gi::draw(*timerHud->getSprite(world->time()));
@@ -370,20 +394,6 @@ void Level::tick(){
 		gi::cameraX = gi::cameraTargetX;
 		gi::cameraY = gi::cameraTargetY;
 		firstFrame = false;
-	}
-
-	Vector cv = Vector(0.0f, target - actual);
-	if(cv.length() > 0.0f){
-		cv *= world->dt() * (d - (d / cv.length()));
-		actual += cv.y;
-	}
-
-	journal->position.x = 50;
-	journal->position.y = -10 - actual;
-	journal->movedY = true;
-
-	if(closest != NULL){
-		gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
 	}
 
 	if(fadeValue > 0.0f){

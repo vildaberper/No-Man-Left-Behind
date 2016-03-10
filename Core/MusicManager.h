@@ -26,6 +26,9 @@ namespace mm{
 
 		sf::Time duration;
 		sf::Time start;
+
+		bool queued;
+		unsigned long next;
 	};
 }
 
@@ -42,6 +45,8 @@ public:
 	unsigned long play(const std::string& name);
 	unsigned long play(const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop);
 	unsigned long play(const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop);
+	unsigned long queue(const unsigned long& before, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop);
+	unsigned long queue(const unsigned long& before, const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop);
 	
 	void stop(const unsigned long& id, const bool& force);
 private:

@@ -72,5 +72,10 @@ namespace drawable{
 		float renderOffset_;
 		bool movedY = false;
 		bool updateOrder = false;
+
+		bool hideUnderCamera = false;
+		bool hiddenUnderCamera = false;
+		float alpha;
+		sf::Time hideTime;
 	};
 }

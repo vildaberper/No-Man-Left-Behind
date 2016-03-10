@@ -15,5 +15,5 @@ TexBar::~TexBar(){
 }
 
 bool TexBar::isValid(){
-	return left != NULL && middle != NULL && right != NULL;
+	return (left != NULL && middle != NULL && right != NULL) || middle != NULL;
 }

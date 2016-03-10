@@ -71,6 +71,7 @@ void Game::run(){
 			jmanager = new JournalManager();
 
 			playerInventory = new PlayerInventory(controller, manager, gc::inventorySize);
+			handBook = new Handbook(manager);
 			continue;
 		}
 
@@ -91,6 +92,7 @@ void Game::run(){
 				gi::endOfFrame();
 				level = new Level(manager, controller, jmanager);
 				level->playerInventory = playerInventory;
+				level->handBook = handBook;
 				level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 				level->begin();
 				clock.restart();
@@ -111,6 +113,7 @@ void Game::run(){
 					delete level;
 					level = new Level(manager, controller, jmanager);
 					level->playerInventory = playerInventory;
+					level->handBook = handBook;
 					level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 					level->begin();
 					clock.restart();

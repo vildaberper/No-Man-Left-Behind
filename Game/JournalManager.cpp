@@ -54,20 +54,24 @@ void JournalManager::loadFromDir(File& file){
 
 		std::vector<std::string>* lines = f.readTextFile();
 
-		std::string r = (*lines)[0];
 		size_t s;
-		while((s = r.find_first_of(',')) != std::string::npos){
-			j->requirements.push_back(parseResource(r.substr(0, s)));
-			r = r.substr(s + 1);
+		std::string r = (*lines)[0];
+		if(r.size() > 0){
+			while((s = r.find_first_of(',')) != std::string::npos){
+				j->requirements.push_back(parseResource(r.substr(0, s)));
+				r = r.substr(s + 1);
+			}
+			j->requirements.push_back(parseResource(r));
 		}
-		j->requirements.push_back(parseResource(r));
 
 		r = (*lines)[1];
-		while((s = r.find_first_of(',')) != std::string::npos){
-			j->injured.push_back(r.substr(0, s));
-			r = r.substr(s + 1);
+		if(r.size() > 0){
+			while((s = r.find_first_of(',')) != std::string::npos){
+				j->injured.push_back(r.substr(0, s));
+				r = r.substr(s + 1);
+			}
+			j->injured.push_back(r);
 		}
-		j->injured.push_back(r);
 
 		for(size_t i = 2; i < lines->size(); i++){
 			j->lines.push_back((*lines)[i]);

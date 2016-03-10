@@ -5,11 +5,16 @@
 #include "GI.h"
 #include "Manager.h"
 #include "Animatable.h"
+#include "GameConstants.h"
 
 class Page{
 public:
-	Page();
-	~Page();
+	Page(){
+
+	}
+	~Page(){
+
+	}
 
 	std::vector<std::string> lines;
 };
@@ -21,13 +26,15 @@ namespace handbook{
 	static std::string OPENING = "state3";
 }
 
-class Handbook : public Animatable{
+class Handbook : public Animatable, public InputListener{
 public:
 	Handbook(Manager* m);
 	~Handbook();
 
-	void openHandbook(const sf::Time& time);
-	void closeHandbook(const sf::Time& time);
+	void on(MouseButtonEvent& event);
+
+	void open();
+	void close();
 	bool hasLeftPage();
 	bool hasRightPage();
 	void turnLeft();
@@ -35,8 +42,20 @@ public:
 	bool isOpen();
 	bool isClosed();
 
-	void render(const sf::Time& time);
+	void render();
 
 	std::vector<Page*> pages;
 	size_t current;
+
+	Manager* manager;
+
+	sf::Clock clock;
+
+	Menu* openMenu;
+	Menu* closeMenu;
+	Menu* leftMenu;
+	Menu* rightMenu;
+	std::string* hc;
+
+	unsigned long listenerId;
 };

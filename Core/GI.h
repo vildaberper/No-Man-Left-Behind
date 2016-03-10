@@ -38,6 +38,8 @@ namespace gi{
 	extern bool hasCursor;
 	extern drawable::Drawable* cursor;
 
+	extern Vector relativeOffset;
+
 	void zoom(const float& zoom);
 
 	void camera(const float& dt);

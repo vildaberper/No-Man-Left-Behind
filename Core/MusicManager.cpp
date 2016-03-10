@@ -49,7 +49,15 @@ void MusicManager::tick(sf::RenderWindow* window, const sf::Time& time, const fl
 	// GarbageDAY!
 	std::map<unsigned long, mm::Music*>::iterator itr = channels.begin();
 	while(itr != channels.end()){
-		if((*itr).second->music->getStatus() == sf::Music::Stopped){
+		std::pair<unsigned long, mm::Music*> mp = (*itr);
+		if(!mp.second->queued && mp.second->music->getStatus() == sf::Music::Stopped){
+			if(mp.second->next != 0 && channels.count(mp.second->next) != 0){
+				mm::Music* m = channels[mp.second->next];
+
+				m->queued = false;
+				m->start = clock.getElapsedTime();
+				m->music->play();
+			}
 			delete (*itr).second;
 			itr = channels.erase(itr);
 		}
@@ -93,9 +101,8 @@ unsigned long MusicManager::play(const std::string& name, const bool& fadeIn, co
 }
 
 unsigned long MusicManager::play(const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
-	unsigned long id = idTracker++;
+	unsigned long id = ++idTracker;
 	if(musicBoard.count(category) == 0 || musicBoard[category].count(name) == 0){
-		// TODO: call undefined sound
 		logger::warning("Music " + category + "." + name + "could not be found.");
 		return 0;
 	}
@@ -123,6 +130,51 @@ unsigned long MusicManager::play(const std::string& category, const std::string&
 		localMusic->music->play();
 		localMusic->start = clock.getElapsedTime();
 		channels[id] = localMusic;
+
+		return id;
+	}
+}
+unsigned long MusicManager::queue(const unsigned long& before, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
+	std::string::size_type index = name.find_first_of('.');
+
+	return queue(before, name.substr(0, index), name.substr(index + 1), fadeIn, fadeOut, loop);
+}
+// Stupid redundance, I know...
+unsigned long MusicManager::queue(const unsigned long& before, const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
+	unsigned long id = ++idTracker;
+	if(musicBoard.count(category) == 0 || musicBoard[category].count(name) == 0){
+		logger::warning("Music " + category + "." + name + "could not be found.");
+		return 0;
+	}
+	else if(channels.count(before) == 0){
+		logger::warning("No sound is currently playing with the id: " + std::to_string(before));
+		return 0;
+	}
+	else{
+		mm::Music* localMusic = new mm::Music();
+
+		localMusic->music = new Music();
+		if(!localMusic->music->openFromFile(musicBoard[category][name]->path())){
+			logger::warning("File " + musicBoard[category][name]->path() + "could not be found.");
+		}
+		localMusic->music->setVolume(0.0f);
+
+		localMusic->fadeIn = fadeIn;
+		localMusic->fadeOut = fadeOut;
+		localMusic->loop = loop;
+		localMusic->music->setLoop(loop);
+
+		if(loop){
+			localMusic->duration = milliseconds(0);
+		}
+		else{
+			localMusic->duration = localMusic->music->getDuration();
+		}
+
+		localMusic->queued = true;
+		channels[id] = localMusic;
+
+		channels[before]->next = id;
 
 		return id;
 	}

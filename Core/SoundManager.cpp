@@ -35,7 +35,6 @@ bool SoundManager::initialize(RenderWindow* window){
 bool SoundManager::finalize(RenderWindow* window){
 	// Empty containers
 	for(auto &ent : channels){
-		ent.second->stop();
 		delete ent.second;
 	}
 	channels.clear();
@@ -49,19 +48,58 @@ bool SoundManager::finalize(RenderWindow* window){
 	return true;
 }
 
+void SoundManager::clear(const Entity* source, bool stop){
+	if(relative == source){
+		relative = NULL;
+	}
+	for(auto &ent : channels){
+		if(ent.second->source == source){
+			ent.second->source = NULL;
+			if(stop){
+				ent.second->sound->stop();
+			}
+		}
+	}
+}
+
 void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt){
 	// Cleaning stopped sounds
 	for(auto &ent : channels){
-		if(ent.second->getStatus() == Sound::Stopped){
+		if(ent.second->sound->getStatus() == Sound::Stopped){
 			delete ent.second;
 			ent.second = NULL;
 		}
 	}
-	for(std::map<unsigned long, Sound*>::iterator i = channels.begin(); i != channels.end(); ) {
-		if(i->second == NULL) {
+	for(std::map<unsigned long, soundmanager::Sound*>::iterator i = channels.begin(); i != channels.end();){
+		if(i->second == NULL){
 			channels.erase(i++);
 		}
-		else {
+		else{
+			if(relative != NULL && i->second->source != NULL){
+				Entity* e0 = relative;
+				const Entity* e1 = i->second->source;
+				float d = math::distance(
+					e0->position.x + e0->size.x / 2.0f,
+					e0->position.y + e0->size.y / 2.0f,
+					e1->position.x + e1->size.x / 2.0f,
+					e1->position.y + e1->size.y / 2.0f
+					);
+
+				/*
+					Directional sound not possible due to stereo sampling.
+					Volume is relative.
+				*/
+
+				if(d < minDistance){
+					i->second->sound->setVolume(100.0f * c::masterVolume * sqrt(1.0f - (d / minDistance)));
+				}
+				else{
+					i->second->sound->setVolume(0.0f);
+				}
+			}
+			else{
+				i->second->sound->setVolume(100.0f * c::masterVolume);
+			}
 			++i;
 		}
 	}
@@ -70,7 +108,7 @@ void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt)
 	if(dt <= 0.0f){
 		if(playing){
 			for(auto &ent : channels){
-				ent.second->pause();
+				ent.second->sound->pause();
 			}
 			playing = false;
 		}
@@ -78,25 +116,40 @@ void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt)
 	else{
 		if(!playing){
 			for(auto &ent : channels){
-				ent.second->play();
+				ent.second->sound->play();
 			}
 			playing = true;
 		}
 	}
 }
 
-unsigned long SoundManager::play(const std::string& name, const bool& loop){
+unsigned long SoundManager::play(const Entity* source, const std::string& name, const bool& loop){
 	std::string::size_type index = name.find_first_of('.');
 
-	return play(name.substr(0, index), name.substr(index + 1), loop);
+	return play(source, name.substr(0, index), name.substr(index + 1), loop);
 }
-unsigned long SoundManager::play(const string& category, const string& name, const bool& loop){
-	unsigned long id = idTracker++;
+unsigned long SoundManager::playRandom(const Entity* source, const std::string& category, const bool& loop){
+	if(soundBoard.count(category) == 0){
+		logger::warning("Sound category not found: " + category);
+		return 0;
+	}
+	std::map<std::string, SoundBuffer*> m = soundBoard[category];
+	std::map<std::string, SoundBuffer*>::const_iterator i = m.begin();
+	std::advance(i, random::random(m.size() - 1));
+	return play(
+		source,
+		category,
+		i->first,
+		loop
+		);
+}
+unsigned long SoundManager::play(const Entity* source, const string& category, const string& name, const bool& loop){
+	unsigned long id = ++idTracker;
 
 	// can add a cap to how many sounds can play at once
 	if(channels.size() > 100){
 		logger::warning("All them sounds are playing");
-		return false;
+		return 0;
 	}
 
 	Sound* s = new Sound();
@@ -110,13 +163,13 @@ unsigned long SoundManager::play(const string& category, const string& name, con
 	s->setVolume(c::masterVolume * 100.0f);
 	s->setLoop(loop);
 	s->play();
-	channels[id] = s;
+	channels[id] = new soundmanager::Sound(s, source);
 	return id;
 }
 
 void SoundManager::stop(const unsigned long& id){
 	if(channels.count(id) > 0){
-		channels[id]->stop();
+		channels[id]->sound->stop();
 	}
 }
 

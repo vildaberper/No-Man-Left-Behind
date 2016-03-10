@@ -32,5 +32,6 @@ public:
 	}
 	Vector velocity;
 	Vector position;
+	Vector size;
 	float health;
 };

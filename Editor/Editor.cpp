@@ -455,6 +455,11 @@ void Editor::on(KeyboardEvent& event){
 				}
 			}
 			break;
+		case Keyboard::H:
+			if(target != NULL){
+				target->drawable->hideUnderCamera = !target->drawable->hideUnderCamera;
+			}
+			break;
 		case Keyboard::Num0:
 		case Keyboard::Num1:
 		case Keyboard::Num2:

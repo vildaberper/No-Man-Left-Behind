@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "Random.h"
 #include "Injured.h"
+#include "Handbook.h"
 #include "Controller.h"
 #include "ResourceBox.h"
 #include "JournalManager.h"
@@ -79,6 +80,8 @@ public:
 
 	Player* player = NULL;
 	PlayerInventory* playerInventory;
+
+	Handbook* handBook;
 
 	bool firstFrame = true;
 	LevelState state;

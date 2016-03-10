@@ -34,22 +34,42 @@ Vector Controller::camera(){
 bool Controller::isPressed(const Command& c){
 	switch(c){
 	case INTERACT:
-		return isFirstPressed(0, 0) || im->isFirstPressed(sf::Keyboard::Key::E);
+		if(im->isFirstPressed(sf::Keyboard::Key::E)){
+			usingController = false;
+			return true;
+		}
+		return isFirstPressed(0, 0);
 		break;
 	case PAUSE:
-		return isFirstPressed(0, 7) || im->isFirstPressed(sf::Keyboard::Key::P);
+		if(im->isFirstPressed(sf::Keyboard::Key::P)){
+			usingController = false;
+			return true;
+		}
+		return isFirstPressed(0, 7);
 		break;
 	case LEFT:
-		return im->isPressed(sf::Keyboard::Key::A);
+		if(im->isPressed(sf::Keyboard::Key::A)){
+			usingController = false;
+			return true;
+		}
 		break;
 	case RIGHT:
-		return im->isPressed(sf::Keyboard::Key::D);
+		if(im->isPressed(sf::Keyboard::Key::D)){
+			usingController = false;
+			return true;
+		}
 		break;
 	case UP:
-		return im->isPressed(sf::Keyboard::Key::W);
+		if(im->isPressed(sf::Keyboard::Key::W)){
+			usingController = false;
+			return true;
+		}
 		break;
 	case DOWN:
-		return im->isPressed(sf::Keyboard::Key::S);
+		if(im->isPressed(sf::Keyboard::Key::S)){
+			usingController = false;
+			return true;
+		}
 		break;
 	case RB:
 		return isFirstPressed(0, 5);
@@ -64,7 +84,10 @@ bool Controller::isPressed(const Command& c){
 bool Controller::isPressed(const unsigned int& controllerId, const unsigned int& button){
 	if(sf::Joystick::isConnected(controllerId)){
 		if(sf::Joystick::getButtonCount(controllerId) > button){
-			return usingController = sf::Joystick::isButtonPressed(controllerId, button);
+			if(sf::Joystick::isButtonPressed(controllerId, button)){
+				usingController = true;
+				return true;
+			}
 		}
 	}
 	return false;
@@ -75,7 +98,16 @@ bool Controller::isFirstPressed(const unsigned int& controllerId, const unsigned
 		if(sf::Joystick::getButtonCount(controllerId) > button){
 			bool state = buttonStates[controllerId][button];
 
-			return usingController = (buttonStates[controllerId][button] = sf::Joystick::isButtonPressed(controllerId, button)) && !state;
+			if(sf::Joystick::isButtonPressed(controllerId, button)){
+				buttonStates[controllerId][button] = true;
+				usingController = true;
+				if(!state){
+					return true;
+				}
+			}
+			else{
+				buttonStates[controllerId][button] = false;
+			}
 		}
 	}
 	return false;

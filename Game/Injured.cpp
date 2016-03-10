@@ -1,5 +1,9 @@
 #include "Injured.h"
 
+namespace injured{
+	sf::Time lastVoice;
+}
+
 Injured::Injured(){
 	customJournal = new Journal();
 }
@@ -16,8 +20,26 @@ void Injured::initialize(Manager* manager, const std::string& animation, Journal
 	updateAnimation();
 	cb.shouldCollide = true;
 	cb.renderOffset = 0.9f;
-	cb.offset = Vector(0.2f, 0.3f);
-	cb.size = Vector(0.6f, 0.6f);
+	cb.offset = Vector(0.2f, 0.1f);
+	cb.size = Vector(0.6f, 0.8f);
+	nextVoice = sf::seconds(15.0f * random::random());
+}
+
+void Injured::tick(const sf::Time& time, const float& dt){
+	if(isHealed()){
+		si::stopSound(currentVoice);
+	}
+	else{
+		if(time - lastVoice > nextVoice){
+			// Make sure two voices does not start at the same time
+			if((time - injured::lastVoice).asMilliseconds() > 500){
+				injured::lastVoice = lastVoice = time;
+				nextVoice = sf::seconds(5.0f + 15.0f * random::random());
+				currentVoice = si::playRandomSound(this, id);
+			}
+		}
+	}
+	Animatable::tick(time, dt);
 }
 
 void Injured::updateAnimation(){
@@ -49,22 +71,14 @@ void Injured::updateAnimation(){
 		}
 		customJournal->lines.push_back(line);
 	}
-	for(size_t i = 0; i < progress; i++){
+	for(size_t i = 0; i < applied.size(); i++){
 		customJournal->lines.push_back("");
-		customJournal->lines.push_back("Treated with " + resourceToString(journal->requirements[i]) + ".");
+		customJournal->lines.push_back(
+			"Treated with " + resourceToString(applied[i].first)
+			+ (applied[i].second ? "." : ", but it did not seem to help.")
+			);
 	}
 	setAnimation(state(INJURED_STATES - 1 + progress - journal->requirements.size()));
-	if(isHealed()){
-		if(voice){
-			si::stopSound(currentVoice);
-		}
-	}
-	else{
-		if(!voice){
-			//voice = true;
-			//currentVoice = si::playSound("voice." + id, true);
-		}
-	}
 }
 
 bool Injured::isHealed(){
@@ -72,11 +86,16 @@ bool Injured::isHealed(){
 }
 
 bool Injured::use(ItemStack& is){
-	if(is.amount > 0 && !isHealed() && is.item.type == journal->requirements[progress]){
-		progress++;
+	if(is.amount > 0 && !isHealed()){
+		rbPair pair = rbPair(is.item.type, is.item.type == journal->requirements[progress]);
+
+		applied.push_back(pair);
+		if(pair.second){
+			progress++;
+		}
 		updateAnimation();
 		is.amount--;
-		si::playSound("resources." + resourceToString(is.item.type));
+		si::playSound(this, "resources." + resourceToString(is.item.type));
 		return true;
 	}
 	return false;
