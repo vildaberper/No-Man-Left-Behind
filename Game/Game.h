@@ -29,6 +29,10 @@ public:
 
 	void run();
 private:
+	CoreSprite* mainmenu;
+	float a;
+	float at;
+
 	GameState state = MAIN_MENU;
 
 	size_t currentLevel = 0;

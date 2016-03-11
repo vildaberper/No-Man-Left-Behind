@@ -1,5 +1,7 @@
 #include "Level.h"
 
+float stepDistance = 5.0f;
+
 Level::Level(Manager* manager, Controller* controller, JournalManager* jmanager){
 	Level::manager = manager;
 	Level::controller = controller;
@@ -153,7 +155,6 @@ void Level::begin(){
 	journal->position = Vector(0.0, 0.0);
 	journal->scale = 0.85f;
 	journal->viewRelative = true;
-	world->addDrawable(journal, LAYER4);
 
 	if(musicIntro.length() > 0){
 		introId = si::playMusic(musicIntro, true, false, false);
@@ -357,16 +358,18 @@ void Level::tick(){
 		/*
 		Journal
 		*/
-		Vector cv = Vector(0.0f, target - actual);
-		if(cv.length() > 0.0f){
-			cv *= world->dt() * (d - (d / cv.length()));
-			actual += cv.y;
-		}
-		journal->position.x = 50;
-		journal->position.y = -10 - actual;
-		journal->movedY = true;
-		if(closest != NULL){
-			gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
+		if(completeState == IN_GAME){
+			Vector cv = Vector(0.0f, target - actual);
+			if(cv.length() > 0.0f){
+				cv *= world->dt() * (d - (d / cv.length()));
+				actual += cv.y;
+			}
+			journal->position.x = 50;
+			journal->position.y = -10 - actual;
+			gi::draw(*journal->getSprite(world->time()));
+			if(closest != NULL){
+				gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
+			}
 		}
 		//
 		handBook->render();
@@ -429,16 +432,49 @@ Injured* Level::nearestInjured(const float& maxDistance){
 	float d = maxDistance;
 
 	sf::FloatRect pfr = player->bounds(world->time());
+	Vector cp((pfr.left + pfr.width / 2.0f), (pfr.top + pfr.height / 2.0f));
 
 	for(Injured* inj : injured){
 		if(!inj->isAlive()){
 			continue;
 		}
 		sf::FloatRect ifr = inj->bounds(world->time());
-		float distance = math::distance(pfr.left + pfr.width / 2, pfr.top + pfr.height / 2, ifr.left + ifr.width / 2, ifr.top + ifr.height / 2);
+		float distance = math::distance(cp.x, cp.y, ifr.left + ifr.width / 2, ifr.top + ifr.height / 2);
 		if(d > distance){
-			d = distance;
-			i = inj;
+			Vector v(
+				(ifr.left + ifr.width / 2.0f) - cp.x,
+				(ifr.top + ifr.height / 2.0f) - cp.y
+				);
+			float l = v.length();
+			v = v.norm();
+			bool passed = true;
+
+			for(float f = stepDistance; f < l && passed; f += stepDistance){
+				sf::Vector2f fv = (cp + (v * f)).v2f();
+				size_t min = world->binarySearchRenderOffset(cp.y - 1000.0f, LAYER2);
+				size_t max = world->binarySearchRenderOffset(cp.y + 1000.0f, LAYER2);
+
+					for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
+						drawable::Drawable* d = world->drawables[LAYER2][di1];
+
+						if(d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed")){
+							continue;
+						}
+						if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){
+							continue;
+						}
+
+						if(d->bounds(world->time()).contains(fv)){
+							passed = false;
+							break;
+						}
+					}
+				}
+
+			if(passed){
+				d = distance;
+				i = inj;
+			}
 		}
 	}
 	return i;
@@ -449,13 +485,49 @@ ResourceBox* Level::nearestResourceBox(const float& maxDistance){
 	float d = maxDistance;
 
 	sf::FloatRect pfr = player->bounds(world->time());
+	Vector cp((pfr.left + pfr.width / 2.0f), (pfr.top + pfr.height / 2.0f));
 
-	for(ResourceBox* box : resourceBoxes){
-		sf::FloatRect ifr = box->bounds(world->time());
-		float distance = math::distance(pfr.left + pfr.width / 2, pfr.top + pfr.height / 2, ifr.left + ifr.width / 2, ifr.top + ifr.height / 2);
+	for(ResourceBox* inj : resourceBoxes){
+		if(!inj->isAlive()){
+			continue;
+		}
+		sf::FloatRect ifr = inj->bounds(world->time());
+		float distance = math::distance(cp.x, cp.y, ifr.left + ifr.width / 2, ifr.top + ifr.height / 2);
 		if(d > distance){
-			d = distance;
-			i = box;
+			Vector v(
+				(ifr.left + ifr.width / 2.0f) - cp.x,
+				(ifr.top + ifr.height / 2.0f) - cp.y
+				);
+			float l = v.length();
+			v = v.norm();
+			bool passed = true;
+
+			for(float f = stepDistance; f < l && passed; f += stepDistance){
+				sf::Vector2f fv = (cp + (v * f)).v2f();
+				size_t min = world->binarySearchRenderOffset(cp.y - 1000.0f, LAYER2);
+				size_t max = world->binarySearchRenderOffset(cp.y + 1000.0f, LAYER2);
+
+				for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
+					drawable::Drawable* d = world->drawables[LAYER2][di1];
+
+					if(d == inj || d == player){
+						continue;
+					}
+					if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){
+						continue;
+					}
+
+					if(d->bounds(world->time()).contains(fv)){
+						passed = false;
+						break;
+					}
+				}
+			}
+
+			if(passed){
+				d = distance;
+				i = inj;
+			}
 		}
 	}
 	return i;

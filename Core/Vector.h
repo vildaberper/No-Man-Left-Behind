@@ -37,6 +37,10 @@ public:
 	
 	}
 
+	sf::Vector2f v2f(){
+		return sf::Vector2f(x, y);
+	}
+
 	const std::vector<float> fv(){
 		std::vector<float> fs;
 		fs.push_back(x);
@@ -101,7 +105,7 @@ public:
 		return i == 0 ? x : y;
 	}
 
-	const Vector operator*(const float& f){
+	Vector operator*(const float& f){
 		return Vector(x * f, y * f);
 	}
 
@@ -119,7 +123,7 @@ public:
 		y = y / f;
 	}
 
-	const Vector operator +(const Vector& v){
+	Vector operator +(const Vector& v){
 		return Vector(x + v.x, y + v.y);
 	}
 

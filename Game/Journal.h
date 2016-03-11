@@ -4,11 +4,14 @@
 #include <string>
 
 #include "Item.h"
+#include "SFMLI.h"
 
 class Journal{
 public:
 	Journal();
 	~Journal();
+
+	sf::Time deathTimer;
 
 	std::vector<std::string> injured;
 

@@ -23,6 +23,8 @@ enum CompleteState{
 	IN_TRUCK
 };
 
+extern float stepDistance;
+
 class Level : InputListener{
 public:
 	Level(Manager* manager, Controller* controller, JournalManager* jmanager);

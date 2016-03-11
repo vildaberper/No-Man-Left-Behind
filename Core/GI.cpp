@@ -219,8 +219,10 @@ namespace gi{
 	}
 
 	void drawLog(){
-		for(unsigned int i = 0; i < logger::history.size(); i++){
-			draw(logger::history[logger::history.size() - i - 1], 10 * dxiz(), (TARGET_HEIGHT - 125 - 40 * i) * dyiz(), (TARGET_WIDTH - 20) * dxiz(), 40 * dyiz());
+		if(c::showLog){
+			for(unsigned int i = 0; i < logger::history.size(); i++){
+				draw(logger::history[logger::history.size() - i - 1], 10 * dxiz(), (TARGET_HEIGHT - 125 - 40 * i) * dyiz(), (TARGET_WIDTH - 20) * dxiz(), 40 * dyiz());
+			}
 		}
 	}
 

@@ -29,7 +29,7 @@ void Injured::tick(const sf::Time& time, const float& dt){
 	if(isHealed()){
 		si::stopSound(currentVoice);
 	}
-	else{
+	else if(!isDead()){
 		if(time - lastVoice > nextVoice){
 			// Make sure two voices does not start at the same time
 			if((time - injured::lastVoice).asMilliseconds() > 500){
@@ -85,9 +85,25 @@ bool Injured::isHealed(){
 	return progress >= journal->requirements.size();
 }
 
+bool Injured::isDead(){
+	return dead;
+}
+
 bool Injured::use(ItemStack& is){
 	if(is.amount > 0 && !isHealed()){
-		rbPair pair = rbPair(is.item.type, is.item.type == journal->requirements[progress]);
+		for(rbPair pr : applied){
+			if(is.item.type == pr.first){
+				return false;
+			}
+		}
+		bool snd = false;
+		for(Resource r : journal->requirements){
+			if(is.item.type == r){
+				snd = true;
+				break;
+			}
+		}
+		rbPair pair = rbPair(is.item.type, snd);
 
 		applied.push_back(pair);
 		if(pair.second){

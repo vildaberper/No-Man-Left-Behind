@@ -27,6 +27,7 @@ namespace c{
 	int frameLimit;
 	int resX;
 	int resY;
+	bool showLog;
 
 	const void initialize(){
 		sf::Clock cl;
@@ -59,6 +60,7 @@ namespace c{
 		frameLimit = config.intValue("settings.frameLimit");
 		resX = config.intValue("settings.resX");
 		resY = config.intValue("settings.resY");
+		showLog = config.boolValue("settings.showLog");
 
 		masterVolume = config.floatValue("volume.masterVolume");
 		musicVolume = config.floatValue("volume.musicVolume");

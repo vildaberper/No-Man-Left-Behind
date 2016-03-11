@@ -73,7 +73,12 @@ void JournalManager::loadFromDir(File& file){
 			j->injured.push_back(r);
 		}
 
-		for(size_t i = 2; i < lines->size(); i++){
+		r = (*lines)[2];
+		if(r.length() > 0){
+			j->deathTimer = sf::seconds(float(std::stoi(r)));
+		}
+
+		for(size_t i = 3; i < lines->size(); i++){
 			j->lines.push_back((*lines)[i]);
 		}
 

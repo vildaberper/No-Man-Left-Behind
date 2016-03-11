@@ -29,6 +29,7 @@ public:
 	void updateAnimation();
 
 	bool isHealed();
+	bool isDead();
 
 	bool use(ItemStack& is);
 
@@ -45,4 +46,8 @@ public:
 	std::string id;
 
 	std::vector<rbPair> applied;
+
+	bool hasSeenJournal = false;
+
+	bool dead = false;
 };

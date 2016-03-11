@@ -24,6 +24,7 @@ namespace c{
 	extern int frameLimit;
 	extern int resX;
 	extern int resY;
+	extern bool showLog;
 
 	extern float masterVolume;
 	extern float musicVolume;

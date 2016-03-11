@@ -72,6 +72,12 @@ void Game::run(){
 
 			playerInventory = new PlayerInventory(controller, manager, gc::inventorySize);
 			handBook = new Handbook(manager);
+
+			mainmenu = manager->spriteManager->getSprite("bg.mainmenu");
+			a = 1.0f;
+			at = 0.0f;
+
+			clock.restart();
 			continue;
 		}
 
@@ -82,12 +88,26 @@ void Game::run(){
 
 		window->clear();
 
+		if(a > at && a > 0.0f){
+			a -= dt;
+		}else if(a < at && a < 1.0f){
+			a += dt;
+		}
+
 		switch(state){
 		case MAIN_MENU:
-			state = LEVEL;
+			gi::background(*mainmenu);
+			if(manager->inputManager->isFirstPressed(sf::Keyboard::Return) && !(a > 0.2f)){
+				at = 1.0f;
+			}
+			if(a >= 1.0f && at == 1.0f){
+				state = LEVEL;
+			}
 			break;
 		case LEVEL:
 			if(level == NULL){
+				a = 0.0f;
+				at = 0.0f;
 				gi::darken(1.0f);
 				gi::endOfFrame();
 				level = new Level(manager, controller, jmanager);
@@ -104,6 +124,8 @@ void Game::run(){
 				currentLevel++;
 				if(currentLevel >= gc::levelProgression.size()){
 					delete level;
+					level = NULL;
+					currentLevel = 0;
 					state = COMPLETE;
 					continue;
 				}
@@ -123,7 +145,14 @@ void Game::run(){
 
 			break;
 		case COMPLETE:
+			a = 1.0f;
+			at = 0.0f;
+			state = MAIN_MENU;
 			break;
+		}
+
+		if(a > 0.0f){
+			gi::darken(a);
 		}
 
 		gi::drawLog();
