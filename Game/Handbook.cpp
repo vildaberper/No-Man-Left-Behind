@@ -152,6 +152,7 @@ void Handbook::open(){
 	currentAnimation = OPENING;
 	nextAnimation = OPENED;
 	startTime = clock.getElapsedTime();
+	si::playSound(NULL, "interface.handbook_open");
 }
 void Handbook::close(){
 	if (!isOpen()){

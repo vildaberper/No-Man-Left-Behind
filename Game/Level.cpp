@@ -2,6 +2,39 @@
 
 float stepDistance = 5.0f;
 
+/*
+
+float v = fmod((cl.getElapsedTime().asSeconds() / 2.0f), 1.0f);
+if(v < 0.0f){
+v = 0.0f;
+}
+else if(v > 1.0f){
+v = 1.0f;
+}
+float w = 300;
+float h = 150;
+sf::ConvexShape t;
+t.setPosition(500, 500);
+t.setFillColor(sf::Color(255, 255, 255, 255));
+t.setOutlineColor(sf::Color(0, 0, 0, 255));
+t.setOutlineThickness(7);
+t.setPointCount(3);
+t.setPoint(0, sf::Vector2f(0, 0));
+t.setPoint(1, sf::Vector2f(w, 0));
+t.setPoint(2, sf::Vector2f(0, h));
+renderWindow->draw(t);
+
+t.setFillColor(sf::Color(104, 24, 24, 255));
+t.setOutlineColor(sf::Color(0, 0, 0, 255));
+t.setOutlineThickness(7);
+t.setPointCount(3);
+t.setPoint(0, sf::Vector2f(0, h * (1.0f - v)));
+t.setPoint(1, sf::Vector2f(w * v, h * (1.0f - v)));
+t.setPoint(2, sf::Vector2f(0, h));
+renderWindow->draw(t);
+
+*/
+
 Level::Level(Manager* manager, Controller* controller, JournalManager* jmanager){
 	Level::manager = manager;
 	Level::controller = controller;
@@ -160,7 +193,7 @@ void Level::begin(){
 		introId = si::playMusic(musicIntro, true, false, false);
 		mainId = si::queueMusic(introId, musicMain, false, true, true);
 	}
-	else{
+	else if(musicMain.length() > 0){
 		mainId = si::playMusic(musicMain, true, true, true);
 	}
 
@@ -350,7 +383,11 @@ void Level::tick(){
 				completeState = IN_TRUCK;
 			}
 		}
+		bool journalOpenSound = target == dist;
 		target = closest != NULL ? 0.0f : dist;
+		if(journalOpenSound && target == 0.0f){
+			si::playSound(NULL, "interface.journal_open");
+		}
 
 		gi::camera(world->dt());
 		world->render();

@@ -69,6 +69,16 @@ void Editor::run(){
 		fileselect = manager->spriteManager->getSprite(fileSelectBackground);
 	}
 	saveOnExit = config.boolValue("saveOnExit");
+	musicIntro = config.stringValue("musicIntro");
+	musicMain = config.stringValue("musicMain");
+
+	if(musicIntro.length() > 0){
+		introId = si::playMusic(musicIntro, true, false, false);
+		mainId = si::queueMusic(introId, musicMain, false, true, true);
+	}
+	else if(musicMain.length() > 0){
+		mainId = si::playMusic(musicMain, true, true, true);
+	}
 
 	Configuration bs;
 	if(bs.load(c::baseDir.child("brushes.txt"))){
@@ -374,6 +384,10 @@ void Editor::run(){
 	if(saveOnExit && state == EDIT){
 		world->save(file);
 	}
+
+	si::stopMusic(introId);
+	si::stopMusic(mainId);
+
 	manager->finalize(window);
 	delete manager;
 	gi::finalize();

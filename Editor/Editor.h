@@ -40,6 +40,11 @@ private:
 
 	File file;
 
+	std::string musicIntro;
+	std::string musicMain;
+	unsigned long introId;
+	unsigned long mainId;
+
 	unsigned long inputListenerId;
 
 	bool draggingRight = false;

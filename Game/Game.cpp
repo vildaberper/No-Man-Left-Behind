@@ -84,7 +84,7 @@ void Game::run(){
 		Time time = clock.getElapsedTime();
 		float dt = (time - lastTime).asSeconds();
 
-		manager->tick(window, time, dt);
+		manager->tick(window, time, (level == NULL || level->world == NULL) ? dt : level->world->dt());
 
 		window->clear();
 
