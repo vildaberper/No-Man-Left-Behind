@@ -85,7 +85,13 @@ void PlayerInventory::on(MouseButtonEvent& event){
 		if(event.button() == sf::Mouse::Left){
 			size_t index = 0;
 			if((index = pressed->find_first_of(':')) != std::string::npos && pressed->substr(0, index) == id){
-				swap(itemInHand, selectedSlot = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';')))));
+				unsigned char c = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';'))));
+				if(itemInHand.amount > 0 && itemInHand.item.type == at(c).item.type){
+					put(itemInHand, selectedSlot = c);
+				}
+				else{
+					swap(itemInHand, selectedSlot = c);
+				}
 				update();
 				*pressed = "";
 			}

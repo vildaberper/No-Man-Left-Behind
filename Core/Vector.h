@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "SFMLI.h"
@@ -41,7 +42,7 @@ public:
 		return sf::Vector2f(x, y);
 	}
 
-	const std::vector<float> fv(){
+	std::vector<float> fv(){
 		std::vector<float> fs;
 		fs.push_back(x);
 		fs.push_back(y);
@@ -54,6 +55,10 @@ public:
 
 	const float angle(){
 		return math::angleTo(0, 0, x, y);
+	}
+
+	const std::string toString(){
+		return std::to_string(x) + ", " + std::to_string(y);
 	}
 
 	const Direction direction(){

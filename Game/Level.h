@@ -60,7 +60,7 @@ public:
 	World* world;
 
 	sf::Time timer;
-	sf::Clock clock;
+	sf::Time time;
 	Animatable* timerHud;
 
 	std::string musicIntro;
@@ -100,6 +100,16 @@ public:
 	float target = dist;
 	float actual = dist;
 	float d = 5.0f;
+	CoreSprite* skull;
+
+	size_t extraResources = 0;
+
+	int totalCivil = 0;
+	int totalSoldier = 0;
+	int totalGeneral = 0;
+	int savedCivil = 0;
+	int savedSoldier = 0;
+	int savedGeneral = 0;
 
 	unsigned long listenerId;
 

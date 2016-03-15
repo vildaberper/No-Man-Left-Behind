@@ -41,7 +41,7 @@ bool Controller::isPressed(const Command& c){
 		return isFirstPressed(0, 0);
 		break;
 	case PAUSE:
-		if(im->isFirstPressed(sf::Keyboard::Key::P)){
+		if(im->isFirstPressed(sf::Keyboard::Key::Escape)){
 			usingController = false;
 			return true;
 		}

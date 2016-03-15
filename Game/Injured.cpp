@@ -13,23 +13,37 @@ Injured::~Injured(){
 }
 
 void Injured::initialize(Manager* manager, const std::string& animation, Journal* journal){
+	if(animation.length() > 5 && animation.substr(0, 5) == "civil"){
+		type = CIVIL;
+	}
+	else if(animation.length() > 7 && animation.substr(0, 7) == "soldier"){
+		type = SOLDIER;
+	}
+	else if(animation.length() > 7 && animation.substr(0, 7) == "general"){
+		type = GENERAL;
+	}
 	setAnimationType(STATES, 5);
 	applyAnimation(manager, id = animation);
 	Injured::journal = journal;
 	Injured::progress = progress;
+	customJournal->deathTimer = journal->deathTimer;
 	updateAnimation();
 	cb.shouldCollide = true;
 	cb.renderOffset = 0.9f;
 	cb.offset = Vector(0.2f, 0.1f);
 	cb.size = Vector(0.6f, 0.8f);
 	nextVoice = sf::seconds(15.0f * random::random());
+	deathBar.customColors = true;
+	deathBar.bgColor = sf::Color(185, 185, 185, 155);
+	deathBar.oColor = sf::Color(5, 5, 5, 255);
+	deathBar.size = Vector(250.0f, 40.0f);
 }
 
 void Injured::tick(const sf::Time& time, const float& dt){
-	if(isHealed()){
+	if(isDead() || isHealed()){
 		si::stopSound(currentVoice);
 	}
-	else if(!isDead()){
+	else{
 		if(time - lastVoice > nextVoice){
 			// Make sure two voices does not start at the same time
 			if((time - injured::lastVoice).asMilliseconds() > 500){
@@ -39,10 +53,19 @@ void Injured::tick(const sf::Time& time, const float& dt){
 			}
 		}
 	}
+
+	timer += sf::seconds(dt * (hasSeenJournal ? 1.0f : gc::timerRateNotSeen));
+	deathBar.progress = 1.0f - (timer / customJournal->deathTimer);
+	if(hasTimer() && timer > customJournal->deathTimer){
+		dead = true;
+		updateAnimation();
+	}
+
 	Animatable::tick(time, dt);
 }
 
 void Injured::updateAnimation(){
+	deathBar.pbColor = injuredState() == 1 ? sf::Color(10, 10, 10, 255) : sf::Color(104, 24, 24, 255);
 	customJournal->lines.clear();
 	for(size_t i = 0; i < journal->lines.size(); i++){
 		std::string line = journal->lines[i];
@@ -50,7 +73,7 @@ void Injured::updateAnimation(){
 
 		if((index = line.find("%state%")) != std::string::npos){
 			std::string state;
-			switch(INJURED_STATES - 1 + progress - journal->requirements.size()){
+			switch(injuredState()){
 			case 0:
 				state = "Dead";
 				break;
@@ -78,19 +101,55 @@ void Injured::updateAnimation(){
 			+ (applied[i].second ? "." : ", but it did not seem to help.")
 			);
 	}
-	setAnimation(state(INJURED_STATES - 1 + progress - journal->requirements.size()));
+	if(isDead()){
+		customJournal->lines.push_back("");
+		customJournal->lines.push_back("Patient is dead.");
+	}
+	setAnimation(state(isDead() ? 0 : (INJURED_STATES - 1 + progress - journal->requirements.size())));
+}
+
+unsigned char Injured::injuredState(){
+	return unsigned char(isDead() ? 0 : (INJURED_STATES - 1 + progress - journal->requirements.size()));
 }
 
 bool Injured::isHealed(){
-	return progress >= journal->requirements.size();
+	return !isDead() && progress >= journal->requirements.size();
 }
 
 bool Injured::isDead(){
 	return dead;
 }
 
+bool Injured::hasTimer(){
+	return !isDead() && !isHealed() && customJournal->deathTimer != sf::milliseconds(0);
+}
+
+bool Injured::survived(){
+	float r = random::random();
+
+	switch(injuredState()){
+	case 0:
+		return r <= gc::survive0Rate;
+		break;
+	case 1:
+		return r <= gc::survive1Rate;
+		break;
+	case 2:
+		return r <= gc::survive2Rate;
+		break;
+	case 3:
+		return r <= gc::survive3Rate;
+		break;
+	case 4:
+		return r <= gc::survive4Rate;
+		break;
+	}
+
+	return false;
+}
+
 bool Injured::use(ItemStack& is){
-	if(is.amount > 0 && !isHealed()){
+	if(is.amount > 0 && !isHealed() && !isDead()){
 		for(rbPair pr : applied){
 			if(is.item.type == pr.first){
 				return false;
@@ -108,6 +167,13 @@ bool Injured::use(ItemStack& is){
 		applied.push_back(pair);
 		if(pair.second){
 			progress++;
+			if(injuredState() < 3){
+				customJournal->deathTimer *= 2.0f;
+				timer = sf::milliseconds(0);
+			}
+			else{
+				customJournal->deathTimer = sf::milliseconds(0);
+			}
 		}
 		updateAnimation();
 		is.amount--;

@@ -38,7 +38,7 @@ Handbook::Handbook(Manager* m){
 	openMenu = new Menu();
 	openMenu->position = Vector(gi::TARGET_WIDTH - 300.0f, gi::TARGET_HEIGHT - 100.0f);
 	openMenu->size = Vector(100.0f, 100.0f);
-	openMenu->hidden = false;
+	openMenu->hidden = true;
 	openMenu->type = HORIZONTAL;
 	openMenu->background = new TexBar(
 		manager->spriteManager->getTexture("book.left"),
@@ -160,6 +160,13 @@ void Handbook::close(){
 	}
 	currentAnimation = CLOSING;
 	nextAnimation = CLOSED;
+	startTime = clock.getElapsedTime();
+}
+void Handbook::forceClose(){
+	if(isClosed()){
+		return;
+	}
+	currentAnimation = nextAnimation = CLOSED;
 	startTime = clock.getElapsedTime();
 }
 bool Handbook::hasLeftPage(){

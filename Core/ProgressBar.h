@@ -15,5 +15,10 @@ public:
 	TexBar* background = NULL;
 	TexBar* progressbar = NULL;
 
+	sf::Color bgColor;
+	sf::Color pbColor;
+	sf::Color oColor;
+	bool customColors = false;
+
 	float progress = 0.0f;
 };

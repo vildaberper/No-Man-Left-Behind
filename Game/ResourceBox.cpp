@@ -67,7 +67,13 @@ void ResourceBox::on(MouseButtonEvent& event){
 		if(event.button() == sf::Mouse::Left){
 			size_t index = 0;
 			if((index = pressed->find_first_of(':')) != std::string::npos && pressed->substr(0, index) == id){
-				swap(pi->itemInHand, selectedSlot = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';')))));
+				unsigned char c = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';'))));
+				if(pi->itemInHand.amount > 0 && pi->itemInHand.item.type == at(c).item.type){
+					put(pi->itemInHand, selectedSlot = c);
+				}
+				else{
+					swap(pi->itemInHand, selectedSlot = c);
+				}
 				pi->update();
 				update();
 				*pressed = "";

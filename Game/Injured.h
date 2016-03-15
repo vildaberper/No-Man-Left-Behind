@@ -8,6 +8,7 @@
 #include "Journal.h"
 #include "ItemStack.h"
 #include "Animatable.h"
+#include "GameConstants.h"
 
 static const unsigned char INJURED_STATES = 5;
 
@@ -16,6 +17,12 @@ typedef std::pair<Resource, bool> rbPair;
 namespace injured{
 	extern sf::Time lastVoice;
 }
+
+enum InjuredType{
+	CIVIL,
+	SOLDIER,
+	GENERAL
+};
 
 class Injured: public Animatable{
 public:
@@ -28,8 +35,14 @@ public:
 
 	void updateAnimation();
 
+	unsigned char injuredState();
+
 	bool isHealed();
 	bool isDead();
+
+	bool hasTimer();
+
+	bool survived();
 
 	bool use(ItemStack& is);
 
@@ -47,7 +60,11 @@ public:
 
 	std::vector<rbPair> applied;
 
+	ProgressBar deathBar;
+
 	bool hasSeenJournal = false;
 
 	bool dead = false;
+
+	InjuredType type;
 };

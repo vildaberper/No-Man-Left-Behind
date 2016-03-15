@@ -13,12 +13,12 @@ using namespace std;
 using namespace math;
 
 Game::Game(){
-
+	menuCommand = new std::string();
 }
 
 
 Game::~Game(){
-
+	delete menuCommand;
 }
 
 void Game::on(KeyboardEvent& event){
@@ -27,9 +27,6 @@ void Game::on(KeyboardEvent& event){
 	}
 	if(event.pressed()){
 		switch(event.key()){
-		case Keyboard::Escape:
-			gi::renderWindow->close();
-			break;
 		case Keyboard::C:
 			if(event.first()){
 				gi::collisionBoxes = !gi::collisionBoxes;
@@ -53,8 +50,6 @@ void Game::run(){
 
 	random::initialize();
 
-	Level* level = NULL;
-
 	Time lastTime;
 	while(gi::startOfFrame()){
 		if(!managerInitialized){
@@ -73,9 +68,72 @@ void Game::run(){
 			playerInventory = new PlayerInventory(controller, manager, gc::inventorySize);
 			handBook = new Handbook(manager);
 
-			mainmenu = manager->spriteManager->getSprite("bg.mainmenu");
+			mainmenu = manager->spriteManager->getSprite("menu.bg");
 			a = 1.0f;
 			at = 0.0f;
+
+			creditbg = manager->spriteManager->getSprite("bg.intro");
+			nmlbb = manager->spriteManager->getSprite("logo.nmlb-bag");
+			morsol = manager->spriteManager->getSprite("logo.moronic_solutions");
+
+			/*
+				Menu
+			*/
+			mainMenu = new Menu();
+			mainMenu->position = Vector(90.0f, gi::TARGET_HEIGHT - 50 - 62 * 2 * 4);
+			mainMenu->size = Vector(192 * 2, 62 * 2 * 4);
+			mainMenu->hidden = false;
+			mainMenu->type = VERTICAL;
+
+			pauseMenu = new Menu();
+			pauseMenu->position = Vector(90.0f, gi::TARGET_HEIGHT - 50 - 62 * 2 * 5);
+			pauseMenu->size = Vector(192 * 2, 62 * 2 * 5);
+			pauseMenu->hidden = true;
+			pauseMenu->type = VERTICAL;
+
+			MenuItem* mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.continue"), NULL);
+			mi->selectedPrefix = "continue";
+			mi->selectedString = menuCommand;
+			pauseMenu->items.push_back(mi);
+
+			mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.new game"), NULL);
+			mi->selectedPrefix = "new game";
+			mi->selectedString = menuCommand;
+			mainMenu->items.push_back(mi);
+			pauseMenu->items.push_back(mi);
+
+			mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.options"), NULL);
+			mi->selectedPrefix = "options";
+			mi->selectedString = menuCommand;
+			mainMenu->items.push_back(mi);
+			pauseMenu->items.push_back(mi);
+
+			mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.credits"), NULL);
+			mi->selectedPrefix = "credits";
+			mi->selectedString = menuCommand;
+			mainMenu->items.push_back(mi);
+			pauseMenu->items.push_back(mi);
+
+			mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.quit"), NULL);
+			mi->selectedPrefix = "quit";
+			mi->selectedString = menuCommand;
+			mainMenu->items.push_back(mi);
+			pauseMenu->items.push_back(mi);
+
+			manager->menuManager->menus["mainmenu"] = mainMenu;
+			manager->menuManager->menus["pausemenu"] = pauseMenu;
+			//
+
+			std::vector<std::string>* lines = c::baseDir.child("credits.txt").readTextFile();
+			for(size_t i = 0; i < lines->size(); i++){
+				credits.push_back((*lines)[i]);
+			}
+			delete lines;
 
 			clock.restart();
 			continue;
@@ -89,65 +147,292 @@ void Game::run(){
 		window->clear();
 
 		if(a > at && a > 0.0f){
-			a -= dt;
-		}else if(a < at && a < 1.0f){
-			a += dt;
+			a -= dt * as;
+		}
+		else if(a < at && a < 1.0f){
+			a += dt * as;
+		}
+		if(a < 0.0f){
+			a = 0.0f;
+		}
+		else if(a > 1.0f){
+			a = 1.0f;
 		}
 
 		switch(state){
 		case MAIN_MENU:
+			mainMenu->hidden = false;
+			handBook->openMenu->hidden = true;
+			playerInventory->menu->hidden = true;
+			if(!playingMenuMusic && shouldPlayMenuMusic){
+				introId = si::playMusic("menu.intro", true, true, false);
+				mainId = si::queueMusic(introId, "menu.main", false, true, true);
+				playingMenuMusic = true;
+			}
 			gi::background(*mainmenu);
-			if(manager->inputManager->isFirstPressed(sf::Keyboard::Return) && !(a > 0.2f)){
-				at = 1.0f;
+			if(menuCommand->length() > 0){
+				as = 2.0f;
+				if(*menuCommand == "new game"){
+					newGame();
+					at = 1.0f;
+					nextState = TRANSITION;
+				}
+				else if(*menuCommand == "options"){
+					at = 1.0f;
+					nextState = OPTIONS;
+				}
+				else if(*menuCommand == "credits"){
+					at = 1.0f;
+					nextState = CREDITS;
+				}
+				else if(*menuCommand == "quit"){
+					at = 1.0f;
+					nextState = CLOSE;
+				}
+				*menuCommand = "";
 			}
 			if(a >= 1.0f && at == 1.0f){
-				state = LEVEL;
-			}
-			break;
-		case LEVEL:
-			if(level == NULL){
-				a = 0.0f;
+				lastState = MAIN_MENU;
+				state = nextState;
+				currentLevel = 0;
 				at = 0.0f;
-				gi::darken(1.0f);
-				gi::endOfFrame();
-				level = new Level(manager, controller, jmanager);
-				level->playerInventory = playerInventory;
-				level->handBook = handBook;
-				level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
-				level->begin();
-				clock.restart();
-				continue;
+				as = 1.0f;
+				mainMenu->hidden = true;
 			}
+			manager->menuManager->draw(time);
+			break;
+		case LEVEL_MENU:
+		{
+			pauseMenu->hidden = false;
+			handBook->openMenu->hidden = true;
+			playerInventory->menu->hidden = true;
+			gi::background(*mainmenu);
+			bool esc = manager->inputManager->isFirstPressed(sf::Keyboard::Escape);
+			if(esc || menuCommand->length() > 0){
+				as = 5.0f;
+				if(esc || *menuCommand == "continue"){
+					at = 1.0f;
+					nextState = LEVEL;
+					level->world->setPaused(false);
+				}
+				else if(*menuCommand == "new game"){
+					newGame();
+					at = 1.0f;
+					nextState = TRANSITION;
+				}
+				else if(*menuCommand == "options"){
+					at = 1.0f;
+					nextState = OPTIONS;
+				}
+				else if(*menuCommand == "credits"){
+					at = 1.0f;
+					nextState = CREDITS;
+				}
+				else if(*menuCommand == "quit"){
+					at = 1.0f;
+					nextState = CLOSE;
+				}
+				*menuCommand = "";
+			}
+			if(a >= 1.0f && at == 1.0f){
+				lastState = LEVEL_MENU;
+				state = nextState;
+				at = 0.0f;
+				as = 1.0f;
+				pauseMenu->hidden = true;
+			}
+			manager->menuManager->draw(time);
+			break;
+		}
+		case LEVEL:
+			playerInventory->menu->hidden = false;
+			handBook->openMenu->hidden = false;
+			shouldPlayMenuMusic = false;
 			level->tick();
 
+			if(level->world->isPaused()){
+				handBook->forceClose();
+				nextState = LEVEL_MENU;
+				as = 5.0f;
+				at = 1.0f;
+				if(a >= 1.0f){
+					as = 1.0f;
+					state = nextState;
+					break;
+				}
+			}
+
 			if(level->done()){
-				currentLevel++;
+				if(!(restartLevel = level->completeState == TIME_RAN_OUT)){
+					totalCivil += level->totalCivil;
+					totalSoldier += level->totalSoldier;
+					totalGeneral += level->totalGeneral;
+					savedCivil += level->savedCivil;
+					savedSoldier += level->savedSoldier;
+					savedGeneral += level->savedGeneral;
+					currentLevel++;
+
+					lastItemInHand = playerInventory->itemInHand;
+					if(lastContent != NULL){
+						delete[] lastContent;
+					}
+					lastContent = new ItemStack[playerInventory->getSize()];
+					for(size_t i = 0; i < playerInventory->getSize(); i++){
+						lastContent[i] = ItemStack(playerInventory->content[i].item, playerInventory->content[i].amount);
+					}
+					lastExtraResources = level->savedGeneral * gc::resourcesFromGenerals;
+				}
+				else{
+					if(lastContent != NULL){
+						playerInventory->itemInHand = lastItemInHand;
+						for(size_t i = 0; i < playerInventory->getSize(); i++){
+							playerInventory->content[i] = ItemStack(lastContent[i].item, lastContent[i].amount);
+						}
+					}
+				}
+
+				handBook->forceClose();
+				state = TRANSITION;
+				level->world->cleanAll(true);
+				transtionDone = false;
+				at = 0.0f;
+			}
+
+			break;
+		case TRANSITION:
+		{
+			if(manager->inputManager->isFirstPressed(sf::Keyboard::Return)){
+				at = 1.0f;
+				transtionDone = true;
+			}
+			sf::Text t;
+			t.setFont(gi::menuFont);
+			t.setPosition(500, 500);
+			if(restartLevel){
+				t.setString("Time ran out - " + std::to_string(currentLevel));
+			}
+			else if(currentLevel == 0){
+				t.setString("intro - " + std::to_string(currentLevel));
+			}
+			else if(currentLevel >= gc::levelProgression.size()){
+				t.setString("outro - " + std::to_string(currentLevel));
+			}
+			else{
+				t.setString("transition (" + std::to_string(currentLevel - 1) + "->" + std::to_string(currentLevel) + ") - " + std::to_string(currentLevel));
+			}
+			gi::renderWindow->draw(t);
+			if(transtionDone && a >= 1.0f){
+				if(playingMenuMusic){
+					si::stopMusic(introId);
+					si::stopMusic(mainId);
+					playingMenuMusic = false;
+				}
 				if(currentLevel >= gc::levelProgression.size()){
 					delete level;
 					level = NULL;
-					currentLevel = 0;
 					state = COMPLETE;
 					continue;
 				}
 				else{
+					if(level != NULL){
+						delete level;
+					}
 					gi::darken(1.0f);
 					gi::endOfFrame();
-					delete level;
 					level = new Level(manager, controller, jmanager);
+					level->extraResources = lastExtraResources;
 					level->playerInventory = playerInventory;
 					level->handBook = handBook;
 					level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
 					level->begin();
 					clock.restart();
+					state = LEVEL;
+					at = 0.0f;
 					continue;
 				}
 			}
-
 			break;
+		}
+		case OPTIONS:
+			state = lastState;
+			break;
+		case CREDITS:
+		{
+			if(creditTime.asMilliseconds() == 0){
+				creditTime = time;
+				creditLogoTime = sf::milliseconds(0);
+				gi::showCursor = false;
+			}
+			sf::Text t;
+			t.setFont(gi::menuFont);
+			t.setCharacterSize(int(50 * gi::dxiz()));
+			gi::background(*creditbg);
+			float lastY;
+			for(size_t i = 0; i < credits.size(); i++){
+				t.setString(credits[i]);
+				float xp = (gi::TARGET_WIDTH / 2.0f - t.getGlobalBounds().width / 2.0f) * gi::dxiz();
+				float yp = (lastY = (gi::TARGET_HEIGHT + 10 + i * 70.0f - (time - creditTime).asSeconds() * 100.0f)) * gi::dyiz();
+
+				t.setColor(sf::Color(0, 0, 0, 255));
+				float a = 0.0f;
+				float r = (3.0f * gi::dxiz());
+				for(unsigned int i = 0; i < 8; i++){
+					t.setPosition(xp + r * cos(a), yp + r * sin(a));
+					gi::renderWindow->draw(t);
+					a += PI / 4;
+				}
+				t.setColor(sf::Color(255, 255, 255, 255));
+				t.setPosition(xp, yp);
+				gi::renderWindow->draw(t);
+			}
+			if(lastY < -50){
+				if(creditLogoTime.asMilliseconds() == 0){
+					creditLogoTime = time;
+				}
+				gi::draw(
+					*nmlbb,
+					gi::TARGET_WIDTH / 2.0f - 404,
+					gi::TARGET_HEIGHT / 2.0f - 484,
+					808,
+					968,
+					(time - creditLogoTime).asSeconds() / 3.0f
+					);
+			}
+			gi::draw(
+				*morsol,
+				gi::TARGET_WIDTH - 310 - 10,
+				gi::TARGET_HEIGHT - 138 - 5,
+				310,
+				138,
+				(time - creditTime).asSeconds() / 3.0f
+				);
+			if(manager->inputManager->isFirstPressed(sf::Keyboard::Escape)){
+				at = 1.0f;
+				nextState = lastState;
+			}
+			if(a >= 1.0f && at == 1.0f){
+				creditTime = sf::milliseconds(0);
+				state = nextState;
+				at = 0.0f;
+				as = 1.0f;
+				gi::showCursor = true;
+			}
+			break;
+		}
 		case COMPLETE:
+			shouldPlayMenuMusic = true;
 			a = 1.0f;
 			at = 0.0f;
-			state = MAIN_MENU;
+			if(!playingMenuMusic && shouldPlayMenuMusic){
+				introId = si::playMusic("menu.intro", true, true, false);
+				mainId = si::queueMusic(introId, "menu.main", false, true, true);
+				playingMenuMusic = true;
+			}
+			lastState = MAIN_MENU;
+			state = CREDITS;
+			break;
+		case CLOSE:
+			gi::renderWindow->close();
 			break;
 		}
 
@@ -165,4 +450,21 @@ void Game::run(){
 	delete controller;
 	delete manager;
 	delete jmanager;
+}
+
+void Game::newGame(){
+	playerInventory->clear();
+	playerInventory->itemInHand.amount = 0;
+
+	lastExtraResources = 0;
+	lastItemInHand.amount = 0;
+	delete[] lastContent;
+	lastContent = NULL;
+
+	totalCivil = 0;
+	totalSoldier = 0;
+	totalGeneral = 0;
+	savedCivil = 0;
+	savedSoldier = 0;
+	savedGeneral = 0;
 }

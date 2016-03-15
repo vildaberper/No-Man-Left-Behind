@@ -10,6 +10,16 @@ namespace gc{
 
 	int inventorySize;
 
+	float timerRateNotSeen;
+
+	float survive0Rate;
+	float survive1Rate;
+	float survive2Rate;
+	float survive3Rate;
+	float survive4Rate;
+
+	int resourcesFromGenerals;
+
 	std::vector<std::string> levelProgression;
 
 	const void initialize(){
@@ -26,6 +36,13 @@ namespace gc{
 		handBookFile = c::baseDir.child(config.stringValue("files.handBookFile"));
 
 		inventorySize = config.intValue("general.inventorySize");
+		timerRateNotSeen = config.floatValue("general.timerRateNotSeen");
+		survive0Rate = config.floatValue("general.survive0Rate");
+		survive1Rate = config.floatValue("general.survive1Rate");
+		survive2Rate = config.floatValue("general.survive2Rate");
+		survive3Rate = config.floatValue("general.survive3Rate");
+		survive4Rate = config.floatValue("general.survive4Rate");
+		resourcesFromGenerals = config.intValue("general.resourcesFromGenerals");
 
 		levelProgression = config.stringVector("levels.progression");
 

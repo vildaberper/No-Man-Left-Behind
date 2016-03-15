@@ -90,6 +90,8 @@ namespace gi{
 
 	void darken(const float& darkness);
 
+	void draw(CoreSprite& sprite, const float& x, const float& y, const float& w, const float& h, const float& a = 1.0f);
+
 	void background(CoreSprite& sprite);
 
 	// endOfFrame

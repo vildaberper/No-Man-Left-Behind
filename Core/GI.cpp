@@ -148,9 +148,9 @@ namespace gi{
 		if(
 			!drawable->viewRelative
 			&& (drawable->position.x < gi::cameraX - gi::WIDTH / 2 - 1000.0f
-			|| drawable->position.x > gi::cameraX + gi::WIDTH / 2
-			|| drawable->position.y < gi::cameraY - gi::HEIGHT / 2 - 1000.0f
-			|| drawable->position.y > gi::cameraY + gi::HEIGHT / 2)
+				|| drawable->position.x > gi::cameraX + gi::WIDTH / 2
+				|| drawable->position.y < gi::cameraY - gi::HEIGHT / 2 - 1000.0f
+				|| drawable->position.y > gi::cameraY + gi::HEIGHT / 2)
 			){
 			return;
 		}
@@ -362,8 +362,14 @@ namespace gi{
 			sf::RectangleShape rs;
 			rs.setPosition(x, y);
 			rs.setSize(sf::Vector2f(w, h));
-			rs.setFillColor(sf::Color(0, 0, 0, 185));
-			rs.setOutlineColor(sf::Color(255, 255, 0, 255));
+			if(progressbar->customColors){
+				rs.setFillColor(progressbar->bgColor);
+				rs.setOutlineColor(progressbar->oColor);
+			}
+			else{
+				rs.setFillColor(sf::Color(0, 0, 0, 185));
+				rs.setOutlineColor(sf::Color(255, 255, 0, 255));
+			}
 			rs.setOutlineThickness(1);
 			renderWindow->draw(rs);
 		}
@@ -375,7 +381,12 @@ namespace gi{
 			sf::RectangleShape rs;
 			rs.setPosition(x, y);
 			rs.setSize(sf::Vector2f(pw, h));
-			rs.setFillColor(sf::Color(55, 55, 0, 255));
+			if(progressbar->customColors){
+				rs.setFillColor(progressbar->pbColor);
+			}
+			else{
+				rs.setFillColor(sf::Color(55, 55, 0, 255));
+			}
 			rs.setOutlineThickness(0);
 			renderWindow->draw(rs);
 		}
@@ -494,6 +505,25 @@ namespace gi{
 		rs.setPosition(0.0f, 0.0f);
 		rs.setSize(sf::Vector2f(wx(), wy()));
 		renderWindow->draw(rs);
+	}
+
+	void draw(CoreSprite& sprite, const float& x, const float& y, const float& w, const float& h, const float& a){
+		if(a <= 0.0f){
+			return;
+		}
+
+		sf::Sprite s = *sprite.sprite();
+
+		s.setColor(sf::Color(255, 255, 255, a >= 1.0f ? 255 : sf::Uint8(a * 255.0f)));
+
+		s.setPosition(x * dxiz(), y * dyiz());
+
+		s.scale(
+			(1.0f / s.getScale().x) *  (w * dxiz()) / sprite.w(),
+			(1.0f / s.getScale().y) * (h * dyiz()) / sprite.h()
+			);
+
+		renderWindow->draw(s);
 	}
 
 	void background(CoreSprite& sprite){

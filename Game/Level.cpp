@@ -98,12 +98,29 @@ void Level::save(File& file){
 }
 
 void Level::begin(){
+	world = new World(manager);
+	world->load(c::worldDir.child(worldFileName));
+
 	timerHud = new Animatable();
 	timerHud->setAnimationType(STATES);
 	timerHud->applyAnimation(manager, "timer");
-	timerHud->scale = 0.25f;
+	timerHud->scale = 0.5f;
 	timerHud->position = Vector(gi::TARGET_WIDTH - timerHud->getSprite(sf::milliseconds(0))->w() * timerHud->scale, 0.0);
 	timerHud->viewRelative = true;
+
+	for(size_t i = 0; i < NUM_LAYERS; i++){
+		Layer l = Layer(i);
+		for(drawable::Drawable* d : world->drawables[l]){
+			if(
+				(d->reference.size() > 11 && d->reference.substr(0, 11) == "Characters.")
+				){
+				Vector v = d->position;
+				d->kill();
+				logger::info("Found injured spawn position (" + v.toString() + ").");
+				injuredPositions.push_back(v);
+			}
+		}
+	}
 
 	std::vector<Journal*> js;
 	for(size_t i = 0; i < journals.size(); i++){
@@ -140,9 +157,6 @@ void Level::begin(){
 	state = TRUCKMOVING;
 	fadeValue = 1.0f;
 
-	world = new World(manager);
-	world->load(c::worldDir.child(worldFileName));
-
 	for(Injured* inj : injured){
 		world->addDrawable(inj, LAYER2);
 	}
@@ -177,7 +191,6 @@ void Level::begin(){
 
 	if(!useTruck){
 		state = PLAYING;
-		clock.restart();
 	}
 
 	playerInventory->update();
@@ -188,6 +201,7 @@ void Level::begin(){
 	journal->position = Vector(0.0, 0.0);
 	journal->scale = 0.85f;
 	journal->viewRelative = true;
+	skull = manager->spriteManager->getSprite("timer.skull");
 
 	if(musicIntro.length() > 0){
 		introId = si::playMusic(musicIntro, true, false, false);
@@ -199,36 +213,40 @@ void Level::begin(){
 
 	for(drawable::Drawable* d : world->drawables[LAYER2]){
 		if(
-			(d->reference.size() > 10 && d->reference.substr(0, 10) == "Props.Box ")
-			|| (d->reference.size() > 18 && d->reference.substr(0, 18) == "Props.Medical Box ")
+			/*(d->reference.size() > 10 && d->reference.substr(0, 10) == "Props.Box ")
+			||*/ (d->reference.size() > 18 && d->reference.substr(0, 18) == "Props.Medical Box ")
 			|| (d->reference.size() > 22 && d->reference.substr(0, 22) == "Props.Medical Cabinet ")
 			){
-			logger::debug("Found resource box: " + d->reference);
+			logger::info("Found resource box: " + d->reference);
 			resourceBoxes.push_back(new ResourceBox(controller, manager, 7, playerInventory, d));
 		}
 	}
 
+	std::vector<ItemStack> iss;
 	for(Injured* inj : injured){
-		std::vector<ItemStack> iss;
 		for(Resource r : inj->journal->requirements){
 			iss.push_back(ItemStack(r, 1));
 		}
-
-		bool empty = iss.size() == 0;
-		while(!empty){
-			for(ItemStack& is : iss){
-				if(is.amount > 0){
-					size_t rb = random::random(resourceBoxes.size() - 1);
-					resourceBoxes[rb]->put(is);
-				}
-			}
-
-			empty = true;
-			for(ItemStack is : iss){
-				empty = is.amount > 0 ? false : empty;
-			}
-		};
 	}
+	for(size_t i = 0; i < extraResources; i++){
+		size_t is = random::random(iss.size() - 1);
+		iss[is].amount++;
+	}
+
+	bool empty = iss.size() == 0;
+	while(!empty){
+		for(ItemStack& is : iss){
+			if(is.amount > 0){
+				size_t rb = random::random(resourceBoxes.size() - 1);
+				resourceBoxes[rb]->put(is);
+			}
+		}
+
+		empty = true;
+		for(ItemStack is : iss){
+			empty = is.amount > 0 ? false : empty;
+		}
+	};
 
 	for(ResourceBox* rb : resourceBoxes){
 		rb->update();
@@ -241,6 +259,9 @@ void Level::begin(){
 void Level::tick(){
 	if(controller->isPressed(PAUSE)){
 		world->setPaused(!world->isPaused());
+		if(closestBox != NULL){
+			closestBox->menu->hidden = true;
+		}
 	}
 
 	if(manager->inputManager->isFirstPressed(sf::Keyboard::Num0)){
@@ -306,25 +327,38 @@ void Level::tick(){
 			player->position.y = tr.top + tr.height - pr.height * player->cb.offset.y;
 			world->addDrawable(player, LAYER2);
 			playerInventory->menu->hidden = false;
-			clock.restart();
 			manager->soundManager->relative = player;
 		}
 		break;
 	}
 	case PLAYING:
 	{
-		if(clock.getElapsedTime() > sf::milliseconds(10000)){
+		bool canControl = completeState == IN_GAME;
+
+		if(canControl && timer.asMilliseconds() > 0 && time > timer){
+			completeState = TIME_RAN_OUT;
+		}
+
+		if(time > sf::milliseconds(10000)){
 			nearTruck_ = nearTruck(250.0f);
 			truck->highlight = nearTruck_;
 		}
-		player->velocity = controller->movement();
-		world->tick();
+
 		gi::cameraTargetX = player->position.x + player->getSprite(world->time())->sprite()->getGlobalBounds().width / gi::dx() / 2;
 		gi::cameraTargetY = player->position.y + player->getSprite(world->time())->sprite()->getGlobalBounds().height / gi::dy() / 2;
+		if(canControl){
+			player->velocity = controller->movement();
 
-		Vector camera = controller->camera();
-		gi::cameraTargetX += camera.x * 250.0f;
-		gi::cameraTargetY += camera.y * 250.0f;
+			Vector camera = controller->camera();
+			gi::cameraTargetX += camera.x * 250.0f;
+			gi::cameraTargetY += camera.y * 250.0f;
+		}
+		else{
+			player->velocity = Vector(0.0f, 0.0f);
+		}
+
+		world->tick();
+		time += sf::seconds(world->dt());
 
 		if(closest != NULL){
 			closest->highlight = false;
@@ -353,34 +387,36 @@ void Level::tick(){
 			}
 		}
 
-		if(handBook->isOpen()){
+		if(canControl){
+			if(handBook->isOpen()){
+				if(controller->isPressed(LB)){
+					handBook->turnLeft();
+				}
+				if(controller->isPressed(RB)){
+					handBook->turnRight();
+				}
+			}
+
 			if(controller->isPressed(LB)){
-				handBook->turnLeft();
-			}
-			if(controller->isPressed(RB)){
-				handBook->turnRight();
-			}
-		}
-
-		if(controller->isPressed(LB)){
-			playerInventory->selectedSlot--;
-			playerInventory->update();
-		}
-		if(controller->isPressed(RB)){
-			playerInventory->selectedSlot++;
-			playerInventory->update();
-		}
-
-		if(controller->isPressed(INTERACT)){
-			if(closest != NULL){
-				closest->use(playerInventory->selectedItem());
+				playerInventory->selectedSlot--;
 				playerInventory->update();
 			}
-			else if(closestBox != NULL){
-				closestBox->menu->hidden = !closestBox->menu->hidden;
+			if(controller->isPressed(RB)){
+				playerInventory->selectedSlot++;
+				playerInventory->update();
 			}
-			else if(nearTruck_){
-				completeState = IN_TRUCK;
+
+			if(controller->isPressed(INTERACT)){
+				if(controller->usingController && closest != NULL){
+					closest->use(playerInventory->selectedItem());
+					playerInventory->update();
+				}
+				else if(closestBox != NULL){
+					closestBox->menu->hidden = !closestBox->menu->hidden;
+				}
+				else if(nearTruck_){
+					completeState = IN_TRUCK;
+				}
 			}
 		}
 		bool journalOpenSound = target == dist;
@@ -405,7 +441,20 @@ void Level::tick(){
 			journal->position.y = -10 - actual;
 			gi::draw(*journal->getSprite(world->time()));
 			if(closest != NULL){
+				closest->hasSeenJournal = true;
 				gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
+
+				if(closest->hasTimer()){
+					gi::draw(
+						*skull,
+						journal->position.x + 330,
+						journal->position.y + 400,
+						45,
+						60
+						);
+					closest->deathBar.position = Vector((journal->position.x + 380), (journal->position.y + 410));
+					gi::draw(&closest->deathBar, world->time());
+				}
 			}
 		}
 		//
@@ -415,12 +464,13 @@ void Level::tick(){
 
 		playerInventory->render();
 
-		if(timer.asMilliseconds() > 0){
+		if(completeState == IN_GAME && timer.asMilliseconds() > 0){
 			gi::draw(*timerHud->getSprite(world->time()));
 			sf::Text tt;
-			tt.setPosition((gi::TARGET_WIDTH - 100.0f) * gi::dxiz(), 5.5f * gi::dyiz());
+			tt.setPosition((gi::TARGET_WIDTH - 200.0f) * gi::dxiz(), 11.0f * gi::dyiz());
 			tt.setFont(gi::textFont);
-			tt.setString(std::to_string(int((timer - clock.getElapsedTime()).asSeconds())));
+			tt.setCharacterSize(64);
+			tt.setString(std::to_string(int((timer - time).asSeconds())));
 			tt.scale(1.0f * gi::dxiz(), 1.0f * gi::dyiz());
 			gi::renderWindow->draw(tt);
 		}
@@ -441,10 +491,39 @@ void Level::tick(){
 }
 
 bool Level::done(){
-	if(completeState == IN_GAME && timer.asMilliseconds() > 0 && clock.getElapsedTime() > timer){
-		completeState = TIME_RAN_OUT;
+	bool d = completeState != IN_GAME && fadeValue >= 1.0f;
+	if(d){
+		totalCivil = 0;
+		totalSoldier = 0;
+		totalGeneral = 0;
+		savedCivil = 0;
+		savedSoldier = 0;
+		savedGeneral = 0;
+
+		for(Injured* i : injured){
+			switch(i->type){
+			case CIVIL:
+				totalCivil++;
+				if(i->survived()){
+					savedCivil++;
+				}
+				break;
+			case SOLDIER:
+				totalSoldier++;
+				if(i->survived()){
+					savedSoldier++;
+				}
+				break;
+			case GENERAL:
+				totalGeneral++;
+				if(i->survived()){
+					savedGeneral++;
+				}
+				break;
+			}
+		}
 	}
-	return completeState != IN_GAME && fadeValue >= 1.0f;
+	return d;
 }
 
 void Level::on(MouseButtonEvent& event){

@@ -35,6 +35,7 @@ public:
 
 	void open();
 	void close();
+	void forceClose();
 	bool hasLeftPage();
 	bool hasRightPage();
 	void turnLeft();

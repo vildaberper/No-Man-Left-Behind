@@ -103,7 +103,7 @@ unsigned long MusicManager::play(const std::string& name, const bool& fadeIn, co
 unsigned long MusicManager::play(const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
 	unsigned long id = ++idTracker;
 	if(musicBoard.count(category) == 0 || musicBoard[category].count(name) == 0){
-		logger::warning("Music " + category + "." + name + "could not be found.");
+		logger::warning("Music " + category + "." + name + " could not be found.");
 		return 0;
 	}
 	else{
@@ -111,7 +111,7 @@ unsigned long MusicManager::play(const std::string& category, const std::string&
 
 		localMusic->music = new Music();
 		if(!localMusic->music->openFromFile(musicBoard[category][name]->path())){
-			logger::warning("File " + musicBoard[category][name]->path() + "could not be found.");
+			logger::warning("File " + musicBoard[category][name]->path() + " could not be found.");
 		}
 		localMusic->music->setVolume(0.0f);
 
@@ -143,7 +143,7 @@ unsigned long MusicManager::queue(const unsigned long& before, const std::string
 unsigned long MusicManager::queue(const unsigned long& before, const std::string& category, const std::string& name, const bool& fadeIn, const bool& fadeOut, const bool& loop){
 	unsigned long id = ++idTracker;
 	if(musicBoard.count(category) == 0 || musicBoard[category].count(name) == 0){
-		logger::warning("Music " + category + "." + name + "could not be found.");
+		logger::warning("Music " + category + "." + name + " could not be found.");
 		return 0;
 	}
 	else if(channels.count(before) == 0){
@@ -155,7 +155,7 @@ unsigned long MusicManager::queue(const unsigned long& before, const std::string
 
 		localMusic->music = new Music();
 		if(!localMusic->music->openFromFile(musicBoard[category][name]->path())){
-			logger::warning("File " + musicBoard[category][name]->path() + "could not be found.");
+			logger::warning("File " + musicBoard[category][name]->path() + " could not be found.");
 		}
 		localMusic->music->setVolume(0.0f);
 
@@ -192,6 +192,19 @@ void MusicManager::stop(const unsigned long& id, const bool& force){
 	}
 	else{
 		m->duration = clock.getElapsedTime() - m->start + FADE_DURATION;
+	}
+	if(m->queued){
+		std::map<unsigned long, mm::Music*>::iterator itr = channels.begin();
+		while(itr != channels.end()){
+			std::pair<unsigned long, mm::Music*> mp = (*itr);
+			if(mp.second == m){
+				delete (*itr).second;
+				itr = channels.erase(itr);
+			}
+			else{
+				++itr;
+			}
+		}
 	}
 }
 

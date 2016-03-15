@@ -16,6 +16,7 @@ World::~World(){
 
 void World::setPaused(const bool& paused){
 	World::paused = paused;
+	clock.restart();
 }
 bool World::isPaused(){
 	return paused;

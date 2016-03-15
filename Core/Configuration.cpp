@@ -45,7 +45,13 @@ static const bool isFloat(string value){
 }
 
 int h(string& s){
+	if(s.length() == 0){
+		return 0;
+	}
 	string::size_type i = s.find_first_not_of(' ');
+	if(i == string::npos){
+		return 0;
+	}
 	s = s.substr(i);
 	return i / INDENT_WIDTH;
 }
