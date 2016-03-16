@@ -2,43 +2,11 @@
 
 float stepDistance = 5.0f;
 
-/*
-
-float v = fmod((cl.getElapsedTime().asSeconds() / 2.0f), 1.0f);
-if(v < 0.0f){
-v = 0.0f;
-}
-else if(v > 1.0f){
-v = 1.0f;
-}
-float w = 300;
-float h = 150;
-sf::ConvexShape t;
-t.setPosition(500, 500);
-t.setFillColor(sf::Color(255, 255, 255, 255));
-t.setOutlineColor(sf::Color(0, 0, 0, 255));
-t.setOutlineThickness(7);
-t.setPointCount(3);
-t.setPoint(0, sf::Vector2f(0, 0));
-t.setPoint(1, sf::Vector2f(w, 0));
-t.setPoint(2, sf::Vector2f(0, h));
-renderWindow->draw(t);
-
-t.setFillColor(sf::Color(104, 24, 24, 255));
-t.setOutlineColor(sf::Color(0, 0, 0, 255));
-t.setOutlineThickness(7);
-t.setPointCount(3);
-t.setPoint(0, sf::Vector2f(0, h * (1.0f - v)));
-t.setPoint(1, sf::Vector2f(w * v, h * (1.0f - v)));
-t.setPoint(2, sf::Vector2f(0, h));
-renderWindow->draw(t);
-
-*/
-
-Level::Level(Manager* manager, Controller* controller, JournalManager* jmanager){
+Level::Level(Manager* manager, Controller* controller, JournalManager* jmanager, CursorSet* cursorSet){
 	Level::manager = manager;
 	Level::controller = controller;
 	Level::jmanager = jmanager;
+	Level::cursorSet = cursorSet;
 }
 
 Level::~Level(){
@@ -56,9 +24,6 @@ void Level::load(File& file){
 	cl.restart();
 
 	worldFileName = c.stringValue("general.worldFileName");
-	spawn = c.floatVector("general.spawn");
-	truckspawn = c.floatVector("general.truckspawn");
-	useTruck = c.boolValue("general.useTruck");
 	timeBeforeBreak = c.floatValue("general.timeBeforeBreak");
 	timer = sf::seconds(c.floatValue("general.timer"));
 
@@ -112,12 +77,40 @@ void Level::begin(){
 		Layer l = Layer(i);
 		for(drawable::Drawable* d : world->drawables[l]){
 			if(
+				(d->reference == "Characters.Ilse")
+				){
+				logger::info("Found player spawn position (" + d->position.toString() + ").");
+				spawn = d->position;
+				d->kill();
+				useTruck = false;
+			}
+			else if(
+				(d->reference == "Characters.Truck")
+				){
+				logger::info("Found truck spawn position (" + d->position.toString() + ").");
+				truckspawn = d->position;
+				d->kill();
+			}
+			else if(
 				(d->reference.size() > 11 && d->reference.substr(0, 11) == "Characters.")
 				){
-				Vector v = d->position;
+				logger::info("Found injured spawn position (" + d->position.toString() + ").");
+				injuredPositions.push_back(d->position);
 				d->kill();
-				logger::info("Found injured spawn position (" + v.toString() + ").");
-				injuredPositions.push_back(v);
+			}
+			else if(
+				/*(d->reference.size() >= 9 && d->reference.substr(0, 9) == "Props.Box")
+				||*/ (d->reference.size() >= 17 && d->reference.substr(0, 17) == "Props.Medical Box")
+				|| (d->reference.size() >= 21 && d->reference.substr(0, 21) == "Props.Medical Cabinet")
+				){
+				logger::info("Found resource box " + d->reference + " (" + d->position.toString() + ").");
+				resourceBoxes.push_back(new ResourceBox(controller, manager, 7, playerInventory, d));
+			}
+			else if(d->reference.size() > 10 && d->reference.substr(0, 10) == "Resources."){
+				std::string r = d->reference.substr(10);
+				ItemStack is = ItemStack(parseResource(r), 1);
+				logger::info("Found resource " + r + " (" + d->position.toString() + ").");
+				resources.push_back(ResourcePair(d, is));
 			}
 		}
 	}
@@ -171,18 +164,15 @@ void Level::begin(){
 	truck = new Truck();
 	truck->initialize(manager);
 	if(useTruck){
-		truck->position = spawn;
-		truck->position.y -= truck->getSprite(world->time())->h() * truck->scale * truck->cb.renderOffset / gi::dy();
+		truck->position = truckspawn;
 		manager->soundManager->relative = truck;
 	}
 	else{
 		truck->speed = 0.0f;
 		truck->targetspeed = 0.0f;
 		truck->position = truckspawn;
-		truck->position.y -= truck->getSprite(world->time())->h() * truck->scale * truck->cb.renderOffset / gi::dy();
 
 		player->position = spawn;
-		player->position.y -= player->getSprite(world->time())->h() * player->scale * player->cb.renderOffset / gi::dy();
 		world->addDrawable(player, LAYER2);
 		playerInventory->menu->hidden = false;
 		manager->soundManager->relative = player;
@@ -211,26 +201,39 @@ void Level::begin(){
 		mainId = si::playMusic(musicMain, true, true, true);
 	}
 
-	for(drawable::Drawable* d : world->drawables[LAYER2]){
-		if(
-			/*(d->reference.size() > 10 && d->reference.substr(0, 10) == "Props.Box ")
-			||*/ (d->reference.size() > 18 && d->reference.substr(0, 18) == "Props.Medical Box ")
-			|| (d->reference.size() > 22 && d->reference.substr(0, 22) == "Props.Medical Cabinet ")
-			){
-			logger::info("Found resource box: " + d->reference);
-			resourceBoxes.push_back(new ResourceBox(controller, manager, 7, playerInventory, d));
-		}
-	}
-
 	std::vector<ItemStack> iss;
 	for(Injured* inj : injured){
 		for(Resource r : inj->journal->requirements){
 			iss.push_back(ItemStack(r, 1));
 		}
 	}
-	for(size_t i = 0; i < extraResources; i++){
-		size_t is = random::random(iss.size() - 1);
-		iss[is].amount++;
+	if(iss.size() > 0){
+		for(size_t i = 0; i < extraResources; i++){
+			size_t is = random::random(iss.size() - 1);
+			iss[is].amount++;
+		}
+		for(size_t i = 0; i < resources.size(); i++){
+			ItemStack is = ItemStack(resources[i].second.item.type, resources[i].second.amount);
+
+			for(ItemStack& rem : iss){
+				if(rem.item.type == is.item.type){
+					if(rem.amount >= is.amount){
+						rem.amount -= is.amount;
+						is.amount = 0;
+					}
+					else{
+						is.amount -= rem.amount;
+						rem.amount = 0;
+					}
+				}
+				if(is.amount == 0){
+					break;
+				}
+			}
+			if(is.amount != 0){
+				logger::warning("Resource found in world is not part of journal requirements (" + resourceToString(is.item.type) + ").");
+			}
+		}
 	}
 
 	bool empty = iss.size() == 0;
@@ -258,9 +261,14 @@ void Level::begin(){
 
 void Level::tick(){
 	if(controller->isPressed(PAUSE)){
-		world->setPaused(!world->isPaused());
-		if(closestBox != NULL){
-			closestBox->menu->hidden = true;
+		if(handBook->isOpen()){
+			handBook->close();
+		}
+		else{
+			world->setPaused(!world->isPaused());
+			if(closestBox != NULL){
+				closestBox->menu->hidden = true;
+			}
 		}
 	}
 
@@ -339,8 +347,8 @@ void Level::tick(){
 			completeState = TIME_RAN_OUT;
 		}
 
-		if(time > sf::milliseconds(10000)){
-			nearTruck_ = nearTruck(250.0f);
+		if(hasUsedResource){
+			nearTruck_ = nearTruck(320.0f);
 			truck->highlight = nearTruck_;
 		}
 
@@ -386,6 +394,9 @@ void Level::tick(){
 				closestBox = cb;
 			}
 		}
+		if(closestBox != NULL && !handBook->isClosed()){
+			closestBox->menu->hidden = true;
+		}
 
 		if(canControl){
 			if(handBook->isOpen()){
@@ -406,8 +417,11 @@ void Level::tick(){
 				playerInventory->update();
 			}
 
-			if(controller->isPressed(INTERACT)){
+			if(controller->usingController && controller->isPressed(INTERACT) && handBook->isClosed()){
 				if(controller->usingController && closest != NULL){
+					if(!hasUsedResource){
+						hasUsedResource = playerInventory->itemInHand.amount > 0;
+					}
 					closest->use(playerInventory->selectedItem());
 					playerInventory->update();
 				}
@@ -419,8 +433,36 @@ void Level::tick(){
 				}
 			}
 		}
+
+		if(playerInventory->itemInHand.amount > 0){
+			cursorSet->hand();
+		}
+		else if(closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+			float(manager->inputManager->mouseX()),
+			float(manager->inputManager->mouseY())
+			)){
+			cursorSet->box();
+		}
+		else if(nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+			float(manager->inputManager->mouseX()),
+			float(manager->inputManager->mouseY())
+			)){
+			cursorSet->truck();
+		}
+
+		for(size_t i = 0; i < resources.size(); i++){
+			if(player->bounds(world->time()).intersects(resources[i].first->bounds(world->time()))){
+				playerInventory->put(resources[i].second);
+				playerInventory->update();
+				if(resources[i].second.amount == 0){
+					resources[i].first->kill();
+					resources.erase(resources.begin() + i--);
+				}
+			}
+		}
+
 		bool journalOpenSound = target == dist;
-		target = closest != NULL ? 0.0f : dist;
+		target = closest != NULL && handBook->isClosed() ? 0.0f : dist;
 		if(journalOpenSound && target == 0.0f){
 			si::playSound(NULL, "interface.journal_open");
 		}
@@ -535,10 +577,25 @@ void Level::on(MouseButtonEvent& event){
 			if(closest->isAlive()){
 				sf::FloatRect ifr = closest->bounds(world->time());
 				if(ifr.contains(gi::wx(float(manager->inputManager->mouseX())), gi::wy(float(manager->inputManager->mouseY())))){
+					if(!hasUsedResource){
+						hasUsedResource = playerInventory->itemInHand.amount > 0;
+					}
 					closest->use(playerInventory->itemInHand);
 					playerInventory->update();
 				}
 			}
+		}
+		else if(closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+			float(event.x()),
+			float(event.y())
+			)){
+			closestBox->menu->hidden = !closestBox->menu->hidden;
+		}
+		else if(nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+			float(event.x()),
+			float(event.y())
+			)){
+			completeState = IN_TRUCK;
 		}
 	}
 }
@@ -573,7 +630,7 @@ Injured* Level::nearestInjured(const float& maxDistance){
 					for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
 						drawable::Drawable* d = world->drawables[LAYER2][di1];
 
-						if(d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed")){
+						if(d->hideUnderCamera || d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed")){
 							continue;
 						}
 						if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){
@@ -626,7 +683,7 @@ ResourceBox* Level::nearestResourceBox(const float& maxDistance){
 				for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
 					drawable::Drawable* d = world->drawables[LAYER2][di1];
 
-					if(d == inj || d == player){
+					if(d->hideUnderCamera || d == inj || d == player){
 						continue;
 					}
 					if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){

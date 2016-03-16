@@ -247,7 +247,7 @@ void Editor::run(){
 	gi::smoothCamera = true;
 	gi::cameraSmoothness = 25.0f;
 
-	gi::cursor = new Cursor(manager, "cursor");
+	gi::cursor = new Cursor(manager, "cursorMain");
 
 	while(gi::startOfFrame()){
 		switch(state){
@@ -609,7 +609,7 @@ void Editor::on(MouseMoveEvent& event){
 		}
 	}
 	else{
-		if(target->layer == LAYER0){
+		if(target->layer == LAYER0 || manager->inputManager->isPressed(sf::Keyboard::Key::G)){
 			if(world->background != NULL){
 				int w = world->background->getSize().x;
 				int h = world->background->getSize().y;

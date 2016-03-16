@@ -83,7 +83,7 @@ void World::tick(){
 	for(size_t di0 = d0min; di0 < drawables[LAYER2].size() && di0 <= d0max; di0++){
 		drawable::Drawable* d0 = drawables[LAYER2][di0];
 
-		if(d0->velocity.direction() == ZERO){
+		if(d0->velocity.direction() == ZERO || d0->hideUnderCamera){
 			continue;
 		}
 
@@ -93,7 +93,7 @@ void World::tick(){
 		for(size_t di1 = d1min; di1 < drawables[LAYER2].size() && di1 <= d0max; di1++){
 			drawable::Drawable* d1 = drawables[LAYER2][di1];
 
-			if(d0 == d1){
+			if(d0 == d1 || d1->hideUnderCamera){
 				continue;
 			}
 			if(math::interv(d0->position.x, d1->position.x) + math::interv(d0->position.y, d1->position.y) > MAX_COLLISION_DISTANCE){
@@ -312,9 +312,6 @@ void World::addDrawable(drawable::Drawable* drawable, const Layer& layer){
 	drawable->reference = drawable->animations[drawable->currentAnimation]->textures[0];
 	if(!drawable->cb.shouldCollide){
 		drawable->cb = manager->collisionManager->getCollisionBox(drawable->reference);
-	}
-	if(drawable->cb.shouldCollide){
-		collidables.push_back(drawable);
 	}
 	drawable->calcRenderOffset();
 	doSwap[layer] = true;

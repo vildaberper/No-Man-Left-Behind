@@ -22,6 +22,8 @@ namespace gc{
 
 	extern int resourcesFromGenerals;
 
+	extern float criticalTimer;
+
 	extern std::vector<std::string> levelProgression;
 
 	const void initialize();

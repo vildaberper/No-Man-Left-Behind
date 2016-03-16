@@ -77,6 +77,16 @@ void JournalManager::loadFromDir(File& file){
 		if(r.length() > 0){
 			j->deathTimer = sf::seconds(float(std::stoi(r)));
 		}
+		else{
+			switch(j->requirements.size()){
+			case 2:
+				j->deathTimer = sf::seconds(gc::criticalTimer * 2.0f);
+				break;
+			case 3:
+				j->deathTimer = sf::seconds(gc::criticalTimer);
+				break;
+			}
+		}
 
 		for(size_t i = 3; i < lines->size(); i++){
 			j->lines.push_back((*lines)[i]);

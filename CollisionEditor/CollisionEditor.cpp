@@ -115,14 +115,13 @@ void CollisionEditor::run(){
 		gi::drawLog();
 
 		manager->menuManager->draw(world->time());
-
 		gi::endOfFrame();
 	}
+	delete world;
 	manager->collisionManager->save(c::collisionBoxFile);
 	manager->finalize(window);
 	delete manager;
 	gi::finalize();
-	delete world;
 }
 
 void CollisionEditor::update(){

@@ -10,6 +10,9 @@ namespace random{
 	}
 
 	int random(const int& upper, const int& lower){
+		if(upper == lower){
+			return upper;
+		}
 		return lower + rand() % (upper + 1 - lower);
 	}
 }

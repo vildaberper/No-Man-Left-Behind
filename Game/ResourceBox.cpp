@@ -27,13 +27,16 @@ ResourceBox::ResourceBox(Controller* controller, Manager* manager, const unsigne
 	menu->hidden = true;
 	menu->type = HORIZONTAL;
 	menu->background = new TexBar(
-		manager->spriteManager->getTexture("bag.left"),
-		manager->spriteManager->getTexture("bag.middle"),
-		manager->spriteManager->getTexture("bag.right")
+		/*manager->spriteManager->getTexture("box.left"),
+		manager->spriteManager->getTexture("box.middle"),
+		manager->spriteManager->getTexture("box.right")*/
+		NULL,
+		manager->spriteManager->getTexture("box.full"),
+		NULL
 		);
 	menu->drawElementBackgrounds = false;
-	menu->leftOffset = menu->rightOffset = 20.0f;
-	menu->topOffset = 30.0f;
+	menu->topOffset = 10.0f;
+	menu->bottomOffset = 70.0f;
 	manager->menuManager->menus[id] = menu;
 
 	handle = manager->spriteManager->getSprite("bag.handle");
@@ -83,9 +86,9 @@ void ResourceBox::on(MouseButtonEvent& event){
 }
 
 void ResourceBox::updateMenu(){
-	float w = getSize() * 80.0f + 40;
+	float w = getSize() * 128.0f;
 	menu->position = Vector(gi::TARGET_WIDTH / 2 - w / 2.0f, gi::TARGET_HEIGHT / 2);
-	menu->size = Vector(w, 120.0f);
+	menu->size = Vector(w, 192.0f);
 
 	selectedSlot = math::range(selectedSlot, getSize() - 1);
 

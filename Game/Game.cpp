@@ -61,8 +61,6 @@ void Game::run(){
 			controller->initialize(manager);
 			managerInitialized = true;
 			inputListenerId = manager->inputManager->registerListener(this);
-			gi::cursor = new Cursor(manager, "cursor");
-			gi::showCursor = true;
 			jmanager = new JournalManager();
 
 			playerInventory = new PlayerInventory(controller, manager, gc::inventorySize);
@@ -135,6 +133,9 @@ void Game::run(){
 			}
 			delete lines;
 
+			cursorSet = new CursorSet(manager);
+			cursorSet->main();
+
 			clock.restart();
 			continue;
 		}
@@ -161,6 +162,7 @@ void Game::run(){
 
 		switch(state){
 		case MAIN_MENU:
+			cursorSet->main();
 			mainMenu->hidden = false;
 			handBook->openMenu->hidden = true;
 			playerInventory->menu->hidden = true;
@@ -203,13 +205,14 @@ void Game::run(){
 			break;
 		case LEVEL_MENU:
 		{
+			cursorSet->main();
 			pauseMenu->hidden = false;
 			handBook->openMenu->hidden = true;
 			playerInventory->menu->hidden = true;
 			gi::background(*mainmenu);
 			bool esc = manager->inputManager->isFirstPressed(sf::Keyboard::Escape);
 			if(esc || menuCommand->length() > 0){
-				as = 5.0f;
+				as = 10.0f;
 				if(esc || *menuCommand == "continue"){
 					at = 1.0f;
 					nextState = LEVEL;
@@ -245,6 +248,7 @@ void Game::run(){
 			break;
 		}
 		case LEVEL:
+			cursorSet->main();
 			playerInventory->menu->hidden = false;
 			handBook->openMenu->hidden = false;
 			shouldPlayMenuMusic = false;
@@ -253,7 +257,7 @@ void Game::run(){
 			if(level->world->isPaused()){
 				handBook->forceClose();
 				nextState = LEVEL_MENU;
-				as = 5.0f;
+				as = 10.0f;
 				at = 1.0f;
 				if(a >= 1.0f){
 					as = 1.0f;
@@ -297,10 +301,10 @@ void Game::run(){
 				transtionDone = false;
 				at = 0.0f;
 			}
-
 			break;
 		case TRANSITION:
 		{
+			cursorSet->main();
 			if(manager->inputManager->isFirstPressed(sf::Keyboard::Return)){
 				at = 1.0f;
 				transtionDone = true;
@@ -339,7 +343,7 @@ void Game::run(){
 					}
 					gi::darken(1.0f);
 					gi::endOfFrame();
-					level = new Level(manager, controller, jmanager);
+					level = new Level(manager, controller, jmanager, cursorSet);
 					level->extraResources = lastExtraResources;
 					level->playerInventory = playerInventory;
 					level->handBook = handBook;
@@ -361,7 +365,7 @@ void Game::run(){
 			if(creditTime.asMilliseconds() == 0){
 				creditTime = time;
 				creditLogoTime = sf::milliseconds(0);
-				gi::showCursor = false;
+				cursorSet->hide();
 			}
 			sf::Text t;
 			t.setFont(gi::menuFont);
@@ -420,6 +424,7 @@ void Game::run(){
 			break;
 		}
 		case COMPLETE:
+			cursorSet->hide();
 			shouldPlayMenuMusic = true;
 			a = 1.0f;
 			at = 0.0f;
@@ -467,4 +472,39 @@ void Game::newGame(){
 	savedCivil = 0;
 	savedSoldier = 0;
 	savedGeneral = 0;
+}
+
+void Game::transition(){
+	/*
+
+	float v = fmod((cl.getElapsedTime().asSeconds() / 2.0f), 1.0f);
+	if(v < 0.0f){
+	v = 0.0f;
+	}
+	else if(v > 1.0f){
+	v = 1.0f;
+	}
+	float w = 300;
+	float h = 150;
+	sf::ConvexShape t;
+	t.setPosition(500, 500);
+	t.setFillColor(sf::Color(255, 255, 255, 255));
+	t.setOutlineColor(sf::Color(0, 0, 0, 255));
+	t.setOutlineThickness(7);
+	t.setPointCount(3);
+	t.setPoint(0, sf::Vector2f(0, 0));
+	t.setPoint(1, sf::Vector2f(w, 0));
+	t.setPoint(2, sf::Vector2f(0, h));
+	renderWindow->draw(t);
+
+	t.setFillColor(sf::Color(104, 24, 24, 255));
+	t.setOutlineColor(sf::Color(0, 0, 0, 255));
+	t.setOutlineThickness(7);
+	t.setPointCount(3);
+	t.setPoint(0, sf::Vector2f(0, h * (1.0f - v)));
+	t.setPoint(1, sf::Vector2f(w * v, h * (1.0f - v)));
+	t.setPoint(2, sf::Vector2f(0, h));
+	renderWindow->draw(t);
+
+	*/
 }

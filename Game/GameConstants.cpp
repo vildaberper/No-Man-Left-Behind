@@ -20,6 +20,8 @@ namespace gc{
 
 	int resourcesFromGenerals;
 
+	float criticalTimer;
+
 	std::vector<std::string> levelProgression;
 
 	const void initialize(){
@@ -43,6 +45,7 @@ namespace gc{
 		survive3Rate = config.floatValue("general.survive3Rate");
 		survive4Rate = config.floatValue("general.survive4Rate");
 		resourcesFromGenerals = config.intValue("general.resourcesFromGenerals");
+		criticalTimer = config.floatValue("general.criticalTimer");
 
 		levelProgression = config.stringVector("levels.progression");
 

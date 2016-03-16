@@ -6,6 +6,7 @@
 #include "Random.h"
 #include "Injured.h"
 #include "Handbook.h"
+#include "CursorSet.h"
 #include "Controller.h"
 #include "ResourceBox.h"
 #include "JournalManager.h"
@@ -25,9 +26,11 @@ enum CompleteState{
 
 extern float stepDistance;
 
+typedef std::pair<drawable::Drawable*, ItemStack> ResourcePair;
+
 class Level : InputListener{
 public:
-	Level(Manager* manager, Controller* controller, JournalManager* jmanager);
+	Level(Manager* manager, Controller* controller, JournalManager* jmanager, CursorSet* cursorSet);
 	~Level();
 
 	void load(File& file);
@@ -68,7 +71,7 @@ public:
 	unsigned long introId;
 	unsigned long mainId;
 
-	bool useTruck;
+	bool useTruck = true;
 	Truck* truck;
 	bool nearTruck_ = false;
 	Vector spawn;
@@ -95,6 +98,8 @@ public:
 	std::vector<ResourceBox*> resourceBoxes;
 	ResourceBox* closestBox = NULL;
 
+	std::vector<ResourcePair> resources;
+
 	Animatable* journal;
 	float dist = 1400.0f;
 	float target = dist;
@@ -114,4 +119,8 @@ public:
 	unsigned long listenerId;
 
 	CompleteState completeState = IN_GAME;
+
+	CursorSet* cursorSet;
+
+	bool hasUsedResource = false;
 };

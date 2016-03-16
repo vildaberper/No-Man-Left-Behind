@@ -8,6 +8,7 @@
 #include "Manager.h"
 #include "Handbook.h"
 #include "Constants.h"
+#include "CursorSet.h"
 #include "Controller.h"
 #include "MathHelper.h"
 #include "ProgressBar.h"
@@ -35,6 +36,8 @@ public:
 	void run();
 
 	void newGame();
+
+	void transition();
 private:
 	Menu* mainMenu;
 	Menu* pauseMenu;
@@ -98,4 +101,6 @@ private:
 	Controller* controller;
 
 	bool managerInitialized = false;
+
+	CursorSet* cursorSet;
 };

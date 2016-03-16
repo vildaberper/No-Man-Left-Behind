@@ -170,7 +170,6 @@ public:
 	sf::Texture* background;
 
 	std::map<Layer, std::vector<drawable::Drawable*>> drawables;
-	std::vector<drawable::Drawable*> collidables;
 	std::vector<Entity*> entities;
 
 	Layer swapLayer;
