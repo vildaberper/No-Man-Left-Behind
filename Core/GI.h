@@ -9,6 +9,7 @@
 #include "CoreSprite.h"
 #include "MathHelper.h"
 #include "ProgressBar.h"
+#include "InputManager.h"
 
 namespace gi{
 	static const float TARGET_WIDTH = 1920;
@@ -40,6 +41,8 @@ namespace gi{
 
 	extern Vector relativeOffset;
 
+	extern InputManager* inputManager;
+
 	void zoom(const float& zoom);
 
 	void camera(const float& dt);
@@ -47,7 +50,7 @@ namespace gi{
 	void resetCamera();
 
 	// Initialize \ Finalize
-	bool initalize(sf::RenderWindow*& rw);
+	bool initalize();
 
 	bool finalize();
 
@@ -84,7 +87,7 @@ namespace gi{
 
 	void draw(ProgressBar* progressbar, const sf::Time& time);
 
-	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h);
+	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darkenOnMouseOver = false);
 
 	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font = textFont);
 

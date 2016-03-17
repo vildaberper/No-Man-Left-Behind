@@ -13,9 +13,9 @@ AnimationTester::~AnimationTester(){
 
 void AnimationTester::run(){
 	c::initialize();
-	gi::initalize(window);
+	gi::initalize();
 	manager = new Manager();
-	manager->initialize(window);
+	manager->initialize(gi::renderWindow);
 
 	manager->inputManager->registerListener(this);
 
@@ -25,9 +25,7 @@ void AnimationTester::run(){
 
 	while (gi::startOfFrame()){
 		world->tick();
-		manager->tick(window, world->time(), world->dt());
-
-		window->clear();
+		manager->tick(gi::renderWindow, world->time(), world->dt());
 
 		world->render();
 		manager->menuManager->draw(world->time());
@@ -37,7 +35,7 @@ void AnimationTester::run(){
 
 	save();
 
-	manager->finalize(window);
+	manager->finalize(gi::renderWindow);
 	delete manager;
 	gi::finalize();
 	delete world;
@@ -130,7 +128,7 @@ void AnimationTester::on(KeyboardEvent& event){
 	if (event.pressed()){
 		switch (event.key()){
 		case Keyboard::Escape:
-			window->close();
+			gi::renderWindow->close();
 			break;
 		case Keyboard::S:
 			if (manager->inputManager->isPressed(Keyboard::LControl)){

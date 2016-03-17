@@ -5,7 +5,7 @@
 namespace c{
 	static const std::string WINDOW_TITLE = "No Man Left Behind";
 
-	extern Configuration config;
+	extern Configuration* config;
 
 	extern File baseDir;
 	extern File textureDir;
@@ -33,4 +33,6 @@ namespace c{
 	extern File textFont;
 
 	const void initialize();
+
+	void save();
 }

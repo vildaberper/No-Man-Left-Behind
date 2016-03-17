@@ -23,8 +23,6 @@ public:
 private:
 	bool repeat = true;
 
-	sf::RenderWindow* window;
-
 	Manager* manager;
 
 	World* world;

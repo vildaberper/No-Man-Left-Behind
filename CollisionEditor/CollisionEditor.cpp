@@ -15,9 +15,9 @@ CollisionEditor::~CollisionEditor(){
 
 void CollisionEditor::run(){
 	c::initialize();
-	gi::initalize(window);
+	gi::initalize();
 	manager = new Manager();
-	manager->initialize(window);
+	manager->initialize(gi::renderWindow);
 	world = new World(manager);
 	world->background = manager->spriteManager->getBackground("Snow");
 
@@ -106,9 +106,7 @@ void CollisionEditor::run(){
 		}
 
 		world->tick();
-		manager->tick(window, world->time(), world->dt());
-
-		window->clear();
+		manager->tick(gi::renderWindow, world->time(), world->dt());
 
 		world->render();
 
@@ -119,7 +117,7 @@ void CollisionEditor::run(){
 	}
 	delete world;
 	manager->collisionManager->save(c::collisionBoxFile);
-	manager->finalize(window);
+	manager->finalize(gi::renderWindow);
 	delete manager;
 	gi::finalize();
 }
@@ -155,7 +153,7 @@ void CollisionEditor::on(KeyboardEvent& event){
 	}
 	switch(event.key()){
 	case Keyboard::Escape:
-		window->close();
+		gi::renderWindow->close();
 		break;
 	case Keyboard::C:
 	{

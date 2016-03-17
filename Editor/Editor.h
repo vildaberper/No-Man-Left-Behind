@@ -32,8 +32,6 @@ public:
 private:
 	EditorState state = FILE_SELECT;
 
-	sf::RenderWindow* window;
-
 	Manager* manager;
 
 	World* world;

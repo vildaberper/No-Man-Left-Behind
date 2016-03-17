@@ -28,6 +28,7 @@ public:
 	Menu* toggle = NULL;
 	bool closeOnClick;
 	bool highlight = false;
+	bool darkenOnMouseOver = false;
 
 	TexBar* background = NULL;
 

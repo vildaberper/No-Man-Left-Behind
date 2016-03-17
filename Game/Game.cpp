@@ -42,10 +42,11 @@ void Game::on(KeyboardEvent& event){
 }
 
 void Game::run(){
+	gi::showCursor = false;
 	sf::Clock clock;
 	c::initialize();
 	gc::initialize();
-	gi::initalize(window);
+	gi::initalize();
 	gi::smoothCamera = true;
 
 	random::initialize();
@@ -56,7 +57,7 @@ void Game::run(){
 			gi::darken(1.0f);
 			gi::endOfFrame();
 			manager = new Manager();
-			manager->initialize(window);
+			manager->initialize(gi::renderWindow);
 			controller = new Controller();
 			controller->initialize(manager);
 			managerInitialized = true;
@@ -72,8 +73,9 @@ void Game::run(){
 
 			creditbg = manager->spriteManager->getSprite("bg.intro");
 			nmlbb = manager->spriteManager->getSprite("logo.nmlb-bag");
-			morsol = manager->spriteManager->getSprite("logo.moronic_solutions");
+			morsolw = manager->spriteManager->getSprite("logo.moronic_solutionsw");
 
+			gi::inputManager = manager->inputManager;
 			/*
 				Menu
 			*/
@@ -89,16 +91,60 @@ void Game::run(){
 			pauseMenu->hidden = true;
 			pauseMenu->type = VERTICAL;
 
+			optionsMenu = new Menu();
+			optionsMenu->position = Vector(90.0f, gi::TARGET_HEIGHT - 50 - 62 * 2 * 4);
+			optionsMenu->size = Vector(192 * 2, 62 * 2 * 4);
+			optionsMenu->hidden = true;
+			optionsMenu->type = VERTICAL;
+
+			// Options
+			checked = manager->spriteManager->getSprite("menu.checked");
+			unchecked = manager->spriteManager->getSprite("menu.unchecked");
+
+			itemFullscreen = new MenuItem();
+			itemFullscreen->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.fullscreen"), NULL);
+			itemFullscreen->type = TEXTURE;
+			itemFullscreen->selectedPrefix = "options.fullscreen";
+			itemFullscreen->selectedString = menuCommand;
+			itemFullscreen->darkenOnMouseOver = true;
+			optionsMenu->items.push_back(itemFullscreen);
+
+			itemVsync = new MenuItem();
+			itemVsync->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.vsync"), NULL);
+			itemVsync->type = TEXTURE;
+			itemVsync->selectedPrefix = "options.vsync";
+			itemVsync->selectedString = menuCommand;
+			itemVsync->darkenOnMouseOver = true;
+			optionsMenu->items.push_back(itemVsync);
+
 			MenuItem* mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.apply"), NULL);
+			mi->selectedPrefix = "options.apply";
+			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
+			optionsMenu->items.push_back(mi);
+
+			mi = new MenuItem();
+			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.back"), NULL);
+			mi->selectedPrefix = "options.back";
+			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
+			optionsMenu->items.push_back(mi);
+
+			//
+
+			mi = new MenuItem();
 			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.continue"), NULL);
 			mi->selectedPrefix = "continue";
 			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
 			pauseMenu->items.push_back(mi);
 
 			mi = new MenuItem();
 			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.new game"), NULL);
 			mi->selectedPrefix = "new game";
 			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
 			mainMenu->items.push_back(mi);
 			pauseMenu->items.push_back(mi);
 
@@ -106,6 +152,7 @@ void Game::run(){
 			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.options"), NULL);
 			mi->selectedPrefix = "options";
 			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
 			mainMenu->items.push_back(mi);
 			pauseMenu->items.push_back(mi);
 
@@ -113,6 +160,7 @@ void Game::run(){
 			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.credits"), NULL);
 			mi->selectedPrefix = "credits";
 			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
 			mainMenu->items.push_back(mi);
 			pauseMenu->items.push_back(mi);
 
@@ -120,11 +168,13 @@ void Game::run(){
 			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.quit"), NULL);
 			mi->selectedPrefix = "quit";
 			mi->selectedString = menuCommand;
+			mi->darkenOnMouseOver = true;
 			mainMenu->items.push_back(mi);
 			pauseMenu->items.push_back(mi);
 
 			manager->menuManager->menus["mainmenu"] = mainMenu;
 			manager->menuManager->menus["pausemenu"] = pauseMenu;
+			manager->menuManager->menus["optionsmenu"] = optionsMenu;
 			//
 
 			std::vector<std::string>* lines = c::baseDir.child("credits.txt").readTextFile();
@@ -143,9 +193,7 @@ void Game::run(){
 		Time time = clock.getElapsedTime();
 		float dt = (time - lastTime).asSeconds();
 
-		manager->tick(window, time, (level == NULL || level->world == NULL) ? dt : level->world->dt());
-
-		window->clear();
+		manager->tick(gi::renderWindow, time, (level == NULL || level->world == NULL) ? dt : level->world->dt());
 
 		if(a > at && a > 0.0f){
 			a -= dt * as;
@@ -162,6 +210,10 @@ void Game::run(){
 
 		switch(state){
 		case MAIN_MENU:
+			if(lastState == OPTIONS){
+				as = 5.0f;
+			}
+			lastState = MAIN_MENU;
 			cursorSet->main();
 			mainMenu->hidden = false;
 			handBook->openMenu->hidden = true;
@@ -181,6 +233,7 @@ void Game::run(){
 				}
 				else if(*menuCommand == "options"){
 					at = 1.0f;
+					as = 5.0f;
 					nextState = OPTIONS;
 				}
 				else if(*menuCommand == "credits"){
@@ -194,7 +247,6 @@ void Game::run(){
 				*menuCommand = "";
 			}
 			if(a >= 1.0f && at == 1.0f){
-				lastState = MAIN_MENU;
 				state = nextState;
 				currentLevel = 0;
 				at = 0.0f;
@@ -205,6 +257,10 @@ void Game::run(){
 			break;
 		case LEVEL_MENU:
 		{
+			if(lastState == OPTIONS){
+				as = 5.0f;
+			}
+			lastState = LEVEL_MENU;
 			cursorSet->main();
 			pauseMenu->hidden = false;
 			handBook->openMenu->hidden = true;
@@ -225,6 +281,7 @@ void Game::run(){
 				}
 				else if(*menuCommand == "options"){
 					at = 1.0f;
+					as = 5.0f;
 					nextState = OPTIONS;
 				}
 				else if(*menuCommand == "credits"){
@@ -238,7 +295,6 @@ void Game::run(){
 				*menuCommand = "";
 			}
 			if(a >= 1.0f && at == 1.0f){
-				lastState = LEVEL_MENU;
 				state = nextState;
 				at = 0.0f;
 				as = 1.0f;
@@ -322,7 +378,7 @@ void Game::run(){
 				t.setString("outro - " + std::to_string(currentLevel));
 			}
 			else{
-				t.setString("transition (" + std::to_string(currentLevel - 1) + "->" + std::to_string(currentLevel) + ") - " + std::to_string(currentLevel));
+				t.setString("transition - " + std::to_string(currentLevel));
 			}
 			gi::renderWindow->draw(t);
 			if(transtionDone && a >= 1.0f){
@@ -358,8 +414,52 @@ void Game::run(){
 			break;
 		}
 		case OPTIONS:
-			state = lastState;
+		{
+			if(firstOptionsFrame){
+				firstOptionsFrame = false;
+				c::initialize();
+				itemFullscreen->sprite = c::fullscreen ? checked : unchecked;
+				itemVsync->sprite = c::verticalSync ? checked : unchecked;
+				changedOptions = false;
+			}
+			as = 5.0f;
+			optionsMenu->hidden = false;
+			gi::background(*mainmenu);
+			bool esc = manager->inputManager->isFirstPressed(sf::Keyboard::Escape);
+			if(esc || menuCommand->length() > 0){
+				if(*menuCommand == "options.fullscreen"){
+					c::fullscreen = !c::fullscreen;
+					itemFullscreen->sprite = c::fullscreen ? checked : unchecked;
+					changedOptions = true;
+				}
+				else if(*menuCommand == "options.vsync"){
+					c::verticalSync = !c::verticalSync;
+					itemVsync->sprite = c::verticalSync ? checked : unchecked;
+					changedOptions = true;
+				}
+				else if(changedOptions && *menuCommand == "options.apply"){
+					changedOptions = false;
+					gi::renderWindow->close();
+					gi::initalize();
+					
+					c::save();
+				}
+				else if(esc || *menuCommand == "options.back"){
+					at = 1.0f;
+				}
+				*menuCommand = "";
+			}
+			if(a >= 1.0f && at == 1.0f){
+				state = lastState;
+				lastState = OPTIONS;
+				at = 0.0f;
+				as = 1.0f;
+				optionsMenu->hidden = true;
+				firstOptionsFrame = true;
+			}
+			manager->menuManager->draw(time);
 			break;
+		}
 		case CREDITS:
 		{
 			if(creditTime.asMilliseconds() == 0){
@@ -403,7 +503,7 @@ void Game::run(){
 					);
 			}
 			gi::draw(
-				*morsol,
+				*morsolw,
 				gi::TARGET_WIDTH - 310 - 10,
 				gi::TARGET_HEIGHT - 138 - 5,
 				310,
@@ -450,7 +550,7 @@ void Game::run(){
 		lastTime = time;
 		gi::endOfFrame();
 	}
-	manager->finalize(window);
+	manager->finalize(gi::renderWindow);
 	gi::finalize();
 	delete controller;
 	delete manager;

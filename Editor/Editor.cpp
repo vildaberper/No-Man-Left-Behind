@@ -38,9 +38,9 @@ void worlds(vector<string>& ws, File& f){
 
 void Editor::run(){
 	c::initialize();
-	gi::initalize(window);
+	gi::initalize();
 	manager = new Manager();
-	manager->initialize(window);
+	manager->initialize(gi::renderWindow);
 	world = new World(manager);
 
 	vector<string> ws;
@@ -258,7 +258,7 @@ void Editor::run(){
 
 			manager->menuManager->draw(world->time());
 
-			manager->tick(window, world->time(), world->dt());
+			manager->tick(gi::renderWindow, world->time(), world->dt());
 
 			if(selectedWorld->size() != 0){
 				file = c::worldDir.child(*selectedWorld + ".txt");
@@ -345,9 +345,7 @@ void Editor::run(){
 			}
 
 			world->tick();
-			manager->tick(window, world->time(), world->dt());
-
-			window->clear();
+			manager->tick(gi::renderWindow, world->time(), world->dt());
 
 			gi::camera(world->dt());
 
@@ -388,7 +386,7 @@ void Editor::run(){
 	si::stopMusic(introId);
 	si::stopMusic(mainId);
 
-	manager->finalize(window);
+	manager->finalize(gi::renderWindow);
 	delete manager;
 	gi::finalize();
 	delete world;
@@ -417,7 +415,7 @@ void Editor::on(KeyboardEvent& event){
 				worldMenu->hidden = false;
 			}
 			else{
-				window->close();
+				gi::renderWindow->close();
 			}
 			break;
 		case Keyboard::L:

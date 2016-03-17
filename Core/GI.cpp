@@ -29,7 +29,12 @@ namespace gi{
 
 	Vector relativeOffset;
 
+	InputManager* inputManager = NULL;
+
 	sf::Clock clock;
+
+	bool hasSeenIntro = false;
+	bool firstInit = true;
 
 	void zoom(const float& zoom){
 		cameraZ = zoom > 0.01f ? zoom : 0.01f;
@@ -61,7 +66,7 @@ namespace gi{
 		HEIGHT = TARGET_HEIGHT / cameraZ;
 	}
 
-	bool initalize(sf::RenderWindow*& rw){
+	bool initalize(){
 		sf::Clock cl;
 
 		sf::VideoMode vm = sf::VideoMode(c::resX, c::resY, 32);
@@ -70,18 +75,68 @@ namespace gi{
 			if(c::autoResolution){
 				vm = sf::VideoMode::getDesktopMode();
 			}
-			renderWindow = rw = new sf::RenderWindow(vm, c::WINDOW_TITLE, sf::Style::Fullscreen);
+			renderWindow = new sf::RenderWindow(vm, c::WINDOW_TITLE, sf::Style::Fullscreen);
 		}
 		else{
-			renderWindow = rw = new sf::RenderWindow(vm, c::WINDOW_TITLE);
+			renderWindow = new sf::RenderWindow(vm, c::WINDOW_TITLE);
 		}
 		renderWindow->setFramerateLimit(c::frameLimit);
 		renderWindow->setVerticalSyncEnabled(c::verticalSync);
 
-		resetCamera();
-		bool success = menuFont.loadFromFile(c::menuFont.path()) && textFont.loadFromFile(c::textFont.path());
+		defaultCursor = true;
 
-		logger::timing("Graphics interface initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+		bool success = !firstInit || (menuFont.loadFromFile(c::menuFont.path()) && textFont.loadFromFile(c::textFont.path()));
+		
+		logger::timing("Graphics interface " + std::string(firstInit ? "" : "re") + "initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
+		
+		if(firstInit){
+			firstInit = false;
+			resetCamera();
+		}
+
+		if(!hasSeenIntro){
+			hasSeenIntro = true;
+			bool sc = showCursor;
+			showCursor = false;
+			sf::Texture t;
+			sf::SoundBuffer b;
+			File fp = File().child("core.png");
+			File fa = File().child("core.wav");
+			bool played = false;
+			if(fa.isFile() && fp.isFile() && t.loadFromFile(fp.path()) && b.loadFromFile(fa.path())){
+				sf::Sprite s(t);
+				sf::Sound a(b);
+				a.setVolume(100.0f);
+				float scaleX = (TARGET_WIDTH / t.getSize().x) / 3.0f;
+				float scaleY = (TARGET_HEIGHT / t.getSize().y) / 3.0f;
+				s.scale(dxiz() * scaleX, dyiz() * scaleY);
+				s.setPosition((wx() - t.getSize().x * dxiz() * scaleX) / 2.0f, (wy() - t.getSize().y * dyiz() * scaleY) / 2.0f);
+				sf::Clock c;
+				while(startOfFrame()){
+					sf::Int32 time = c.getElapsedTime().asMilliseconds();
+					renderWindow->draw(s);
+					if(!played && time >= 150){
+						a.play();
+						played = true;
+					}
+					if(time < 500){
+						darken(1.0f);
+					}
+					else if(time < 1000){
+						darken(1.0f - ((time - 500) / 500.0f));
+					}
+					if(time > 1200){
+						darken((time - 1200) / 500.0f);
+					}
+					endOfFrame();
+					if(time > 1700){
+						break;
+					}
+				}
+			}
+			showCursor = sc;
+		}
+
 		return success;
 	}
 
@@ -229,7 +284,7 @@ namespace gi{
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h, const bool& drawElementBackgrounds){
 		if(drawElementBackgrounds){
 			if(item->background != NULL && item->background->isValid()){
-				draw(item->background, x, y, w, h);
+				draw(item->background, x, y, w, h, item->darkenOnMouseOver);
 			}
 			else{
 				sf::RectangleShape rs;
@@ -392,7 +447,7 @@ namespace gi{
 		}
 	}
 
-	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h){
+	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darkenOnMouseOver){
 		if(texbar->left == NULL || texbar->right == NULL){
 			sf::Sprite s = sf::Sprite(*texbar->middle);
 
@@ -401,6 +456,9 @@ namespace gi{
 				w / texbar->middle->getSize().x,
 				h / texbar->middle->getSize().y
 				);
+			if(darkenOnMouseOver && inputManager != NULL && s.getGlobalBounds().contains(float(inputManager->mouseX()), float(inputManager->mouseY()))){
+				s.setColor(sf::Color(200, 200, 200, 255));
+			}
 			renderWindow->draw(s);
 		}
 		else{

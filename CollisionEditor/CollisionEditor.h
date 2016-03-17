@@ -19,8 +19,6 @@ public:
 	void on(MouseButtonEvent& event);
 	void on(MouseMoveEvent& event);
 private:
-	sf::RenderWindow* window;
-
 	Manager* manager;
 
 	World* world;

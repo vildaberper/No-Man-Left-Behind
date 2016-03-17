@@ -41,6 +41,14 @@ public:
 private:
 	Menu* mainMenu;
 	Menu* pauseMenu;
+	Menu* optionsMenu;
+
+	bool changedOptions = false;
+	bool firstOptionsFrame = true;
+	CoreSprite* checked;
+	CoreSprite* unchecked;
+	MenuItem* itemFullscreen;
+	MenuItem* itemVsync;
 
 	std::string* menuCommand;
 	unsigned long introId;
@@ -68,7 +76,7 @@ private:
 	sf::Time creditTime;
 	sf::Time creditLogoTime;
 	CoreSprite* nmlbb;
-	CoreSprite* morsol;
+	CoreSprite* morsolw;
 	CoreSprite* creditbg;
 	std::vector<std::string> credits;
 
@@ -91,8 +99,6 @@ private:
 	Handbook* handBook;
 
 	unsigned long inputListenerId;
-
-	sf::RenderWindow* window;
 
 	Manager* manager;
 
