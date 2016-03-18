@@ -91,6 +91,9 @@ bool Controller::isPressed(const Command& c){
 	case BACK:
 		return isFirstPressed(0, 1);
 		break;
+	case SKIP:
+		return isPressed(PAUSE) || isPressed(BACK) || isPressed(INTERACT) || im->isFirstPressed(sf::Keyboard::Return);
+		break;
 	}
 	return false;
 }
@@ -186,9 +189,9 @@ float Controller::axisPosition(const unsigned int& controllerId, const sf::Joyst
 		if(sf::Joystick::hasAxis(controllerId, axis)){
 			float value = sf::Joystick::getAxisPosition(controllerId, axis) / 100.0f;
 
-			if(abs(value) > 0.25f){
+			if(abs(value) > axisThreshold){
 				usingController = true;
-				return value;
+				return (value > 0 ? (value - axisThreshold) : (value + axisThreshold)) * (1.0f / (1.0f - axisThreshold));
 			}
 		}
 	}
@@ -196,13 +199,13 @@ float Controller::axisPosition(const unsigned int& controllerId, const sf::Joyst
 }
 
 float Controller::axisNegPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
-	return axisPosition(controllerId, axis) < -0.9f;
+	return axisPosition(controllerId, axis) < -axisPressedValue;
 }
 
 float Controller::axisPosPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
-	return axisPosition(controllerId, axis) > 0.9f;
+	return axisPosition(controllerId, axis) > axisPressedValue;
 }
 
 float Controller::axisPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
-	return axisPosition(controllerId, axis) > 0.9f;
+	return axisPosition(controllerId, axis) > axisPressedValue;
 }

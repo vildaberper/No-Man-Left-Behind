@@ -91,7 +91,7 @@ void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt)
 				*/
 
 				if(d < minDistance){
-					i->second->sound->setVolume(100.0f * c::masterVolume * sqrt(1.0f - (d / minDistance)));
+					i->second->sound->setVolume(100.0f * c::masterVolume * (1.0f - (d / minDistance)));
 				}
 				else{
 					i->second->sound->setVolume(0.0f);

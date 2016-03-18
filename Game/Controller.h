@@ -18,7 +18,8 @@ enum Command{
 	MENUUP,
 	MENUDOWN,
 	HANDBOOK,
-	BACK
+	BACK,
+	SKIP
 };
 
 class Controller{
@@ -35,6 +36,9 @@ public:
 	bool isPressed(const Command& c);
 
 	bool usingController = false;
+
+	float axisPressedValue = 0.9f;
+	float axisThreshold = 0.25f;
 private:
 	bool isPressed(const unsigned int& controllerId, const unsigned int& button);
 	bool isFirstPressed(const unsigned int& controllerId, const unsigned int& button);

@@ -492,8 +492,10 @@ void Level::tick(){
 					if(!hasUsedResource){
 						hasUsedResource = playerInventory->selectedItem().amount > 0;
 					}
-					closest->use(playerInventory->selectedItem());
-					playerInventory->update();
+					if(playerInventory->selectedItem().amount > 0){
+						closest->use(playerInventory->selectedItem());
+						playerInventory->update();
+					}
 				}
 				else if(closestBox != NULL){
 					if(closestBox->menu->hidden){
@@ -503,6 +505,9 @@ void Level::tick(){
 					else{
 						ItemStack& pi = playerInventory->at(playerInventory->selectedSlot);
 						ItemStack& ri = closestBox->at(closestBox->selectedSlot);
+						if(pi.amount > 0 || ri.amount > 0){
+							si::playRandomSoundV(NULL, "bag", gc::bagVolume);
+						}
 						if(pi.amount > 0){
 							if(ri.amount > 0){
 								if(pi.item.type == ri.item.type){
@@ -513,11 +518,11 @@ void Level::tick(){
 								}
 							}
 							else{
-								closestBox->swap(playerInventory->at(playerInventory->selectedSlot), closestBox->selectedSlot);
+								closestBox->swap(pi, closestBox->selectedSlot);
 							}
 						}
 						else{
-							closestBox->swap(playerInventory->at(playerInventory->selectedSlot), closestBox->selectedSlot);
+							closestBox->swap(pi, closestBox->selectedSlot);
 						}
 						playerInventory->update();
 						closestBox->update();
@@ -549,6 +554,7 @@ void Level::tick(){
 
 		for(size_t i = 0; i < resources.size(); i++){
 			if(player->bounds(world->time()).intersects(resources[i].first->bounds(world->time()))){
+				si::playRandomSoundV(NULL, "bag", gc::bagVolume);
 				playerInventory->put(resources[i].second);
 				playerInventory->update();
 				if(resources[i].second.amount == 0){
@@ -698,8 +704,10 @@ void Level::on(MouseButtonEvent& event){
 					if(!hasUsedResource){
 						hasUsedResource = playerInventory->itemInHand.amount > 0;
 					}
-					closest->use(playerInventory->itemInHand);
-					playerInventory->update();
+					if(playerInventory->itemInHand.amount > 0){
+						closest->use(playerInventory->itemInHand);
+						playerInventory->update();
+					}
 				}
 			}
 		}
@@ -748,7 +756,7 @@ Injured* Level::nearestInjured(const float& maxDistance){
 					for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
 						drawable::Drawable* d = world->drawables[LAYER2][di1];
 
-						if(d->hideUnderCamera || d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed")){
+						if(d->hideUnderCamera || d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed") || (d->reference.length() > 9 && d->reference.substr(0, 7) == "Decals.")){
 							continue;
 						}
 						if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){
@@ -801,7 +809,7 @@ ResourceBox* Level::nearestResourceBox(const float& maxDistance){
 				for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
 					drawable::Drawable* d = world->drawables[LAYER2][di1];
 
-					if(d->hideUnderCamera || d == inj || d == player){
+					if(d->hideUnderCamera || d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 7) == "Decals.")){
 						continue;
 					}
 					if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){

@@ -49,8 +49,15 @@ namespace gc{
 	extern float armyMarchStart;
 	extern float armyScreamLength;
 
+	extern float hearingDistance;
+
+	extern float injuredVoiceLower;
+	extern float injuredVoiceUpper;
+
 	extern float armyMarchVolume;
 	extern float armyScreamVolume;
+	extern float injuredVoiceVolume;
+	extern float bagVolume;
 
 	extern std::vector<std::string> levelProgression;
 

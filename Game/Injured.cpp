@@ -32,7 +32,7 @@ void Injured::initialize(Manager* manager, const std::string& animation, Journal
 	cb.renderOffset = 0.9f;
 	cb.offset = Vector(0.2f, 0.1f);
 	cb.size = Vector(0.6f, 0.8f);
-	nextVoice = sf::seconds(random::randomFloat(15.0f));
+	nextVoice = sf::seconds(random::randomFloat(gc::injuredVoiceUpper, gc::injuredVoiceLower));
 	deathBar.customColors = true;
 	deathBar.bgColor = sf::Color(185, 185, 185, 155);
 	deathBar.oColor = sf::Color(5, 5, 5, 255);
@@ -48,8 +48,8 @@ void Injured::tick(const sf::Time& time, const float& dt){
 			// Make sure two voices does not start at the same time
 			if((time - injured::lastVoice).asMilliseconds() > 500){
 				injured::lastVoice = lastVoice = time;
-				nextVoice = sf::seconds(5.0f + random::randomFloat(15.0f));
-				currentVoice = si::playRandomSound(this, id);
+				nextVoice = sf::seconds(random::randomFloat(gc::injuredVoiceUpper, gc::injuredVoiceLower));
+				currentVoice = si::playRandomSoundV(this, id, gc::injuredVoiceVolume);
 			}
 		}
 	}

@@ -72,6 +72,11 @@ ItemStack& Inventory::put(ItemStack& is, unsigned char slot){
 }
 ItemStack& Inventory::put(ItemStack& is){
 	for(size_t i = 0; i < size && is.amount > 0; i++){
+		if(content[i].item.type == is.item.type){
+			put(is, unsigned char(i));
+		}
+	}
+	for(size_t i = 0; i < size && is.amount > 0; i++){
 		put(is, unsigned char(i));
 	}
 

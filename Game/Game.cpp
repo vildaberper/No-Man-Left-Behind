@@ -210,6 +210,8 @@ void Game::run(){
 			cursorSet = new CursorSet(manager);
 			cursorSet->main();
 
+			manager->soundManager->minDistance = gc::hearingDistance;
+
 			clock.restart();
 			continue;
 		}
@@ -234,6 +236,7 @@ void Game::run(){
 
 		switch(state){
 		case MAIN_MENU:
+		{
 			if(firstStateFrame){
 				firstStateFrame = false;
 				menuIndex = 0;
@@ -270,7 +273,8 @@ void Game::run(){
 				mainMenu->items[i]->darkenOnMouseOver = !controller->usingController;
 				mainMenu->items[i]->highlight = controller->usingController && i == menuIndex;
 			}
-			if(controller->usingController && controller->isPressed(INTERACT)){
+			bool wuc = controller->usingController;
+			if(controller->isPressed(INTERACT) && wuc){
 				*menuCommand = mainMenu->items[menuIndex]->selectedPrefix;
 			}
 			gi::background(*mainmenu);
@@ -306,6 +310,7 @@ void Game::run(){
 			}
 			manager->menuManager->draw(time);
 			break;
+		}
 		case LEVEL_MENU:
 		{
 			if(firstStateFrame){
@@ -339,7 +344,8 @@ void Game::run(){
 				pauseMenu->items[i]->darkenOnMouseOver = !controller->usingController;
 				pauseMenu->items[i]->highlight = controller->usingController && i == menuIndex;
 			}
-			if(controller->usingController && controller->isPressed(INTERACT)){
+			bool wuc = controller->usingController;
+			if(controller->isPressed(INTERACT) && wuc){
 				*menuCommand = pauseMenu->items[menuIndex]->selectedPrefix;
 			}
 			gi::background(*mainmenu);
@@ -469,12 +475,7 @@ void Game::run(){
 			}
 			gi::showCursor = !controller->usingController;
 			if(
-				(!restartLevel && transition->hidden)
-				|| manager->inputManager->isFirstPressed(sf::Keyboard::Return)
-				|| controller->isPressed(Command::PAUSE)
-				|| controller->isPressed(Command::INTERACT)
-				|| controller->isPressed(Command::BACK)
-				){
+				(!restartLevel && transition->hidden) || controller->isPressed(Command::SKIP)){
 				at = 1.0f;
 				transtionDone = true;
 				transition->setHidden(true);
@@ -645,12 +646,7 @@ void Game::run(){
 				138,
 				(time - creditTime).asSeconds() / 3.0f
 				);
-			if(
-				manager->inputManager->isFirstPressed(sf::Keyboard::Return)
-				|| controller->isPressed(Command::PAUSE)
-				|| controller->isPressed(Command::INTERACT)
-				|| controller->isPressed(Command::BACK)
-				){
+			if(controller->isPressed(Command::SKIP)){
 				at = 1.0f;
 				nextState = lastState;
 			}
@@ -680,7 +676,10 @@ void Game::run(){
 			firstStateFrame = true;
 			break;
 		case CLOSE:
-			gi::renderWindow->close();
+			if(firstStateFrame){
+				firstStateFrame = false;
+				gi::renderWindow->close();
+			}
 			break;
 		}
 

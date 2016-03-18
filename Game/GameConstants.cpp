@@ -47,8 +47,15 @@ namespace gc{
 	float armyMarchStart;
 	float armyScreamLength;
 
+	float hearingDistance;
+
+	float injuredVoiceLower;
+	float injuredVoiceUpper;
+
 	float armyMarchVolume;
 	float armyScreamVolume;
+	float injuredVoiceVolume;
+	float bagVolume;
 
 	std::vector<std::string> levelProgression;
 
@@ -97,9 +104,15 @@ namespace gc{
 
 		armyMarchStart = config.floatValue("general.armyMarchStart");
 		armyScreamLength = config.floatValue("general.armyScreamLength");
+		hearingDistance = config.floatValue("general.hearingDistance");
+
+		injuredVoiceLower = config.floatValue("general.injuredVoiceLower");
+		injuredVoiceUpper = config.floatValue("general.injuredVoiceUpper");
 
 		armyMarchVolume = config.floatValue("sound.armyMarchVolume");
 		armyScreamVolume = config.floatValue("sound.armyScreamVolume");
+		injuredVoiceVolume = config.floatValue("sound.injuredVoiceVolume");
+		bagVolume = config.floatValue("sound.bagVolume");
 
 		levelProgression = config.stringVector("levels.progression");
 
