@@ -25,7 +25,7 @@ void Game::on(KeyboardEvent& event){
 	if(event.isCancelled()){
 		return;
 	}
-	if(event.pressed()){
+	if(event.pressed() && gc::developerMode){
 		switch(event.key()){
 		case Keyboard::C:
 			if(event.first()){
@@ -41,13 +41,34 @@ void Game::on(KeyboardEvent& event){
 	}
 }
 
+void Game::on(MouseMoveEvent& event){
+	if(clock.getElapsedTime() < ignoreMouseMoveUntil){
+		return;
+	}
+	if((clock.getElapsedTime() - lastMouseMove).asMilliseconds() < 100){
+		controller->usingController = false;
+	}
+	lastMouseMove = clock.getElapsedTime();
+}
+
+void Game::on(MouseButtonEvent& event){
+	if(controller->usingController){
+		*menuCommand = "";
+	}
+	controller->usingController = false;
+}
+
 void Game::run(){
+	clock.restart();
 	gi::showCursor = false;
-	sf::Clock clock;
 	c::initialize();
 	gc::initialize();
 	gi::initalize();
 	gi::smoothCamera = true;
+
+	if(gc::developerMode){
+		c::showLog = true;
+	}
 
 	random::initialize();
 
@@ -76,6 +97,9 @@ void Game::run(){
 			morsolw = manager->spriteManager->getSprite("logo.moronic_solutionsw");
 
 			gi::inputManager = manager->inputManager;
+
+			transition = new Transition(manager);
+
 			/*
 				Menu
 			*/
@@ -210,11 +234,22 @@ void Game::run(){
 
 		switch(state){
 		case MAIN_MENU:
-			if(lastState == OPTIONS){
-				as = 5.0f;
+			if(firstStateFrame){
+				firstStateFrame = false;
+				menuIndex = 0;
+				if(lastState == OPTIONS){
+					as = 5.0f;
+					menuIndex = 1;
+				}
+				else if(lastState == CREDITS){
+					as = 5.0f;
+					menuIndex = 2;
+				}
 			}
+
 			lastState = MAIN_MENU;
 			cursorSet->main();
+			gi::showCursor = !controller->usingController;
 			mainMenu->hidden = false;
 			handBook->openMenu->hidden = true;
 			playerInventory->menu->hidden = true;
@@ -222,6 +257,21 @@ void Game::run(){
 				introId = si::playMusic("menu.intro", true, true, false);
 				mainId = si::queueMusic(introId, "menu.main", false, true, true);
 				playingMenuMusic = true;
+			}
+
+			if(controller->isPressed(MENUUP)){
+				menuIndex--;
+			}
+			if(controller->isPressed(MENUDOWN)){
+				menuIndex++;
+			}
+			menuIndex = math::range(menuIndex, mainMenu->items.size() - 1);
+			for(size_t i = 0; i < mainMenu->items.size(); i++){
+				mainMenu->items[i]->darkenOnMouseOver = !controller->usingController;
+				mainMenu->items[i]->highlight = controller->usingController && i == menuIndex;
+			}
+			if(controller->usingController && controller->isPressed(INTERACT)){
+				*menuCommand = mainMenu->items[menuIndex]->selectedPrefix;
 			}
 			gi::background(*mainmenu);
 			if(menuCommand->length() > 0){
@@ -252,21 +302,48 @@ void Game::run(){
 				at = 0.0f;
 				as = 1.0f;
 				mainMenu->hidden = true;
+				firstStateFrame = true;
 			}
 			manager->menuManager->draw(time);
 			break;
 		case LEVEL_MENU:
 		{
-			if(lastState == OPTIONS){
-				as = 5.0f;
+			if(firstStateFrame){
+				firstStateFrame = false;
+				menuIndex = 0;
+				if(lastState == OPTIONS){
+					as = 5.0f;
+					menuIndex = 2;
+				}
+				else if(lastState == CREDITS){
+					as = 5.0f;
+					menuIndex = 3;
+				}
 			}
+
 			lastState = LEVEL_MENU;
 			cursorSet->main();
+			gi::showCursor = !controller->usingController;
 			pauseMenu->hidden = false;
 			handBook->openMenu->hidden = true;
 			playerInventory->menu->hidden = true;
+
+			if(controller->isPressed(MENUUP)){
+				menuIndex--;
+			}
+			if(controller->isPressed(MENUDOWN)){
+				menuIndex++;
+			}
+			menuIndex = math::range(menuIndex, pauseMenu->items.size() - 1);
+			for(size_t i = 0; i < pauseMenu->items.size(); i++){
+				pauseMenu->items[i]->darkenOnMouseOver = !controller->usingController;
+				pauseMenu->items[i]->highlight = controller->usingController && i == menuIndex;
+			}
+			if(controller->usingController && controller->isPressed(INTERACT)){
+				*menuCommand = pauseMenu->items[menuIndex]->selectedPrefix;
+			}
 			gi::background(*mainmenu);
-			bool esc = manager->inputManager->isFirstPressed(sf::Keyboard::Escape);
+			bool esc = controller->isPressed(Command::PAUSE) || controller->isPressed(Command::BACK);
 			if(esc || menuCommand->length() > 0){
 				as = 10.0f;
 				if(esc || *menuCommand == "continue"){
@@ -299,12 +376,14 @@ void Game::run(){
 				at = 0.0f;
 				as = 1.0f;
 				pauseMenu->hidden = true;
+				firstStateFrame = true;
 			}
 			manager->menuManager->draw(time);
 			break;
 		}
 		case LEVEL:
 			cursorSet->main();
+			gi::showCursor = !controller->usingController;
 			playerInventory->menu->hidden = false;
 			handBook->openMenu->hidden = false;
 			shouldPlayMenuMusic = false;
@@ -332,6 +411,18 @@ void Game::run(){
 					savedGeneral += level->savedGeneral;
 					currentLevel++;
 
+					timeBonus = level->savedSoldier * gc::timeBonusFromSoldiers;
+
+					float totalS = 0;
+					float savedS = 0;
+					totalS += totalCivil * gc::stressCivil;
+					totalS += totalSoldier * gc::stressSoldier;
+					totalS += totalGeneral * gc::stressGeneral;
+					savedS += savedCivil * gc::stressCivil;
+					savedS += savedSoldier * gc::stressSoldier;
+					savedS += savedGeneral * gc::stressGeneral;
+					stress = savedS / totalS;
+
 					lastItemInHand = playerInventory->itemInHand;
 					if(lastContent != NULL){
 						delete[] lastContent;
@@ -341,6 +432,12 @@ void Game::run(){
 						lastContent[i] = ItemStack(playerInventory->content[i].item, playerInventory->content[i].amount);
 					}
 					lastExtraResources = level->savedGeneral * gc::resourcesFromGenerals;
+
+					transition->addPage(level, timeBonus, stress, lastExtraResources, std::to_string(currentLevel) + (stress >= gc::stressForA ? "a" : (stress >= gc::stressForB ? "b" : "c")));
+
+					if(currentLevel >= gc::levelProgression.size()){
+						transition->end(stress);
+					}
 				}
 				else{
 					if(lastContent != NULL){
@@ -349,38 +446,52 @@ void Game::run(){
 							playerInventory->content[i] = ItemStack(lastContent[i].item, lastContent[i].amount);
 						}
 					}
+					transition->newRestart();
 				}
 
 				handBook->forceClose();
 				state = TRANSITION;
 				level->world->cleanAll(true);
-				transtionDone = false;
+				firstStateFrame = true;
 				at = 0.0f;
+				a = 1.0f;
 			}
 			break;
 		case TRANSITION:
 		{
-			cursorSet->main();
-			if(manager->inputManager->isFirstPressed(sf::Keyboard::Return)){
+			if(firstStateFrame){
+				firstStateFrame = false;
+				transtionDone = false;
+				cursorSet->main();
+				handBook->openMenu->hidden = true;
+				playerInventory->menu->hidden = true;
+				transition->setHidden(restartLevel);
+			}
+			gi::showCursor = !controller->usingController;
+			if(
+				(!restartLevel && transition->hidden)
+				|| manager->inputManager->isFirstPressed(sf::Keyboard::Return)
+				|| controller->isPressed(Command::PAUSE)
+				|| controller->isPressed(Command::INTERACT)
+				|| controller->isPressed(Command::BACK)
+				){
 				at = 1.0f;
 				transtionDone = true;
+				transition->setHidden(true);
 			}
-			sf::Text t;
-			t.setFont(gi::menuFont);
-			t.setPosition(500, 500);
 			if(restartLevel){
-				t.setString("Time ran out - " + std::to_string(currentLevel));
-			}
-			else if(currentLevel == 0){
-				t.setString("intro - " + std::to_string(currentLevel));
-			}
-			else if(currentLevel >= gc::levelProgression.size()){
-				t.setString("outro - " + std::to_string(currentLevel));
+				transition->renderRestart();
 			}
 			else{
-				t.setString("transition - " + std::to_string(currentLevel));
+				if(controller->isPressed(Command::LB)){
+					transition->turnLeft();
+				}
+				if(controller->isPressed(Command::RB)){
+					transition->turnRight();
+				}
+				transition->render();
 			}
-			gi::renderWindow->draw(t);
+			manager->menuManager->draw(time);
 			if(transtionDone && a >= 1.0f){
 				if(playingMenuMusic){
 					si::stopMusic(introId);
@@ -404,28 +515,50 @@ void Game::run(){
 					level->playerInventory = playerInventory;
 					level->handBook = handBook;
 					level->load(gc::levelDir.child(gc::levelProgression[currentLevel] + ".txt"));
-					level->begin();
+
+					level->begin(stress, timeBonus);
 					clock.restart();
 					state = LEVEL;
 					at = 0.0f;
-					continue;
+					transition->setHidden(true);
 				}
+				firstStateFrame = true;
 			}
 			break;
 		}
 		case OPTIONS:
 		{
-			if(firstOptionsFrame){
-				firstOptionsFrame = false;
+			gi::showCursor = !controller->usingController;
+			if(firstStateFrame){
+				firstStateFrame = false;
 				c::initialize();
+				if(gc::developerMode){
+					c::showLog = true;
+				}
 				itemFullscreen->sprite = c::fullscreen ? checked : unchecked;
 				itemVsync->sprite = c::verticalSync ? checked : unchecked;
 				changedOptions = false;
+				menuIndex = 0;
 			}
 			as = 5.0f;
 			optionsMenu->hidden = false;
+
+			if(controller->isPressed(MENUUP)){
+				menuIndex--;
+			}
+			if(controller->isPressed(MENUDOWN)){
+				menuIndex++;
+			}
+			menuIndex = math::range(menuIndex, optionsMenu->items.size() - 1);
+			for(size_t i = 0; i < optionsMenu->items.size(); i++){
+				optionsMenu->items[i]->darkenOnMouseOver = !controller->usingController;
+				optionsMenu->items[i]->highlight = controller->usingController && i == menuIndex;
+			}
+			if(controller->usingController && controller->isPressed(INTERACT)){
+				*menuCommand = optionsMenu->items[menuIndex]->selectedPrefix;
+			}
 			gi::background(*mainmenu);
-			bool esc = manager->inputManager->isFirstPressed(sf::Keyboard::Escape);
+			bool esc = controller->isPressed(Command::PAUSE) || controller->isPressed(Command::BACK);
 			if(esc || menuCommand->length() > 0){
 				if(*menuCommand == "options.fullscreen"){
 					c::fullscreen = !c::fullscreen;
@@ -441,8 +574,10 @@ void Game::run(){
 					changedOptions = false;
 					gi::renderWindow->close();
 					gi::initalize();
-					
+
 					c::save();
+					menuIndex = 3;
+					ignoreMouseMoveUntil = clock.getElapsedTime() + sf::milliseconds(500);
 				}
 				else if(esc || *menuCommand == "options.back"){
 					at = 1.0f;
@@ -455,7 +590,7 @@ void Game::run(){
 				at = 0.0f;
 				as = 1.0f;
 				optionsMenu->hidden = true;
-				firstOptionsFrame = true;
+				firstStateFrame = true;
 			}
 			manager->menuManager->draw(time);
 			break;
@@ -510,16 +645,23 @@ void Game::run(){
 				138,
 				(time - creditTime).asSeconds() / 3.0f
 				);
-			if(manager->inputManager->isFirstPressed(sf::Keyboard::Escape)){
+			if(
+				manager->inputManager->isFirstPressed(sf::Keyboard::Return)
+				|| controller->isPressed(Command::PAUSE)
+				|| controller->isPressed(Command::INTERACT)
+				|| controller->isPressed(Command::BACK)
+				){
 				at = 1.0f;
 				nextState = lastState;
 			}
 			if(a >= 1.0f && at == 1.0f){
+				lastState = CREDITS;
 				creditTime = sf::milliseconds(0);
 				state = nextState;
 				at = 0.0f;
 				as = 1.0f;
 				gi::showCursor = true;
+				firstStateFrame = true;
 			}
 			break;
 		}
@@ -535,6 +677,7 @@ void Game::run(){
 			}
 			lastState = MAIN_MENU;
 			state = CREDITS;
+			firstStateFrame = true;
 			break;
 		case CLOSE:
 			gi::renderWindow->close();
@@ -572,39 +715,15 @@ void Game::newGame(){
 	savedCivil = 0;
 	savedSoldier = 0;
 	savedGeneral = 0;
-}
 
-void Game::transition(){
-	/*
+	timeBonus = 0.0f;
 
-	float v = fmod((cl.getElapsedTime().asSeconds() / 2.0f), 1.0f);
-	if(v < 0.0f){
-	v = 0.0f;
-	}
-	else if(v > 1.0f){
-	v = 1.0f;
-	}
-	float w = 300;
-	float h = 150;
-	sf::ConvexShape t;
-	t.setPosition(500, 500);
-	t.setFillColor(sf::Color(255, 255, 255, 255));
-	t.setOutlineColor(sf::Color(0, 0, 0, 255));
-	t.setOutlineThickness(7);
-	t.setPointCount(3);
-	t.setPoint(0, sf::Vector2f(0, 0));
-	t.setPoint(1, sf::Vector2f(w, 0));
-	t.setPoint(2, sf::Vector2f(0, h));
-	renderWindow->draw(t);
+	stress = 1.0f;
 
-	t.setFillColor(sf::Color(104, 24, 24, 255));
-	t.setOutlineColor(sf::Color(0, 0, 0, 255));
-	t.setOutlineThickness(7);
-	t.setPointCount(3);
-	t.setPoint(0, sf::Vector2f(0, h * (1.0f - v)));
-	t.setPoint(1, sf::Vector2f(w * v, h * (1.0f - v)));
-	t.setPoint(2, sf::Vector2f(0, h));
-	renderWindow->draw(t);
+	currentLevel = 0;
 
-	*/
+	handBook->current = 0;
+
+	transition->reset();
+	firstStateFrame = true;
 }

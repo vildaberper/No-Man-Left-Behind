@@ -41,8 +41,17 @@ namespace si{
 	unsigned long playSound(const Entity* source, const std::string& name, const bool& loop){
 		return soundManager->play(source, name, loop);
 	}
+	unsigned long playSoundV(const Entity* source, const std::string& name, const float& volume, const bool& loop){
+		return soundManager->playV(source, name, volume, loop);
+	}
 	unsigned long playRandomSound(const Entity* source, const std::string& category, const bool& loop){
 		return soundManager->playRandom(source, category, loop);
+	}
+	unsigned long playRandomSoundV(const Entity* source, const std::string& category, const float& volume, const bool& loop){
+		return soundManager->playRandomV(source, category, volume, loop);
+	}
+	void setSoundV(const unsigned long& id, const float& volume){
+		soundManager->setSoundV(id, volume);
 	}
 	void stopSound(const unsigned long& id){
 		soundManager->stop(id);

@@ -3,28 +3,31 @@
 #include <map>
 
 #include "Item.h"
-
-namespace itemstack{
-	static std::map<Resource, unsigned char> createStackLimits(){
-		std::map<Resource, unsigned char> r;
-
-		r[PENICILLIN] = 5;
-		r[FORCEPS] = 5;
-		r[ALCOHOL] = 5;
-		r[MORPHINE] = 5;
-		r[SUTURE_KIT] = 5;
-		r[SCALPEL] = 5;
-		r[GAUZE] = 5;
-
-		return r;
-	}
-
-	static const std::map<Resource, unsigned char> stackLimits = itemstack::createStackLimits();
-}
+#include "GameConstants.h"
 
 static const unsigned char stackLimit(const Resource& r){
-	if(itemstack::stackLimits.count(r) > 0){
-		return itemstack::stackLimits.at(r);
+	switch(r){
+	case PENICILLIN:
+		return unsigned char(gc::stackSizePennicillin);
+		break;
+	case FORCEPS:
+		return unsigned char(gc::stackSizeForceps);
+		break;
+	case ALCOHOL:
+		return unsigned char(gc::stackSizeAlcohol);
+		break;
+	case MORPHINE:
+		return unsigned char(gc::stackSizeMorphine);
+		break;
+	case SUTURE_KIT:
+		return unsigned char(gc::stackSizeSutureKit);
+		break;
+	case SCALPEL:
+		return unsigned char(gc::stackSizeScalpel);
+		break;
+	case GAUZE:
+		return unsigned char(gc::stackSizeGauze);
+		break;
 	}
 	return 1;
 }

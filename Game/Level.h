@@ -33,11 +33,13 @@ public:
 	Level(Manager* manager, Controller* controller, JournalManager* jmanager, CursorSet* cursorSet);
 	~Level();
 
+	void stopMusic();
+
 	void load(File& file);
 
 	void save(File& file);
 
-	void begin();
+	void begin(const float& stress, const float& timeBonus);
 
 	void tick();
 
@@ -70,6 +72,16 @@ public:
 	std::string musicMain;
 	unsigned long introId;
 	unsigned long mainId;
+
+	float warSoundLower;
+	float warSoundUpper;
+	float warSoundVolume;
+	sf::Time nextWarSound;
+
+	unsigned long armyMarchId = 0;
+	unsigned long armyScreamId = 0;
+
+	float stress = 1.0f;
 
 	bool useTruck = true;
 	Truck* truck;
@@ -123,4 +135,8 @@ public:
 	CursorSet* cursorSet;
 
 	bool hasUsedResource = false;
+
+	bool wasUsingController;
+
+	float relativeOffset;
 };

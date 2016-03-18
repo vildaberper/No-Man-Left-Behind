@@ -11,6 +11,8 @@ namespace gi{
 	float cameraTargetX;
 	float cameraTargetY;
 
+	Vector* relative = NULL;
+
 	bool logAlwaysActive = false;
 
 	float WIDTH = TARGET_WIDTH;
@@ -86,9 +88,9 @@ namespace gi{
 		defaultCursor = true;
 
 		bool success = !firstInit || (menuFont.loadFromFile(c::menuFont.path()) && textFont.loadFromFile(c::textFont.path()));
-		
+
 		logger::timing("Graphics interface " + std::string(firstInit ? "" : "re") + "initialized in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
-		
+
 		if(firstInit){
 			firstInit = false;
 			resetCamera();
@@ -284,7 +286,14 @@ namespace gi{
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h, const bool& drawElementBackgrounds){
 		if(drawElementBackgrounds){
 			if(item->background != NULL && item->background->isValid()){
-				draw(item->background, x, y, w, h, item->darkenOnMouseOver);
+				draw(item->background, x, y, w, h,
+					item->highlight
+					|| (
+						item->darkenOnMouseOver
+						&& (inputManager != NULL
+							&& sf::FloatRect(x, y, w, h).contains(float(inputManager->mouseX()), float(inputManager->mouseY())))
+						)
+					);
 			}
 			else{
 				sf::RectangleShape rs;
@@ -299,6 +308,17 @@ namespace gi{
 				}
 				rs.setOutlineColor(sf::Color(255, 255, 0, 255));
 				rs.setOutlineThickness(1);
+				renderWindow->draw(rs);
+			}
+		}
+
+		if(item->highlight){
+			if(item->background == NULL || !item->background->isValid()){
+				sf::RectangleShape rs;
+				rs.setPosition(x, y);
+				rs.setSize(sf::Vector2f(w, h));
+				rs.setFillColor(sf::Color(0, 0, 0, 55));
+				rs.setOutlineThickness(0);
 				renderWindow->draw(rs);
 			}
 		}
@@ -447,7 +467,7 @@ namespace gi{
 		}
 	}
 
-	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darkenOnMouseOver){
+	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darken){
 		if(texbar->left == NULL || texbar->right == NULL){
 			sf::Sprite s = sf::Sprite(*texbar->middle);
 
@@ -456,7 +476,7 @@ namespace gi{
 				w / texbar->middle->getSize().x,
 				h / texbar->middle->getSize().y
 				);
-			if(darkenOnMouseOver && inputManager != NULL && s.getGlobalBounds().contains(float(inputManager->mouseX()), float(inputManager->mouseY()))){
+			if(darken){
 				s.setColor(sf::Color(200, 200, 200, 255));
 			}
 			renderWindow->draw(s);
@@ -549,20 +569,15 @@ namespace gi{
 	}
 
 	void darken(const float& darkness){
-		sf::RectangleShape rs;
 		if(darkness > 1.0f){
-			rs.setFillColor(sf::Color(0, 0, 0, 255));
+			backgroundColor(sf::Color(0, 0, 0, 255));
 		}
 		else if(darkness <= 0.0f){
 			return;
 		}
 		else{
-			rs.setFillColor(sf::Color(0, 0, 0, int(255 * darkness)));
+			backgroundColor(sf::Color(0, 0, 0, int(255 * darkness)));
 		}
-		rs.setOutlineThickness(0.0f);
-		rs.setPosition(0.0f, 0.0f);
-		rs.setSize(sf::Vector2f(wx(), wy()));
-		renderWindow->draw(rs);
 	}
 
 	void draw(CoreSprite& sprite, const float& x, const float& y, const float& w, const float& h, const float& a){
@@ -595,6 +610,15 @@ namespace gi{
 			);
 
 		renderWindow->draw(s);
+	}
+
+	void backgroundColor(const sf::Color& color){
+		sf::RectangleShape rs;
+		rs.setFillColor(color);
+		rs.setOutlineThickness(0.0f);
+		rs.setPosition(0.0f, 0.0f);
+		rs.setSize(sf::Vector2f(wx(), wy()));
+		renderWindow->draw(rs);
 	}
 
 	// endOfFrame

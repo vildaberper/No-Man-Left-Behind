@@ -100,6 +100,9 @@ void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt)
 			else{
 				i->second->sound->setVolume(100.0f * c::masterVolume);
 			}
+			if(i->second->hasVolume){
+				i->second->sound->setVolume(i->second->sound->getVolume() * i->second->volume);
+			}
 			++i;
 		}
 	}
@@ -128,6 +131,16 @@ unsigned long SoundManager::play(const Entity* source, const std::string& name, 
 
 	return play(source, name.substr(0, index), name.substr(index + 1), loop);
 }
+unsigned long SoundManager::playV(const Entity* source, const std::string& name, const float& volume, const bool& loop){
+	unsigned long id = play(source, name, loop);
+
+	if(channels.count(id) > 0){
+		soundmanager::Sound* s = channels[id];
+		s->hasVolume = true;
+		s->volume = volume;
+	}
+	return id;
+}
 unsigned long SoundManager::playRandom(const Entity* source, const std::string& category, const bool& loop){
 	if(soundBoard.count(category) == 0){
 		logger::warning("Sound category not found: " + category);
@@ -135,13 +148,23 @@ unsigned long SoundManager::playRandom(const Entity* source, const std::string& 
 	}
 	std::map<std::string, SoundBuffer*> m = soundBoard[category];
 	std::map<std::string, SoundBuffer*>::const_iterator i = m.begin();
-	std::advance(i, random::random(m.size() - 1));
+	std::advance(i, random::randomInt(m.size() - 1));
 	return play(
 		source,
 		category,
 		i->first,
 		loop
 		);
+}
+unsigned long SoundManager::playRandomV(const Entity* source, const std::string& category, const float& volume, const bool& loop){
+	unsigned long id = playRandom(source, category, loop);
+
+	if(channels.count(id) > 0){
+		soundmanager::Sound* s = channels[id];
+		s->hasVolume = true;
+		s->volume = volume;
+	}
+	return id;
 }
 unsigned long SoundManager::play(const Entity* source, const string& category, const string& name, const bool& loop){
 	unsigned long id = ++idTracker;
@@ -162,9 +185,18 @@ unsigned long SoundManager::play(const Entity* source, const string& category, c
 	}
 	s->setVolume(c::masterVolume * 100.0f);
 	s->setLoop(loop);
+	s->setVolume(0.0f);
 	s->play();
 	channels[id] = new soundmanager::Sound(s, source);
 	return id;
+}
+
+void SoundManager::setSoundV(const unsigned long& id, const float& volume){
+	if(channels.count(id) > 0){
+		soundmanager::Sound* s = channels[id];
+		s->hasVolume = true;
+		s->volume = volume;
+	}
 }
 
 void SoundManager::stop(const unsigned long& id){

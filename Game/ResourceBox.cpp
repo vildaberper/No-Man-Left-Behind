@@ -35,7 +35,7 @@ ResourceBox::ResourceBox(Controller* controller, Manager* manager, const unsigne
 		NULL
 		);
 	menu->drawElementBackgrounds = false;
-	menu->topOffset = 10.0f;
+	menu->topOffset = 5.0f;
 	menu->bottomOffset = 70.0f;
 	manager->menuManager->menus[id] = menu;
 

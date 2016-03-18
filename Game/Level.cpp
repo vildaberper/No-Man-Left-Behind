@@ -12,11 +12,18 @@ Level::Level(Manager* manager, Controller* controller, JournalManager* jmanager,
 Level::~Level(){
 	manager->inputManager->unregisterListener(listenerId);
 	delete world;
+	stopMusic();
+}
+
+void Level::stopMusic(){
 	si::stopMusic(introId);
 	si::stopMusic(mainId);
+	si::stopSound(armyMarchId);
+	si::stopSound(armyScreamId);
 }
 
 void Level::load(File& file){
+	levelFileName = file.name();
 	Configuration c;
 	sf::Clock cl;
 	c.load(file);
@@ -43,7 +50,7 @@ void Level::load(File& file){
 		if(usedJournals.count(journals[i]) == 0){
 			usedJournals.insert(jn);
 			Journal* j = jmanager->getJournal(jn);
-			size_t type = random::random(j->injured.size() - 1);
+			size_t type = random::randomInt(j->injured.size() - 1);
 
 			Injured* in = new Injured();
 			in->initialize(manager, j->injured[type], j);
@@ -51,6 +58,14 @@ void Level::load(File& file){
 			injured.push_back(in);
 		}
 	}
+
+	warSoundLower = c.floatValue("sound.warSoundLower");
+	warSoundUpper = c.floatValue("sound.warSoundUpper");
+	warSoundVolume = c.floatValue("sound.warSoundVolume");
+	if(warSoundVolume != 0.0f){
+		nextWarSound = sf::seconds(0.5f + random::randomFloat(warSoundLower, warSoundUpper));
+	}
+
 	logger::timing("Level configuration applied in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 
 	logger::info("Level loaded: " + file.parent().name() + "\\" + file.name());
@@ -62,7 +77,12 @@ void Level::save(File& file){
 	c.save(file);
 }
 
-void Level::begin(){
+void Level::begin(const float& stress, const float& timeBonus){
+	Level::stress = stress;
+	if(timer.asMilliseconds() > 0){
+		timer += sf::seconds(timeBonus);
+	}
+
 	world = new World(manager);
 	world->load(c::worldDir.child(worldFileName));
 
@@ -79,7 +99,7 @@ void Level::begin(){
 			if(
 				(d->reference == "Characters.Ilse")
 				){
-				logger::info("Found player spawn position (" + d->position.toString() + ").");
+				//logger::info("Found player spawn position (" + d->position.toString() + ").");
 				spawn = d->position;
 				d->kill();
 				useTruck = false;
@@ -87,14 +107,14 @@ void Level::begin(){
 			else if(
 				(d->reference == "Characters.Truck")
 				){
-				logger::info("Found truck spawn position (" + d->position.toString() + ").");
+				//logger::info("Found truck spawn position (" + d->position.toString() + ").");
 				truckspawn = d->position;
 				d->kill();
 			}
 			else if(
 				(d->reference.size() > 11 && d->reference.substr(0, 11) == "Characters.")
 				){
-				logger::info("Found injured spawn position (" + d->position.toString() + ").");
+				//logger::info("Found injured spawn position (" + d->position.toString() + ").");
 				injuredPositions.push_back(d->position);
 				d->kill();
 			}
@@ -103,13 +123,13 @@ void Level::begin(){
 				||*/ (d->reference.size() >= 17 && d->reference.substr(0, 17) == "Props.Medical Box")
 				|| (d->reference.size() >= 21 && d->reference.substr(0, 21) == "Props.Medical Cabinet")
 				){
-				logger::info("Found resource box " + d->reference + " (" + d->position.toString() + ").");
+				//logger::info("Found resource box " + d->reference + " (" + d->position.toString() + ").");
 				resourceBoxes.push_back(new ResourceBox(controller, manager, 7, playerInventory, d));
 			}
 			else if(d->reference.size() > 10 && d->reference.substr(0, 10) == "Resources."){
 				std::string r = d->reference.substr(10);
 				ItemStack is = ItemStack(parseResource(r), 1);
-				logger::info("Found resource " + r + " (" + d->position.toString() + ").");
+				//logger::info("Found resource " + r + " (" + d->position.toString() + ").");
 				resources.push_back(ResourcePair(d, is));
 			}
 		}
@@ -137,8 +157,8 @@ void Level::begin(){
 			break;
 		}
 
-		size_t pos = random::random(injuredPositions.size() - 1);
-		size_t type = random::random(j->injured.size() - 1);
+		size_t pos = random::randomInt(injuredPositions.size() - 1);
+		size_t type = random::randomInt(j->injured.size() - 1);
 
 		Injured* in = new Injured();
 		in->initialize(manager, j->injured[type], j);
@@ -157,8 +177,9 @@ void Level::begin(){
 	if(player == NULL){
 		player = new Player();
 		player->initialize(manager);
+		player->speed = gc::playerSpeedLower + (gc::playerSpeedUpper - gc::playerSpeedLower) * stress;
 		CoreSprite* cs = player->getSprite(sf::milliseconds(0));
-		gi::relativeOffset.y = player->scale * (-(cs->h() / 2.0f) + cs->h() * player->cb.offset.y + cs->h() * player->cb.size.y / 2.0f);
+		relativeOffset = player->scale * (-(cs->h() / 2.0f) + cs->h() * player->cb.offset.y + cs->h() * player->cb.size.y / 2.0f);
 	}
 
 	truck = new Truck();
@@ -209,7 +230,7 @@ void Level::begin(){
 	}
 	if(iss.size() > 0){
 		for(size_t i = 0; i < extraResources; i++){
-			size_t is = random::random(iss.size() - 1);
+			size_t is = random::randomInt(iss.size() - 1);
 			iss[is].amount++;
 		}
 		for(size_t i = 0; i < resources.size(); i++){
@@ -240,7 +261,7 @@ void Level::begin(){
 	while(!empty){
 		for(ItemStack& is : iss){
 			if(is.amount > 0){
-				size_t rb = random::random(resourceBoxes.size() - 1);
+				size_t rb = random::randomInt(resourceBoxes.size() - 1);
 				resourceBoxes[rb]->put(is);
 			}
 		}
@@ -260,6 +281,16 @@ void Level::begin(){
 }
 
 void Level::tick(){
+	gi::showCursor = !controller->usingController;
+
+	if(wasUsingController != controller->usingController){
+		playerInventory->update();
+		if(closestBox != NULL){
+			closestBox->update();
+		}
+		wasUsingController = controller->usingController;
+	}
+
 	if(controller->isPressed(PAUSE)){
 		if(handBook->isOpen()){
 			handBook->close();
@@ -272,30 +303,32 @@ void Level::tick(){
 		}
 	}
 
-	if(manager->inputManager->isFirstPressed(sf::Keyboard::Num0)){
-		world->setTimeScale(0.5f);
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num1)){
-		world->setTimeScale(1.0f);
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num2)){
-		world->setTimeScale(2.0f);
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num3)){
-		world->setTimeScale(3.0f);
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num4)){
-		world->setTimeScale(4.0f);
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num5)){
-		world->setTimeScale(5.0f);
-	}
-	else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num6)){
-		world->setTimeScale(16.0f);
-	}
+	if(gc::developerMode){
+		if(manager->inputManager->isFirstPressed(sf::Keyboard::Num0)){
+			world->setTimeScale(0.5f);
+		}
+		else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num1)){
+			world->setTimeScale(1.0f);
+		}
+		else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num2)){
+			world->setTimeScale(2.0f);
+		}
+		else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num3)){
+			world->setTimeScale(3.0f);
+		}
+		else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num4)){
+			world->setTimeScale(4.0f);
+		}
+		else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num5)){
+			world->setTimeScale(5.0f);
+		}
+		else if(manager->inputManager->isFirstPressed(sf::Keyboard::Num6)){
+			world->setTimeScale(16.0f);
+		}
 
-	if(manager->inputManager->isFirstPressed(sf::Keyboard::O)){
-		completeState = IN_TRUCK;
+		if(manager->inputManager->isFirstPressed(sf::Keyboard::Return)){
+			completeState = IN_TRUCK;
+		}
 	}
 
 	if(fadeValue > 0.0f && completeState == IN_GAME){
@@ -304,6 +337,13 @@ void Level::tick(){
 	if(fadeValue < 1.0f && completeState != IN_GAME){
 		fadeValue += world->dt() / 2.0f;
 	}
+
+	if(nextWarSound.asMilliseconds() != 0 && time > nextWarSound){
+		bool end = timer.asMilliseconds() != 0 && ((timer - time).asSeconds() <= gc::armyScreamLength);
+		nextWarSound = time + sf::seconds(random::randomFloat((end ? 0.2f : warSoundLower), (end ? 0.5f : warSoundUpper)));
+		si::playRandomSoundV(NULL, "war", (end ? 0.5f : warSoundVolume));
+	}
+
 	switch(state){
 	case TRUCKMOVING:
 	{
@@ -358,8 +398,10 @@ void Level::tick(){
 			player->velocity = controller->movement();
 
 			Vector camera = controller->camera();
-			gi::cameraTargetX += camera.x * 250.0f;
-			gi::cameraTargetY += camera.y * 250.0f;
+			gi::cameraTargetX += camera.x *= 250.0f;
+			gi::cameraTargetY += camera.y *= 250.0f;
+			gi::relativeOffset = camera * -1.0f;
+			gi::relativeOffset.y += relativeOffset;
 		}
 		else{
 			player->velocity = Vector(0.0f, 0.0f);
@@ -399,6 +441,23 @@ void Level::tick(){
 		}
 
 		if(canControl){
+			if(controller->isPressed(Command::HANDBOOK)){
+				if(handBook->isOpen()){
+					handBook->close();
+				}
+				else if(handBook->isClosed()){
+					handBook->open();
+				}
+			}
+			if(controller->isPressed(Command::BACK)){
+				if(handBook->isOpen()){
+					handBook->close();
+				}
+				if(closestBox != NULL){
+					closestBox->menu->hidden = true;
+				}
+			}
+
 			if(handBook->isOpen()){
 				if(controller->isPressed(LB)){
 					handBook->turnLeft();
@@ -417,16 +476,52 @@ void Level::tick(){
 				playerInventory->update();
 			}
 
-			if(controller->usingController && controller->isPressed(INTERACT) && handBook->isClosed()){
-				if(controller->usingController && closest != NULL){
+			if(closestBox != NULL && !closestBox->menu->hidden){
+				if(controller->isPressed(LT)){
+					closestBox->selectedSlot--;
+					closestBox->update();
+				}
+				if(controller->isPressed(RT)){
+					closestBox->selectedSlot++;
+					closestBox->update();
+				}
+			}
+
+			if(controller->isPressed(INTERACT) && handBook->isClosed()){
+				if(closest != NULL){
 					if(!hasUsedResource){
-						hasUsedResource = playerInventory->itemInHand.amount > 0;
+						hasUsedResource = playerInventory->selectedItem().amount > 0;
 					}
 					closest->use(playerInventory->selectedItem());
 					playerInventory->update();
 				}
 				else if(closestBox != NULL){
-					closestBox->menu->hidden = !closestBox->menu->hidden;
+					if(closestBox->menu->hidden){
+						closestBox->menu->hidden = false;
+						closestBox->update();
+					}
+					else{
+						ItemStack& pi = playerInventory->at(playerInventory->selectedSlot);
+						ItemStack& ri = closestBox->at(closestBox->selectedSlot);
+						if(pi.amount > 0){
+							if(ri.amount > 0){
+								if(pi.item.type == ri.item.type){
+									playerInventory->put(ri, playerInventory->selectedSlot);
+								}
+								else{
+									playerInventory->put(ri);
+								}
+							}
+							else{
+								closestBox->swap(playerInventory->at(playerInventory->selectedSlot), closestBox->selectedSlot);
+							}
+						}
+						else{
+							closestBox->swap(playerInventory->at(playerInventory->selectedSlot), closestBox->selectedSlot);
+						}
+						playerInventory->update();
+						closestBox->update();
+					}
 				}
 				else if(nearTruck_){
 					completeState = IN_TRUCK;
@@ -434,20 +529,22 @@ void Level::tick(){
 			}
 		}
 
-		if(playerInventory->itemInHand.amount > 0){
-			cursorSet->hand();
-		}
-		else if(closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
-			float(manager->inputManager->mouseX()),
-			float(manager->inputManager->mouseY())
-			)){
-			cursorSet->box();
-		}
-		else if(nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
-			float(manager->inputManager->mouseX()),
-			float(manager->inputManager->mouseY())
-			)){
-			cursorSet->truck();
+		if(!controller->usingController){
+			if(playerInventory->itemInHand.amount > 0){
+				cursorSet->hand();
+			}
+			else if(closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+				float(manager->inputManager->mouseX()),
+				float(manager->inputManager->mouseY())
+				)){
+				cursorSet->box();
+			}
+			else if(nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+				float(manager->inputManager->mouseX()),
+				float(manager->inputManager->mouseY())
+				)){
+				cursorSet->truck();
+			}
 		}
 
 		for(size_t i = 0; i < resources.size(); i++){
@@ -500,11 +597,6 @@ void Level::tick(){
 			}
 		}
 		//
-		handBook->render();
-
-		manager->menuManager->draw(world->time());
-
-		playerInventory->render();
 
 		if(completeState == IN_GAME && timer.asMilliseconds() > 0){
 			gi::draw(*timerHud->getSprite(world->time()));
@@ -515,7 +607,30 @@ void Level::tick(){
 			tt.setString(std::to_string(int((timer - time).asSeconds())));
 			tt.scale(1.0f * gi::dxiz(), 1.0f * gi::dyiz());
 			gi::renderWindow->draw(tt);
+
+			float prog = time / timer;
+			if(prog >= gc::armyMarchStart){
+				if(armyMarchId == 0){
+					armyMarchId = si::playSoundV(NULL, "army.march", 0.0f, true);
+				}
+				else{
+					float av = gc::armyMarchVolume * (prog - gc::armyMarchStart) * (1.0f / gc::armyMarchStart);
+					si::setSoundV(armyMarchId, av * av);
+				}
+			}
+			if((timer - time).asSeconds() <= gc::armyScreamLength){
+				if(armyScreamId == 0){
+					armyScreamId = si::playSoundV(NULL, "army.scream", gc::armyScreamVolume);
+					nextWarSound = time;
+				}
+			}
 		}
+
+		handBook->render();
+
+		manager->menuManager->draw(world->time());
+
+		playerInventory->render();
 
 		break;
 	}
@@ -570,6 +685,9 @@ bool Level::done(){
 
 void Level::on(MouseButtonEvent& event){
 	if(event.isCancelled()){
+		return;
+	}
+	if(completeState != IN_GAME){
 		return;
 	}
 	if(event.pressed() && event.button() == sf::Mouse::Left){

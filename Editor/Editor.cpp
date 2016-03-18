@@ -38,6 +38,7 @@ void worlds(vector<string>& ws, File& f){
 
 void Editor::run(){
 	c::initialize();
+	c::showLog = true;
 	gi::initalize();
 	manager = new Manager();
 	manager->initialize(gi::renderWindow);

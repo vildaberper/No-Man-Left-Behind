@@ -24,6 +24,8 @@ namespace soundmanager{
 		}
 		sf::Sound* sound;
 		const Entity* source = NULL;
+		bool hasVolume = false;
+		float volume;
 	};
 }
 
@@ -40,8 +42,11 @@ public:
 	void tick(sf::RenderWindow* window, const sf::Time& time, const float& dt);
 
 	unsigned long play(const Entity* source, const std::string& name, const bool& loop);
+	unsigned long playV(const Entity* source, const std::string& name, const float& volume, const bool& loop);
 	unsigned long playRandom(const Entity* source, const std::string& category, const bool& loop);
+	unsigned long playRandomV(const Entity* source, const std::string& category, const float& volume, const bool& loop);
 	unsigned long play(const Entity* source, const std::string& category, const std::string& name, const bool& loop);
+	void setSoundV(const unsigned long& id, const float& volume);
 	void stop(const unsigned long& id);
 
 	Entity* relative = NULL;

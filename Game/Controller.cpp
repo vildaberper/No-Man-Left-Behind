@@ -34,10 +34,6 @@ Vector Controller::camera(){
 bool Controller::isPressed(const Command& c){
 	switch(c){
 	case INTERACT:
-		if(im->isFirstPressed(sf::Keyboard::Key::E)){
-			usingController = false;
-			return true;
-		}
 		return isFirstPressed(0, 0);
 		break;
 	case PAUSE:
@@ -77,6 +73,24 @@ bool Controller::isPressed(const Command& c){
 	case LB:
 		return isFirstPressed(0, 4);
 		break;
+	case RT:
+		return isTriggerNegAxisFirstPressed(0, sf::Joystick::Axis::Z);
+		break;
+	case LT:
+		return isTriggerPosAxisFirstPressed(0, sf::Joystick::Axis::Z);
+		break;
+	case MENUUP:
+		return isTriggerPosAxisFirstPressed(0, sf::Joystick::Axis::PovY) || isTriggerNegAxisFirstPressed(0, sf::Joystick::Axis::Y);
+		break;
+	case MENUDOWN:
+		return isTriggerNegAxisFirstPressed(0, sf::Joystick::Axis::PovY) || isTriggerPosAxisFirstPressed(0, sf::Joystick::Axis::Y);
+		break;
+	case HANDBOOK:
+		return isFirstPressed(0, 6);
+		break;
+	case BACK:
+		return isFirstPressed(0, 1);
+		break;
 	}
 	return false;
 }
@@ -113,6 +127,60 @@ bool Controller::isFirstPressed(const unsigned int& controllerId, const unsigned
 	return false;
 }
 
+bool Controller::isAxisFirstPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	if(sf::Joystick::isConnected(controllerId)){
+		bool state = axisStates[controllerId][axis];
+
+		if(axisPressed(controllerId, axis)){
+			axisStates[controllerId][axis] = true;
+			usingController = true;
+			if(!state){
+				return true;
+			}
+		}
+		else{
+			axisStates[controllerId][axis] = false;
+		}
+	}
+	return false;
+}
+
+bool Controller::isTriggerNegAxisFirstPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	if(sf::Joystick::isConnected(controllerId)){
+		bool state = axisNegStates[controllerId][axis];
+
+		if(axisNegPressed(controllerId, axis)){
+			axisNegStates[controllerId][axis] = true;
+			usingController = true;
+			if(!state){
+				return true;
+			}
+		}
+		else{
+			axisNegStates[controllerId][axis] = false;
+		}
+	}
+	return false;
+}
+
+bool Controller::isTriggerPosAxisFirstPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	if(sf::Joystick::isConnected(controllerId)){
+		bool state = axisPosStates[controllerId][axis];
+
+		if(axisPosPressed(controllerId, axis)){
+			axisPosStates[controllerId][axis] = true;
+			usingController = true;
+			if(!state){
+				return true;
+			}
+		}
+		else{
+			axisPosStates[controllerId][axis] = false;
+		}
+	}
+	return false;
+}
+
 float Controller::axisPosition(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
 	if(sf::Joystick::isConnected(controllerId)){
 		if(sf::Joystick::hasAxis(controllerId, axis)){
@@ -125,6 +193,14 @@ float Controller::axisPosition(const unsigned int& controllerId, const sf::Joyst
 		}
 	}
 	return 0.0f;
+}
+
+float Controller::axisNegPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	return axisPosition(controllerId, axis) < -0.9f;
+}
+
+float Controller::axisPosPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){
+	return axisPosition(controllerId, axis) > 0.9f;
 }
 
 float Controller::axisPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis){

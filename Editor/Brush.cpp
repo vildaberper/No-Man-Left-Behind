@@ -13,17 +13,17 @@ bool Brush::paint(const float& x, const float& y, const float& radius, const flo
 		return false;
 	}
 
-	float angle = 2.0f * PI * random::random();
-	float radius_ = radius * random::random();
+	float angle = 2.0f * PI * random::randomFloat();
+	float radius_ = radius * random::randomFloat();
 	float x_ = x + cos(angle) * radius_;
 	float y_ = y + sin(angle) * radius_;
 
-	std::string sprite = objects[random::random(objects.size() - 1)];
+	std::string sprite = objects[random::randomInt(objects.size() - 1)];
 	CoreSprite* s = manager->spriteManager->getSprite(sprite);
 	drawable::Drawable* d = new drawable::Drawable();
 	drawable::Animation* a = new drawable::Animation();
 
-	d->scale = scaleLower + (scaleUpper - scaleLower) * random::random();
+	d->scale = scaleLower + (scaleUpper - scaleLower) * random::randomFloat();
 	a->textures.push_back(sprite);
 	a->sprites.push_back(s);
 	a->timing = sf::milliseconds(0);

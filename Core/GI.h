@@ -87,7 +87,7 @@ namespace gi{
 
 	void draw(ProgressBar* progressbar, const sf::Time& time);
 
-	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darkenOnMouseOver = false);
+	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darken = false);
 
 	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font = textFont);
 
@@ -96,6 +96,8 @@ namespace gi{
 	void draw(CoreSprite& sprite, const float& x, const float& y, const float& w, const float& h, const float& a = 1.0f);
 
 	void background(CoreSprite& sprite);
+
+	void backgroundColor(const sf::Color& color);
 
 	// endOfFrame
 	bool endOfFrame();

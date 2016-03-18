@@ -67,4 +67,8 @@ public:
 	bool dead = false;
 
 	InjuredType type;
+
+	std::string name = "Anonymous";
+	bool survived_ = false;
+	bool hasCheckedSurvival = false;
 };

@@ -12,7 +12,13 @@ enum Command{
 	UP,
 	DOWN,
 	LB,
-	RB
+	RB,
+	LT,
+	RT,
+	MENUUP,
+	MENUDOWN,
+	HANDBOOK,
+	BACK
 };
 
 class Controller{
@@ -32,10 +38,20 @@ public:
 private:
 	bool isPressed(const unsigned int& controllerId, const unsigned int& button);
 	bool isFirstPressed(const unsigned int& controllerId, const unsigned int& button);
+	bool isAxisFirstPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
+	bool isTriggerNegAxisFirstPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
+	bool isTriggerPosAxisFirstPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
 	float axisPosition(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
+	float axisNegPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
+	float axisPosPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
 	float axisPressed(const unsigned int& controllerId, const sf::Joystick::Axis& axis);
 
 	std::map<unsigned int, std::map<unsigned int, bool>> buttonStates;
+
+	std::map<unsigned int, std::map<sf::Joystick::Axis, bool>> axisStates;
+
+	std::map<unsigned int, std::map<sf::Joystick::Axis, bool>> axisNegStates;
+	std::map<unsigned int, std::map<sf::Joystick::Axis, bool>> axisPosStates;
 
 	InputManager* im;
 };

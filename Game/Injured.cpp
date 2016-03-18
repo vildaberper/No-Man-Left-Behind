@@ -32,7 +32,7 @@ void Injured::initialize(Manager* manager, const std::string& animation, Journal
 	cb.renderOffset = 0.9f;
 	cb.offset = Vector(0.2f, 0.1f);
 	cb.size = Vector(0.6f, 0.8f);
-	nextVoice = sf::seconds(15.0f * random::random());
+	nextVoice = sf::seconds(random::randomFloat(15.0f));
 	deathBar.customColors = true;
 	deathBar.bgColor = sf::Color(185, 185, 185, 155);
 	deathBar.oColor = sf::Color(5, 5, 5, 255);
@@ -48,7 +48,7 @@ void Injured::tick(const sf::Time& time, const float& dt){
 			// Make sure two voices does not start at the same time
 			if((time - injured::lastVoice).asMilliseconds() > 500){
 				injured::lastVoice = lastVoice = time;
-				nextVoice = sf::seconds(5.0f + 15.0f * random::random());
+				nextVoice = sf::seconds(5.0f + random::randomFloat(15.0f));
 				currentVoice = si::playRandomSound(this, id);
 			}
 		}
@@ -92,6 +92,9 @@ void Injured::updateAnimation(){
 			}
 			line.replace(index, 7, state);
 		}
+		if(line.length() > 6 && line.substr(0, 6) == "Name: "){
+			name = line.substr(6);
+		}
 		customJournal->lines.push_back(line);
 	}
 	for(size_t i = 0; i < applied.size(); i++){
@@ -125,27 +128,29 @@ bool Injured::hasTimer(){
 }
 
 bool Injured::survived(){
-	float r = random::random();
+	if(!hasCheckedSurvival){
+		float r = random::randomFloat();
 
-	switch(injuredState()){
-	case 0:
-		return r <= gc::survive0Rate;
-		break;
-	case 1:
-		return r <= gc::survive1Rate;
-		break;
-	case 2:
-		return r <= gc::survive2Rate;
-		break;
-	case 3:
-		return r <= gc::survive3Rate;
-		break;
-	case 4:
-		return r <= gc::survive4Rate;
-		break;
+		switch(injuredState()){
+		case 0:
+			survived_ = r <= gc::survive0Rate;
+			break;
+		case 1:
+			survived_ = r <= gc::survive1Rate;
+			break;
+		case 2:
+			survived_ = r <= gc::survive2Rate;
+			break;
+		case 3:
+			survived_ = r <= gc::survive3Rate;
+			break;
+		case 4:
+			survived_ = r <= gc::survive4Rate;
+			break;
+		}
+		hasCheckedSurvival = true;
 	}
-
-	return false;
+	return survived_;
 }
 
 bool Injured::use(ItemStack& is){

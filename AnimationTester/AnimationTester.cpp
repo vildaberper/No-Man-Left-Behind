@@ -13,6 +13,7 @@ AnimationTester::~AnimationTester(){
 
 void AnimationTester::run(){
 	c::initialize();
+	c::showLog = true;
 	gi::initalize();
 	manager = new Manager();
 	manager->initialize(gi::renderWindow);

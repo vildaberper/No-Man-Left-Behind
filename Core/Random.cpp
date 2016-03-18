@@ -5,14 +5,21 @@ namespace random{
 		srand(seed);
 	}
 
-	float random(){
-		return float(rand()) / float(RAND_MAX);
+	int randomInt(){
+		return rand();
 	}
-
-	int random(const int& upper, const int& lower){
+	int randomInt(const int& upper, const int& lower){
 		if(upper == lower){
 			return upper;
 		}
-		return lower + rand() % (upper + 1 - lower);
+		return lower + randomInt() % (upper + 1 - lower);
+	}
+
+
+	float randomFloat(){
+		return float(randomInt()) / float(RAND_MAX);
+	}
+	float randomFloat(const float& upper, const float& lower){
+		return lower + randomFloat() * (upper - lower);
 	}
 }

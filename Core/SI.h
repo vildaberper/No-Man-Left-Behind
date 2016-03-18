@@ -22,6 +22,9 @@ namespace si{
 	//Sound
 	unsigned long playSound_(const Entity* source, const std::string& category, const std::string& name, const bool& loop = false);
 	unsigned long playSound(const Entity* source, const std::string& name, const bool& loop = false);
+	unsigned long playSoundV(const Entity* source, const std::string& name, const float& volume, const bool& loop = false);
 	unsigned long playRandomSound(const Entity* source, const std::string& category, const bool& loop = false);
+	unsigned long playRandomSoundV(const Entity* source, const std::string& category, const float& volume, const bool& loop = false);
+	void setSoundV(const unsigned long& id, const float& volume);
 	void stopSound(const unsigned long& id);
 }

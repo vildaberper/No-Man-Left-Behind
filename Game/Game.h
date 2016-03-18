@@ -11,6 +11,7 @@
 #include "CursorSet.h"
 #include "Controller.h"
 #include "MathHelper.h"
+#include "Transition.h"
 #include "ProgressBar.h"
 #include "GameConstants.h"
 #include "JournalManager.h"
@@ -33,18 +34,27 @@ public:
 
 	virtual void on(KeyboardEvent& event);
 
+	virtual void on(MouseMoveEvent& event);
+
+	virtual void on(MouseButtonEvent& event);
+
 	void run();
 
 	void newGame();
-
-	void transition();
 private:
+	sf::Clock clock;
+	sf::Time lastMouseMove;
+	sf::Time ignoreMouseMoveUntil;
+
+	bool firstStateFrame = true;
+
+	int menuIndex = 0;
+
 	Menu* mainMenu;
 	Menu* pauseMenu;
 	Menu* optionsMenu;
 
 	bool changedOptions = false;
-	bool firstOptionsFrame = true;
 	CoreSprite* checked;
 	CoreSprite* unchecked;
 	MenuItem* itemFullscreen;
@@ -68,8 +78,13 @@ private:
 	int savedSoldier = 0;
 	int savedGeneral = 0;
 
+	float stress = 1.0f;
+
+	float timeBonus = 0.0f;
+
 	sf::Time transitionTime;
 	bool transtionDone = false;
+	Transition* transition;
 
 	bool restartLevel = false;
 
