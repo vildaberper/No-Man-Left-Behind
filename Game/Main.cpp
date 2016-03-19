@@ -1,6 +1,8 @@
+#include <Windows.h>
+
 #include "Game.h"
 
-int main(){
+int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd){
 	Game* game = new Game();
 
 	game->run();

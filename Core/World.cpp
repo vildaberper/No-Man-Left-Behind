@@ -77,8 +77,8 @@ void World::tick(){
 	bool foundXY = false;
 	float smin = gi::cameraY - gi::HEIGHT / 2;
 	float smax = gi::cameraY + gi::HEIGHT / 2;
-	size_t d0min = binarySearchRenderOffset(smin - 1500.0f, LAYER2);
-	size_t d0max = binarySearchRenderOffset(smax + 1500.0f, LAYER2);
+	size_t d0min = binarySearchRenderOffset(smin - MAX_COLLISION_DISTANCE / 2.0f, LAYER2);
+	size_t d0max = binarySearchRenderOffset(smax + MAX_COLLISION_DISTANCE / 2.0f, LAYER2);
 
 	for(size_t di0 = d0min; di0 < drawables[LAYER2].size() && di0 <= d0max; di0++){
 		drawable::Drawable* d0 = drawables[LAYER2][di0];
@@ -163,8 +163,8 @@ const void World::renderBackground(){
 }
 const void World::render(){
 	renderBackground();
-	float cymin = gi::cameraY - gi::HEIGHT / 2 - 1500.0f;
-	float cymax = gi::cameraY + gi::HEIGHT / 2 + 1500.0f;
+	float cymin = gi::cameraY - gi::HEIGHT / 2 - gi::maxDrawableSize;
+	float cymax = gi::cameraY + gi::HEIGHT / 2 + gi::maxDrawableSize;
 	for(unsigned int i = 0; i < NUM_LAYERS; i++){
 		Layer l = Layer(i);
 		size_t min = binarySearchRenderOffset(cymin, l);

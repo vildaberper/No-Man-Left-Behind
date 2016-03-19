@@ -52,7 +52,7 @@ static const Resource parseResource(const std::string& resource){
 	else if(resource == "Morphine"){
 		return MORPHINE;
 	}
-	else if(resource == "Suture"){
+	else if(resource == "Suture kit"){
 		return SUTURE_KIT;
 	}
 	else if(resource == "Scalpel"){

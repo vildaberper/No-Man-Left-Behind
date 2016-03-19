@@ -15,6 +15,8 @@ namespace gi{
 	static const float TARGET_WIDTH = 1920;
 	static const float TARGET_HEIGHT = 1080;
 
+	extern float maxDrawableSize;
+
 	extern sf::RenderWindow* renderWindow;
 	extern float cameraX;
 	extern float cameraY;
@@ -42,6 +44,8 @@ namespace gi{
 	extern Vector relativeOffset;
 
 	extern InputManager* inputManager;
+
+	void setUsingConsole(const bool& usingConsole);
 
 	void zoom(const float& zoom);
 

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "GI.h"
 
 namespace gi{
@@ -5,6 +9,8 @@ namespace gi{
 	float cameraX;
 	float cameraY;
 	float cameraZ;
+
+	float maxDrawableSize = 2000.0f;
 
 	bool smoothCamera = false;
 	float cameraSmoothness = 5.0f;
@@ -37,6 +43,19 @@ namespace gi{
 
 	bool hasSeenIntro = false;
 	bool firstInit = true;
+
+	bool usingConsole_ = false;
+
+	void setUsingConsole(const bool& usingConsole){
+		if(usingConsole && !usingConsole_){
+			AllocConsole();
+			freopen("CONOUT$", "w", stdout);
+			usingConsole_ = true;
+		}
+		else if(!usingConsole && usingConsole_){
+			FreeConsole();
+		}
+	}
 
 	void zoom(const float& zoom){
 		cameraZ = zoom > 0.01f ? zoom : 0.01f;
@@ -82,6 +101,15 @@ namespace gi{
 		else{
 			renderWindow = new sf::RenderWindow(vm, c::WINDOW_TITLE);
 		}
+
+		File f = File().child("icon.png");
+		if(f.isFile()){
+			sf::Image im;
+			if(im.loadFromFile(f.path())){
+				renderWindow->setIcon(im.getSize().x, im.getSize().y, im.getPixelsPtr());
+			}
+		}
+
 		renderWindow->setFramerateLimit(c::frameLimit);
 		renderWindow->setVerticalSyncEnabled(c::verticalSync);
 
@@ -138,7 +166,7 @@ namespace gi{
 			}
 			showCursor = sc;
 		}
-
+		
 		return success;
 	}
 
@@ -204,9 +232,9 @@ namespace gi{
 	void draw(drawable::Drawable* drawable, const sf::Time& time){
 		if(
 			!drawable->viewRelative
-			&& (drawable->position.x < gi::cameraX - gi::WIDTH / 2 - 1000.0f
+			&& (drawable->position.x < gi::cameraX - gi::WIDTH / 2 - maxDrawableSize
 				|| drawable->position.x > gi::cameraX + gi::WIDTH / 2
-				|| drawable->position.y < gi::cameraY - gi::HEIGHT / 2 - 1000.0f
+				|| drawable->position.y < gi::cameraY - gi::HEIGHT / 2 - maxDrawableSize
 				|| drawable->position.y > gi::cameraY + gi::HEIGHT / 2)
 			){
 			return;

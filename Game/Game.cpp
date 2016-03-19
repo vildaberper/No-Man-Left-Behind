@@ -68,6 +68,7 @@ void Game::run(){
 
 	if(gc::developerMode){
 		c::showLog = true;
+		gi::setUsingConsole(true);
 	}
 
 	random::initialize();

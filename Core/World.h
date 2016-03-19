@@ -9,7 +9,7 @@
 #include "GI.h"
 
 // interv(x0, x1) + interv(y0, y1) !! NOT EUCLIDEAN DISTANCE !!
-static const float MAX_COLLISION_DISTANCE = 3000.0f;
+static const float MAX_COLLISION_DISTANCE = 4000.0f;
 
 static const unsigned int MAX_SWAPS_PER_FRAME = 100;
 static const unsigned int MAX_ORDERCHECKS_PER_FRAME = 10000;
