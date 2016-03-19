@@ -65,7 +65,7 @@ namespace gc{
 		File dir = File();
 
 		config = Configuration();
-		config.load(dir.child("gameconfig.txt"));
+		config.load(dir.child("core").child("gameconfig.txt"));
 
 		levelDir = c::baseDir.child(config.stringValue("directories.levelDir"));
 		journalDir = c::baseDir.child(config.stringValue("directories.journalDir"));

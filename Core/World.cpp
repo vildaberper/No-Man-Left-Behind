@@ -87,38 +87,44 @@ void World::tick(){
 			continue;
 		}
 
-		size_t d1min = binarySearchRenderOffset(smin - MAX_COLLISION_DISTANCE, LAYER2);
-		size_t d1max = binarySearchRenderOffset(smax + MAX_COLLISION_DISTANCE, LAYER2);
+		for(size_t li1 = 1; li1 <= 2; li1++){
+			Layer l1 = Layer(li1);
+			size_t d1min = binarySearchRenderOffset(d0->renderOffset() - MAX_COLLISION_DISTANCE, l1);
+			size_t d1max = binarySearchRenderOffset(d0->renderOffset() + MAX_COLLISION_DISTANCE, l1);
 
-		for(size_t di1 = d1min; di1 < drawables[LAYER2].size() && di1 <= d0max; di1++){
-			drawable::Drawable* d1 = drawables[LAYER2][di1];
+			for(size_t di1 = d1min; di1 < drawables[l1].size() && di1 <= d0max; di1++){
+				drawable::Drawable* d1 = drawables[l1][di1];
 
-			if(d0 == d1 || d1->hideUnderCamera){
-				continue;
-			}
-			if(math::interv(d0->position.x, d1->position.x) + math::interv(d0->position.y, d1->position.y) > MAX_COLLISION_DISTANCE){
-				continue;
-			}
-			if(d0->collidesWith(d1, time(), d0->position + Vector(d0->velocity.x * dt(), 0.0f))){
-				foundX = true;
-			}
-			if(d0->collidesWith(d1, time(), d0->position + Vector(0.0f, d0->velocity.y * dt()))){
-				foundY = true;
-			}
-			if(d0->collidesWith(d1, time(), d0->position + (d0->velocity * dt()))){
-				foundXY = true;
+				if(d0 == d1 || d1->hideUnderCamera){
+					continue;
+				}
+				if(math::interv(d0->position.x, d1->position.x) + math::interv(d0->position.y, d1->position.y) > MAX_COLLISION_DISTANCE){
+					continue;
+				}
+				if(d0->collidesWith(d1, time(), d0->position + Vector(d0->velocity.x * dt(), 0.0f))){
+					foundX = true;
+				}
+				if(d0->collidesWith(d1, time(), d0->position + Vector(0.0f, d0->velocity.y * dt()))){
+					foundY = true;
+				}
+				if(d0->collidesWith(d1, time(), d0->position + (d0->velocity * dt()))){
+					foundXY = true;
+				}
+
+				if(foundX && foundY && foundXY){
+					continue;
+				}
 			}
 
-			if(foundX && foundY && foundXY){
-				continue;
+			if(foundX || (!foundY && foundXY)){
+				d0->velocity.x = 0.0f;
+			}
+			if(foundY || (!foundX && foundXY)){
+				d0->velocity.y = 0.0f;
 			}
 		}
-
-		if(foundX || (!foundY && foundXY)){
-			d0->velocity.x = 0.0f;
-		}
-		if(foundY || (!foundX && foundXY)){
-			d0->velocity.y = 0.0f;
+		if(foundX && foundY && foundXY){
+			continue;
 		}
 	}
 

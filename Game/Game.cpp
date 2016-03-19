@@ -556,7 +556,8 @@ void Game::run(){
 				optionsMenu->items[i]->darkenOnMouseOver = !controller->usingController;
 				optionsMenu->items[i]->highlight = controller->usingController && i == menuIndex;
 			}
-			if(controller->usingController && controller->isPressed(INTERACT)){
+			bool wuc = controller->usingController;
+			if(controller->isPressed(INTERACT) && wuc){
 				*menuCommand = optionsMenu->items[menuIndex]->selectedPrefix;
 			}
 			gi::background(*mainmenu);

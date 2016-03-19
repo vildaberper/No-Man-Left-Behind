@@ -93,45 +93,42 @@ void Level::begin(const float& stress, const float& timeBonus){
 	timerHud->position = Vector(gi::TARGET_WIDTH - timerHud->getSprite(sf::milliseconds(0))->w() * timerHud->scale, 0.0);
 	timerHud->viewRelative = true;
 
-	for(size_t i = 0; i < NUM_LAYERS; i++){
-		Layer l = Layer(i);
-		for(drawable::Drawable* d : world->drawables[l]){
-			if(
-				(d->reference == "Characters.Ilse")
-				){
-				//logger::info("Found player spawn position (" + d->position.toString() + ").");
-				spawn = d->position;
-				d->kill();
-				useTruck = false;
-			}
-			else if(
-				(d->reference == "Characters.Truck")
-				){
-				//logger::info("Found truck spawn position (" + d->position.toString() + ").");
-				truckspawn = d->position;
-				d->kill();
-			}
-			else if(
-				(d->reference.size() > 11 && d->reference.substr(0, 11) == "Characters.")
-				){
-				//logger::info("Found injured spawn position (" + d->position.toString() + ").");
-				injuredPositions.push_back(d->position);
-				d->kill();
-			}
-			else if(
-				/*(d->reference.size() >= 9 && d->reference.substr(0, 9) == "Props.Box")
-				||*/ (d->reference.size() >= 17 && d->reference.substr(0, 17) == "Props.Medical Box")
-				|| (d->reference.size() >= 21 && d->reference.substr(0, 21) == "Props.Medical Cabinet")
-				){
-				//logger::info("Found resource box " + d->reference + " (" + d->position.toString() + ").");
-				resourceBoxes.push_back(new ResourceBox(controller, manager, 7, playerInventory, d));
-			}
-			else if(d->reference.size() > 10 && d->reference.substr(0, 10) == "Resources."){
-				std::string r = d->reference.substr(10);
-				ItemStack is = ItemStack(parseResource(r), 1);
-				//logger::info("Found resource " + r + " (" + d->position.toString() + ").");
-				resources.push_back(ResourcePair(d, is));
-			}
+	for(drawable::Drawable* d : world->drawables[LAYER2]){
+		if(
+			(d->reference == "Characters.Ilse")
+			){
+			//logger::info("Found player spawn position (" + d->position.toString() + ").");
+			spawn = d->position;
+			d->kill();
+			useTruck = false;
+		}
+		else if(
+			(d->reference == "Characters.Truck")
+			){
+			//logger::info("Found truck spawn position (" + d->position.toString() + ").");
+			truckspawn = d->position;
+			d->kill();
+		}
+		else if(
+			(d->reference.size() > 11 && d->reference.substr(0, 11) == "Characters.")
+			){
+			//logger::info("Found injured spawn position (" + d->position.toString() + ").");
+			injuredPositions.push_back(d->position);
+			d->kill();
+		}
+		else if(
+			/*(d->reference.size() >= 9 && d->reference.substr(0, 9) == "Props.Box")
+			||*/ (d->reference.size() >= 17 && d->reference.substr(0, 17) == "Props.Medical Box")
+			|| (d->reference.size() >= 21 && d->reference.substr(0, 21) == "Props.Medical Cabinet")
+			){
+			//logger::info("Found resource box " + d->reference + " (" + d->position.toString() + ").");
+			resourceBoxes.push_back(new ResourceBox(controller, manager, 7, playerInventory, d));
+		}
+		else if(d->reference.size() > 10 && d->reference.substr(0, 10) == "Resources."){
+			std::string r = d->reference.substr(10);
+			ItemStack is = ItemStack(parseResource(r), 1);
+			//logger::info("Found resource " + r + " (" + d->position.toString() + ").");
+			resources.push_back(ResourcePair(d, is));
 		}
 	}
 

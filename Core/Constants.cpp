@@ -39,7 +39,7 @@ namespace c{
 		File dir = File();
 
 		config = new Configuration();
-		config->load(dir.child("config.txt"));
+		config->load(dir.child("core").child("config.txt"));
 
 		std::string baseDirPath = config->stringValue("directories.baseDir");
 		if(baseDirPath.find_first_of(':') == std::string::npos){
@@ -81,7 +81,7 @@ namespace c{
 		c::config->set("settings.fullscreen", c::fullscreen);
 		c::config->set("settings.verticalSync", c::verticalSync);
 
-		config->save(File().child("config.txt"));
+		config->save(File().child("core").child("config.txt"));
 
 		logger::timing("Constants saved in " + std::to_string(cl.getElapsedTime().asSeconds()) + " seconds");
 	}

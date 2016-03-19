@@ -63,7 +63,7 @@ void Editor::run(){
 	manager->menuManager->menus["worldMenu"] = worldMenu;
 
 	Configuration config;
-	config.load(File().child("editor.txt"));
+	config.load(File().child("core").child("editor.txt"));
 
 	fileSelectBackground = config.stringValue("fileSelectBackground");
 	if(fileSelectBackground.length() > 0){

@@ -102,7 +102,7 @@ namespace gi{
 			renderWindow = new sf::RenderWindow(vm, c::WINDOW_TITLE);
 		}
 
-		File f = File().child("icon.png");
+		File f = File().child("core").child("icon.png");
 		if(f.isFile()){
 			sf::Image im;
 			if(im.loadFromFile(f.path())){
@@ -130,8 +130,8 @@ namespace gi{
 			showCursor = false;
 			sf::Texture t;
 			sf::SoundBuffer b;
-			File fp = File().child("core.png");
-			File fa = File().child("core.wav");
+			File fp = File().child("core").child("core.png");
+			File fa = File().child("core").child("core.wav");
 			bool played = false;
 			if(fa.isFile() && fp.isFile() && t.loadFromFile(fp.path()) && b.loadFromFile(fa.path())){
 				sf::Sprite s(t);
