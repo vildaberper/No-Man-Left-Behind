@@ -2,6 +2,9 @@
 
 #include <string>
 
+#include "SFMLI.h"
+#include "GameConstants.h"
+
 enum Resource{
 	PENICILLIN,
 	FORCEPS,
@@ -62,6 +65,33 @@ static const Resource parseResource(const std::string& resource){
 		return GAUZE;
 	}
 	return PENICILLIN;
+}
+
+static const sf::Time getResourceUseTime(const Resource& resource){
+	switch(resource){
+	case PENICILLIN:
+		return sf::seconds(gc::useTimePennicillin);
+		break;
+	case FORCEPS:
+		return sf::seconds(gc::useTimeForceps);
+		break;
+	case ALCOHOL:
+		return sf::seconds(gc::useTimeAlcohol);
+		break;
+	case MORPHINE:
+		return sf::seconds(gc::useTimeMorphine);
+		break;
+	case SUTURE_KIT:
+		return sf::seconds(gc::useTimeSutureKit);
+		break;
+	case SCALPEL:
+		return sf::seconds(gc::useTimeScalpel);
+		break;
+	case GAUZE:
+		return sf::seconds(gc::useTimeGauze);
+		break;
+	}
+	return sf::seconds(1.0f);
 }
 
 class Item{

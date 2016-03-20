@@ -24,6 +24,16 @@ namespace gc{
 	extern int stackSizeScalpel;
 	extern int stackSizeGauze;
 
+	extern bool useWhileTimer;
+	extern bool useTimerReset;
+	extern float useTimePennicillin;
+	extern float useTimeForceps;
+	extern float useTimeAlcohol;
+	extern float useTimeMorphine;
+	extern float useTimeSutureKit;
+	extern float useTimeScalpel;
+	extern float useTimeGauze;
+
 	extern float timerRateNotSeen;
 	extern float survive0Rate;
 	extern float survive1Rate;

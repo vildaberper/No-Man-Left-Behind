@@ -68,6 +68,15 @@ public:
 	sf::Time time;
 	Animatable* timerHud;
 
+	bool canControl;
+	bool canUseResource;
+
+	bool usingResource = false;
+	sf::Time resourceUsedTime;
+	sf::Time resourceUsedTimer;
+	ProgressBar* resourceUseBar;
+	Injured* resourceUseInjured = NULL;
+
 	std::string musicIntro;
 	std::string musicMain;
 	unsigned long introId;

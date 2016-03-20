@@ -21,6 +21,16 @@ namespace gc{
 	int stackSizeScalpel;
 	int stackSizeGauze;
 
+	bool useWhileTimer;
+	bool useTimerReset;
+	float useTimePennicillin;
+	float useTimeForceps;
+	float useTimeAlcohol;
+	float useTimeMorphine;
+	float useTimeSutureKit;
+	float useTimeScalpel;
+	float useTimeGauze;
+
 	float timerRateNotSeen;
 
 	float survive0Rate;
@@ -84,6 +94,16 @@ namespace gc{
 		stackSizeSutureKit = config.intValue("general.stackSizeSutureKit");
 		stackSizeScalpel = config.intValue("general.stackSizeScalpel");
 		stackSizeGauze = config.intValue("general.stackSizeGauze");
+
+		useWhileTimer = config.boolValue("general.useWhileTimer");
+		useTimerReset = config.boolValue("general.useTimerReset");
+		useTimePennicillin = config.floatValue("general.useTimePennicillin");
+		useTimeForceps = config.floatValue("general.useTimeForceps");
+		useTimeAlcohol = config.floatValue("general.useTimeAlcohol");
+		useTimeMorphine = config.floatValue("general.useTimeMorphine");
+		useTimeSutureKit = config.floatValue("general.useTimeSutureKit");
+		useTimeScalpel = config.floatValue("general.useTimeScalpel");
+		useTimeGauze = config.floatValue("general.useTimeGauze");
 
 		timerRateNotSeen = config.floatValue("general.timerRateNotSeen");
 		survive0Rate = config.floatValue("general.survive0Rate");

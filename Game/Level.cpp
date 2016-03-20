@@ -13,6 +13,7 @@ Level::~Level(){
 	manager->inputManager->unregisterListener(listenerId);
 	delete world;
 	stopMusic();
+	delete resourceUseBar;
 }
 
 void Level::stopMusic(){
@@ -274,6 +275,12 @@ void Level::begin(const float& stress, const float& timeBonus){
 		world->addDrawable(rb, LAYER2);
 	}
 
+	resourceUseBar = new ProgressBar();
+	resourceUseBar->customColors = true;
+	resourceUseBar->bgColor = sf::Color(185, 185, 185, 155);
+	resourceUseBar->oColor = sf::Color(5, 5, 5, 255);
+	resourceUseBar->size = Vector(100.0f, 20.0f);
+
 	listenerId = manager->inputManager->registerListener(this);
 }
 
@@ -378,10 +385,29 @@ void Level::tick(){
 	}
 	case PLAYING:
 	{
-		bool canControl = completeState == IN_GAME;
-
-		if(canControl && timer.asMilliseconds() > 0 && time > timer){
+		if(timer.asMilliseconds() > 0 && time > timer){
 			completeState = TIME_RAN_OUT;
+		}
+
+		canControl = canUseResource = completeState == IN_GAME;
+
+		float resourceUseProgress = 1.0f;
+		if(resourceUsedTimer.asMilliseconds() > 0){
+			resourceUseProgress = (time - resourceUsedTime) / resourceUsedTimer;
+		}
+
+		if(resourceUsedTime.asMilliseconds() != 0 && resourceUseProgress < 1.0f){
+			usingResource = true;
+			canControl = false;
+			canUseResource = gc::useWhileTimer;
+			resourceUseBar->progress = resourceUseProgress;
+		}
+		else{
+			if(resourceUseInjured != NULL){
+				usingResource = false;
+				resourceUseInjured->updateAnimation();
+				resourceUsedTimer = sf::milliseconds(0);
+			}
 		}
 
 		if(hasUsedResource){
@@ -437,97 +463,107 @@ void Level::tick(){
 			closestBox->menu->hidden = true;
 		}
 
-		if(canControl){
-			if(controller->isPressed(Command::HANDBOOK)){
-				if(handBook->isOpen()){
-					handBook->close();
-				}
-				else if(handBook->isClosed()){
-					handBook->open();
-				}
-			}
-			if(controller->isPressed(Command::BACK)){
-				if(handBook->isOpen()){
-					handBook->close();
-				}
-				if(closestBox != NULL){
-					closestBox->menu->hidden = true;
-				}
-			}
-
+		if(canControl && controller->isPressed(Command::HANDBOOK)){
 			if(handBook->isOpen()){
-				if(controller->isPressed(LB)){
-					handBook->turnLeft();
-				}
-				if(controller->isPressed(RB)){
-					handBook->turnRight();
-				}
+				handBook->close();
 			}
+			else if(handBook->isClosed()){
+				handBook->open();
+			}
+		}
+		if(canControl && controller->isPressed(Command::BACK)){
+			if(handBook->isOpen()){
+				handBook->close();
+			}
+			if(closestBox != NULL){
+				closestBox->menu->hidden = true;
+			}
+		}
 
+		if(canControl && handBook->isOpen()){
 			if(controller->isPressed(LB)){
-				playerInventory->selectedSlot--;
-				playerInventory->update();
+				handBook->turnLeft();
 			}
 			if(controller->isPressed(RB)){
-				playerInventory->selectedSlot++;
-				playerInventory->update();
+				handBook->turnRight();
 			}
+		}
 
-			if(closestBox != NULL && !closestBox->menu->hidden){
-				if(controller->isPressed(LT)){
-					closestBox->selectedSlot--;
-					closestBox->update();
-				}
-				if(controller->isPressed(RT)){
-					closestBox->selectedSlot++;
-					closestBox->update();
-				}
+		if(canControl && controller->isPressed(LB)){
+			playerInventory->selectedSlot--;
+			playerInventory->update();
+		}
+		if(canControl && controller->isPressed(RB)){
+			playerInventory->selectedSlot++;
+			playerInventory->update();
+		}
+
+		if(canControl && closestBox != NULL && !closestBox->menu->hidden){
+			if(controller->isPressed(LT)){
+				closestBox->selectedSlot--;
+				closestBox->update();
 			}
+			if(controller->isPressed(RT)){
+				closestBox->selectedSlot++;
+				closestBox->update();
+			}
+		}
 
-			if(controller->isPressed(INTERACT) && handBook->isClosed()){
-				if(closest != NULL){
-					if(!hasUsedResource){
-						hasUsedResource = playerInventory->selectedItem().amount > 0;
-					}
-					if(playerInventory->selectedItem().amount > 0){
-						closest->use(playerInventory->selectedItem());
-						playerInventory->update();
-					}
+		if(controller->isPressed(INTERACT) && handBook->isClosed()){
+			if(canUseResource && closest != NULL){
+				if(!hasUsedResource){
+					hasUsedResource = playerInventory->selectedItem().amount > 0;
 				}
-				else if(closestBox != NULL){
-					if(closestBox->menu->hidden){
-						closestBox->menu->hidden = false;
-						closestBox->update();
-					}
-					else{
-						ItemStack& pi = playerInventory->at(playerInventory->selectedSlot);
-						ItemStack& ri = closestBox->at(closestBox->selectedSlot);
-						if(pi.amount > 0 || ri.amount > 0){
-							si::playRandomSoundV(NULL, "bag", gc::bagVolume);
+				if(playerInventory->selectedItem().amount > 0){
+					if(closest->use(playerInventory->selectedItem())){
+						resourceUseInjured = closest;
+						if(gc::useTimerReset){
+							resourceUsedTime = time;
+							resourceUsedTimer = getResourceUseTime(playerInventory->itemInHand.item.type);
 						}
-						if(pi.amount > 0){
-							if(ri.amount > 0){
-								if(pi.item.type == ri.item.type){
-									playerInventory->put(ri, playerInventory->selectedSlot);
-								}
-								else{
-									playerInventory->put(ri);
-								}
+						else{
+							if(!usingResource){
+								resourceUsedTime = time;
+							}
+							resourceUsedTimer += getResourceUseTime(playerInventory->itemInHand.item.type);
+						}
+					}
+					playerInventory->update();
+				}
+			}
+			else if(canControl && closestBox != NULL){
+				if(closestBox->menu->hidden){
+					closestBox->menu->hidden = false;
+					closestBox->update();
+				}
+				else{
+					ItemStack& pi = playerInventory->at(playerInventory->selectedSlot);
+					ItemStack& ri = closestBox->at(closestBox->selectedSlot);
+					if(pi.amount > 0 || ri.amount > 0){
+						si::playRandomSoundV(NULL, "bag", gc::bagVolume);
+					}
+					if(pi.amount > 0){
+						if(ri.amount > 0){
+							if(pi.item.type == ri.item.type){
+								playerInventory->put(ri, playerInventory->selectedSlot);
 							}
 							else{
-								closestBox->swap(pi, closestBox->selectedSlot);
+								playerInventory->put(ri);
 							}
 						}
 						else{
 							closestBox->swap(pi, closestBox->selectedSlot);
 						}
-						playerInventory->update();
-						closestBox->update();
 					}
+					else{
+						closestBox->swap(pi, closestBox->selectedSlot);
+					}
+					playerInventory->update();
+					closestBox->update();
 				}
-				else if(nearTruck_){
-					completeState = IN_TRUCK;
-				}
+			}
+			else if(canControl && nearTruck_){
+				completeState = IN_TRUCK;
 			}
 		}
 
@@ -569,6 +605,12 @@ void Level::tick(){
 
 		gi::camera(world->dt());
 		world->render();
+
+		if(resourceUsedTime.asMilliseconds() != 0 && resourceUseProgress < 1.0f){
+			CoreSprite* cs = player->getSprite(time);
+			resourceUseBar->position = Vector(gi::TARGET_WIDTH / 2.0f - 50, gi::TARGET_HEIGHT / 2.0f - cs->h() * player->scale / 2.0f);
+			gi::draw(resourceUseBar, time);
+		}
 
 		/*
 		Journal
@@ -694,7 +736,7 @@ void Level::on(MouseButtonEvent& event){
 		return;
 	}
 	if(event.pressed() && event.button() == sf::Mouse::Left){
-		if(closest != NULL && playerInventory->itemInHand.amount > 0){
+		if(canUseResource && closest != NULL && playerInventory->itemInHand.amount > 0){
 			if(closest->isAlive()){
 				sf::FloatRect ifr = closest->bounds(world->time());
 				if(ifr.contains(gi::wx(float(manager->inputManager->mouseX())), gi::wy(float(manager->inputManager->mouseY())))){
@@ -702,19 +744,31 @@ void Level::on(MouseButtonEvent& event){
 						hasUsedResource = playerInventory->itemInHand.amount > 0;
 					}
 					if(playerInventory->itemInHand.amount > 0){
-						closest->use(playerInventory->itemInHand);
+						if(closest->use(playerInventory->itemInHand)){
+							resourceUseInjured = closest;
+							if(gc::useTimerReset){
+								resourceUsedTime = time;
+								resourceUsedTimer = getResourceUseTime(playerInventory->itemInHand.item.type);
+							}
+							else{
+								if(!usingResource){
+									resourceUsedTime = time;
+								}
+								resourceUsedTimer += getResourceUseTime(playerInventory->itemInHand.item.type);
+							}
+						}
 						playerInventory->update();
 					}
 				}
 			}
 		}
-		else if(closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+		else if(canControl && closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
 			float(event.x()),
 			float(event.y())
 			)){
 			closestBox->menu->hidden = !closestBox->menu->hidden;
 		}
-		else if(nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+		else if(canControl && nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
 			float(event.x()),
 			float(event.y())
 			)){
@@ -750,22 +804,22 @@ Injured* Level::nearestInjured(const float& maxDistance){
 				size_t min = world->binarySearchRenderOffset(cp.y - 1000.0f, LAYER2);
 				size_t max = world->binarySearchRenderOffset(cp.y + 1000.0f, LAYER2);
 
-					for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
-						drawable::Drawable* d = world->drawables[LAYER2][di1];
+				for(size_t di1 = min; di1 < world->drawables[LAYER2].size() && di1 <= max; di1++){
+					drawable::Drawable* d = world->drawables[LAYER2][di1];
 
-						if(d->hideUnderCamera || d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed") || (d->reference.length() > 9 && d->reference.substr(0, 7) == "Decals.")){
-							continue;
-						}
-						if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){
-							continue;
-						}
+					if(d->hideUnderCamera || d == inj || d == player || (d->reference.length() > 9 && d->reference.substr(0, 9) == "Props.Bed") || (d->reference.length() > 9 && d->reference.substr(0, 7) == "Decals.")){
+						continue;
+					}
+					if(math::interv(fv.x, d->position.x) + math::interv(fv.y, d->position.y) > MAX_COLLISION_DISTANCE){
+						continue;
+					}
 
-						if(d->bounds(world->time()).contains(fv)){
-							passed = false;
-							break;
-						}
+					if(d->bounds(world->time()).contains(fv)){
+						passed = false;
+						break;
 					}
 				}
+			}
 
 			if(passed){
 				d = distance;

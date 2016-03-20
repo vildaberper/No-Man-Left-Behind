@@ -180,7 +180,6 @@ bool Injured::use(ItemStack& is){
 				customJournal->deathTimer = sf::milliseconds(0);
 			}
 		}
-		updateAnimation();
 		is.amount--;
 		si::playSound(this, "resources." + resourceToString(is.item.type));
 		return true;
