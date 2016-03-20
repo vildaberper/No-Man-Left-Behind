@@ -407,6 +407,7 @@ void Level::tick(){
 				usingResource = false;
 				resourceUseInjured->updateAnimation();
 				resourceUsedTimer = sf::milliseconds(0);
+				resourceUseInjured = NULL;
 			}
 		}
 
