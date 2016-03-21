@@ -172,7 +172,7 @@ void Level::begin(const float& stress, const float& timeBonus){
 		world->addDrawable(inj, LAYER2);
 	}
 
-	if(player == NULL){
+	if(player == nullptr){
 		player = new Player();
 		player->initialize(manager);
 		player->speed = gc::playerSpeedLower + (gc::playerSpeedUpper - gc::playerSpeedLower) * stress;
@@ -210,6 +210,8 @@ void Level::begin(const float& stress, const float& timeBonus){
 	journal->position = Vector(0.0, 0.0);
 	journal->scale = 0.85f;
 	journal->viewRelative = true;
+	journal->scaleRelative = false;
+	dist /= gc::zoomLevel;
 	skull = manager->spriteManager->getSprite("timer.skull");
 
 	if(musicIntro.length() > 0){
@@ -256,6 +258,7 @@ void Level::begin(const float& stress, const float& timeBonus){
 	}
 
 	bool empty = iss.size() == 0;
+	int checkIndex = 0;
 	while(!empty){
 		for(ItemStack& is : iss){
 			if(is.amount > 0){
@@ -267,6 +270,11 @@ void Level::begin(const float& stress, const float& timeBonus){
 		empty = true;
 		for(ItemStack is : iss){
 			empty = is.amount > 0 ? false : empty;
+		}
+		checkIndex++;
+		if(checkIndex >= 1000){
+			logger::warning("Not enough room for resources!");
+			break;
 		}
 	};
 
@@ -282,6 +290,8 @@ void Level::begin(const float& stress, const float& timeBonus){
 	resourceUseBar->size = Vector(100.0f, 20.0f);
 
 	listenerId = manager->inputManager->registerListener(this);
+
+	gi::zoom(gc::zoomLevel);
 }
 
 void Level::tick(){
@@ -289,7 +299,7 @@ void Level::tick(){
 
 	if(wasUsingController != controller->usingController){
 		playerInventory->update();
-		if(closestBox != NULL){
+		if(closestBox != nullptr){
 			closestBox->update();
 		}
 		wasUsingController = controller->usingController;
@@ -301,8 +311,9 @@ void Level::tick(){
 		}
 		else{
 			world->setPaused(!world->isPaused());
-			if(closestBox != NULL){
+			if(closestBox != nullptr){
 				closestBox->menu->hidden = true;
+				si::playRandomSoundV(nullptr, "box_close", gc::boxVolume);
 			}
 		}
 	}
@@ -345,7 +356,7 @@ void Level::tick(){
 	if(nextWarSound.asMilliseconds() != 0 && time > nextWarSound){
 		bool end = timer.asMilliseconds() != 0 && ((timer - time).asSeconds() <= gc::armyScreamLength);
 		nextWarSound = time + sf::seconds(random::randomFloat((end ? 0.2f : warSoundLower), (end ? 0.5f : warSoundUpper)));
-		si::playRandomSoundV(NULL, "war", (end ? 0.5f : warSoundVolume));
+		si::playRandomSoundV(nullptr, "war", (end ? 0.5f : warSoundVolume));
 	}
 
 	switch(state){
@@ -392,8 +403,8 @@ void Level::tick(){
 		canControl = canUseResource = completeState == IN_GAME;
 
 		float resourceUseProgress = 1.0f;
-		if(resourceUsedTimer.asMilliseconds() > 0){
-			resourceUseProgress = (time - resourceUsedTime) / resourceUsedTimer;
+		if((resourceUseInjured != nullptr && !resourceUseInjured->isDead()) && resourceUsedTimer.asMilliseconds() > 0){
+			resourceUseProgress = (time - resourceUsedTime) / (resourceUsedTimer + (resourceUsedTimer * gc::stressIncreaseUseTime * (1.0f - stress)));
 		}
 
 		if(resourceUsedTime.asMilliseconds() != 0 && resourceUseProgress < 1.0f){
@@ -403,11 +414,11 @@ void Level::tick(){
 			resourceUseBar->progress = resourceUseProgress;
 		}
 		else{
-			if(resourceUseInjured != NULL){
+			if(resourceUseInjured != nullptr){
 				usingResource = false;
 				resourceUseInjured->updateAnimation();
 				resourceUsedTimer = sf::milliseconds(0);
-				resourceUseInjured = NULL;
+				resourceUseInjured = nullptr;
 			}
 		}
 
@@ -434,34 +445,41 @@ void Level::tick(){
 		world->tick();
 		time += sf::seconds(world->dt());
 
-		if(closest != NULL){
+		if(closest != nullptr){
 			closest->highlight = false;
 		}
 		closest = nearestInjured(150.0f);
-		if(closest != NULL){
+		if(closest != nullptr){
 			closest->highlight = true;
 		}
 
 		ResourceBox* cb = nearestResourceBox(150.0f);
-		if(cb != NULL){
-			if(closestBox != NULL){
+		if(cb != nullptr){
+			if(closestBox != nullptr){
 				if(cb != closestBox){
 					closestBox->highlight = false;
-					closestBox->menu->hidden = true;
+					if(!closestBox->menu->hidden){
+						closestBox->menu->hidden = true;
+						si::playRandomSoundV(nullptr, "box_close", gc::boxVolume);
+					}
 				}
 			}
 			closestBox = cb;
 			closestBox->highlight = true;
 		}
 		else{
-			if(closestBox != NULL){
+			if(closestBox != nullptr){
 				closestBox->highlight = false;
-				closestBox->menu->hidden = true;
+				if(!closestBox->menu->hidden){
+					closestBox->menu->hidden = true;
+					si::playRandomSoundV(nullptr, "box_close", gc::boxVolume);
+				}
 				closestBox = cb;
 			}
 		}
-		if(closestBox != NULL && !handBook->isClosed()){
+		if(closestBox != nullptr && !closestBox->menu->hidden && !closestBox->menu->hidden && !handBook->isClosed()){
 			closestBox->menu->hidden = true;
+			si::playRandomSoundV(nullptr, "box_close", gc::boxVolume);
 		}
 
 		if(canControl && controller->isPressed(Command::HANDBOOK)){
@@ -476,8 +494,9 @@ void Level::tick(){
 			if(handBook->isOpen()){
 				handBook->close();
 			}
-			if(closestBox != NULL){
+			if(closestBox != nullptr && !closestBox->menu->hidden){
 				closestBox->menu->hidden = true;
+				si::playRandomSoundV(nullptr, "box_close", gc::boxVolume);
 			}
 		}
 
@@ -490,16 +509,16 @@ void Level::tick(){
 			}
 		}
 
-		if(canControl && controller->isPressed(LB)){
+		if(canUseResource && controller->isPressed(LB)){
 			playerInventory->selectedSlot--;
 			playerInventory->update();
 		}
-		if(canControl && controller->isPressed(RB)){
+		if(canUseResource && controller->isPressed(RB)){
 			playerInventory->selectedSlot++;
 			playerInventory->update();
 		}
 
-		if(canControl && closestBox != NULL && !closestBox->menu->hidden){
+		if(canUseResource && closestBox != nullptr && !closestBox->menu->hidden){
 			if(controller->isPressed(LT)){
 				closestBox->selectedSlot--;
 				closestBox->update();
@@ -511,7 +530,7 @@ void Level::tick(){
 		}
 
 		if(controller->isPressed(INTERACT) && handBook->isClosed()){
-			if(canUseResource && closest != NULL){
+			if(canUseResource && closest != nullptr){
 				if(!hasUsedResource){
 					hasUsedResource = playerInventory->selectedItem().amount > 0;
 				}
@@ -532,16 +551,17 @@ void Level::tick(){
 					playerInventory->update();
 				}
 			}
-			else if(canControl && closestBox != NULL){
+			else if(canControl && closestBox != nullptr){
 				if(closestBox->menu->hidden){
 					closestBox->menu->hidden = false;
+					si::playRandomSoundV(nullptr, "box_open", gc::boxVolume);
 					closestBox->update();
 				}
 				else{
 					ItemStack& pi = playerInventory->at(playerInventory->selectedSlot);
 					ItemStack& ri = closestBox->at(closestBox->selectedSlot);
 					if(pi.amount > 0 || ri.amount > 0){
-						si::playRandomSoundV(NULL, "bag", gc::bagVolume);
+						si::playRandomSoundV(nullptr, "bag", gc::bagVolume);
 					}
 					if(pi.amount > 0){
 						if(ri.amount > 0){
@@ -572,7 +592,7 @@ void Level::tick(){
 			if(playerInventory->itemInHand.amount > 0){
 				cursorSet->hand();
 			}
-			else if(closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+			else if(closestBox != nullptr && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
 				float(manager->inputManager->mouseX()),
 				float(manager->inputManager->mouseY())
 				)){
@@ -588,7 +608,7 @@ void Level::tick(){
 
 		for(size_t i = 0; i < resources.size(); i++){
 			if(player->bounds(world->time()).intersects(resources[i].first->bounds(world->time()))){
-				si::playRandomSoundV(NULL, "bag", gc::bagVolume);
+				si::playRandomSoundV(nullptr, "bag", gc::bagVolume);
 				playerInventory->put(resources[i].second);
 				playerInventory->update();
 				if(resources[i].second.amount == 0){
@@ -599,9 +619,9 @@ void Level::tick(){
 		}
 
 		bool journalOpenSound = target == dist;
-		target = closest != NULL && handBook->isClosed() ? 0.0f : dist;
+		target = closest != nullptr && handBook->isClosed() ? 0.0f : dist;
 		if(journalOpenSound && target == 0.0f){
-			si::playSound(NULL, "interface.journal_open");
+			si::playSound(nullptr, "interface.journal_open");
 		}
 
 		gi::camera(world->dt());
@@ -625,7 +645,7 @@ void Level::tick(){
 			journal->position.x = 50;
 			journal->position.y = -10 - actual;
 			gi::draw(*journal->getSprite(world->time()));
-			if(closest != NULL){
+			if(closest != nullptr){
 				closest->hasSeenJournal = true;
 				gi::draw(closest->customJournal->lines, (journal->position.x + 120) * gi::dxiz(), (journal->position.y + 300) * gi::dyiz(), 530 * gi::dxiz(), 720 * gi::dyiz());
 
@@ -657,7 +677,7 @@ void Level::tick(){
 			float prog = time / timer;
 			if(prog >= gc::armyMarchStart){
 				if(armyMarchId == 0){
-					armyMarchId = si::playSoundV(NULL, "army.march", 0.0f, true);
+					armyMarchId = si::playSoundV(nullptr, "army.march", 0.0f, true);
 				}
 				else{
 					float av = gc::armyMarchVolume * (prog - gc::armyMarchStart) * (1.0f / gc::armyMarchStart);
@@ -666,7 +686,7 @@ void Level::tick(){
 			}
 			if((timer - time).asSeconds() <= gc::armyScreamLength){
 				if(armyScreamId == 0){
-					armyScreamId = si::playSoundV(NULL, "army.scream", gc::armyScreamVolume);
+					armyScreamId = si::playSoundV(nullptr, "army.scream", gc::armyScreamVolume);
 					nextWarSound = time;
 				}
 			}
@@ -733,11 +753,11 @@ void Level::on(MouseButtonEvent& event){
 	if(event.isCancelled()){
 		return;
 	}
-	if(completeState != IN_GAME){
+	if(completeState != IN_GAME || world->isPaused()){
 		return;
 	}
 	if(event.pressed() && event.button() == sf::Mouse::Left){
-		if(canUseResource && closest != NULL && playerInventory->itemInHand.amount > 0){
+		if(canUseResource && closest != nullptr && playerInventory->itemInHand.amount > 0){
 			if(closest->isAlive()){
 				sf::FloatRect ifr = closest->bounds(world->time());
 				if(ifr.contains(gi::wx(float(manager->inputManager->mouseX())), gi::wy(float(manager->inputManager->mouseY())))){
@@ -763,11 +783,16 @@ void Level::on(MouseButtonEvent& event){
 				}
 			}
 		}
-		else if(canControl && closestBox != NULL && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
+		else if(canControl && closestBox != nullptr && closestBox->menu->hidden && closestBox->getSprite(world->time())->sprite()->getGlobalBounds().contains(
 			float(event.x()),
 			float(event.y())
 			)){
-			closestBox->menu->hidden = !closestBox->menu->hidden;
+			if(closestBox->menu->hidden = !closestBox->menu->hidden){
+				si::playRandomSoundV(nullptr, "box_close", gc::boxVolume);
+			}
+			else{
+				si::playRandomSoundV(nullptr, "box_open", gc::boxVolume);
+			}
 		}
 		else if(canControl && nearTruck_ && truck->getSprite(world->time())->sprite()->getGlobalBounds().contains(
 			float(event.x()),
@@ -779,7 +804,7 @@ void Level::on(MouseButtonEvent& event){
 }
 
 Injured* Level::nearestInjured(const float& maxDistance){
-	Injured* i = NULL;
+	Injured* i = nullptr;
 	float d = maxDistance;
 
 	sf::FloatRect pfr = player->bounds(world->time());
@@ -832,7 +857,7 @@ Injured* Level::nearestInjured(const float& maxDistance){
 }
 
 ResourceBox* Level::nearestResourceBox(const float& maxDistance){
-	ResourceBox* i = NULL;
+	ResourceBox* i = nullptr;
 	float d = maxDistance;
 
 	sf::FloatRect pfr = player->bounds(world->time());

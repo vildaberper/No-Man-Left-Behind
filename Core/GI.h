@@ -94,6 +94,7 @@ namespace gi{
 	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darken = false);
 
 	void draw(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font = textFont);
+	void drawWhite(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font = textFont);
 
 	void darken(const float& darkness);
 

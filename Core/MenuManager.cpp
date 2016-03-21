@@ -44,7 +44,7 @@ void MenuManager::on(MouseButtonEvent& event){
 						event.setCancelled(true);
 
 						size_t index;
-						MenuItem* mi = NULL;
+						MenuItem* mi = nullptr;
 						switch (ent.second->type){
 						case HORIZONTAL:
 						{
@@ -59,14 +59,16 @@ void MenuManager::on(MouseButtonEvent& event){
 										 break;
 						}
 						}
-						if(mi->toggle != NULL){
-							mi->toggle->hidden = !mi->toggle->hidden;
-						}
-						if (mi->closeOnClick){
-							ent.second->hidden = true;
-						}
-						if (mi->selectedString != NULL){
-							*mi->selectedString = mi->selectedPrefix + mi->title;
+						if(mi != nullptr){
+							if(mi->toggle != nullptr){
+								mi->toggle->hidden = !mi->toggle->hidden;
+							}
+							if(mi->closeOnClick){
+								ent.second->hidden = true;
+							}
+							if(mi->selectedString != nullptr){
+								*mi->selectedString = mi->selectedPrefix + mi->title;
+							}
 						}
 					}
 				}

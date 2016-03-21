@@ -22,8 +22,8 @@ namespace file{
 		struct dirent *ent;
 		std::vector<std::string> files;
 
-		if ((dir = opendir(path.data())) != NULL){
-			while ((ent = readdir(dir)) != NULL){
+		if ((dir = opendir(path.data())) != nullptr){
+			while ((ent = readdir(dir)) != nullptr){
 				if (ent->d_name[0] == '.' && ent->d_name[1] == 0){
 					continue;
 				}
@@ -88,7 +88,7 @@ namespace file{
 	static const std::string workingDir(){
 		char dir[MAX_PATH];
 
-		return parent(std::string(dir, GetModuleFileName(NULL, dir, MAX_PATH)));
+		return parent(std::string(dir, GetModuleFileName(nullptr, dir, MAX_PATH)));
 	}
 
 	// Check if file exists

@@ -50,11 +50,11 @@ bool SoundManager::finalize(RenderWindow* window){
 
 void SoundManager::clear(const Entity* source, bool stop){
 	if(relative == source){
-		relative = NULL;
+		relative = nullptr;
 	}
 	for(auto &ent : channels){
 		if(ent.second->source == source){
-			ent.second->source = NULL;
+			ent.second->source = nullptr;
 			if(stop){
 				ent.second->sound->stop();
 			}
@@ -67,15 +67,15 @@ void SoundManager::tick(RenderWindow* window, const Time& time, const float& dt)
 	for(auto &ent : channels){
 		if(ent.second->sound->getStatus() == Sound::Stopped){
 			delete ent.second;
-			ent.second = NULL;
+			ent.second = nullptr;
 		}
 	}
 	for(std::map<unsigned long, soundmanager::Sound*>::iterator i = channels.begin(); i != channels.end();){
-		if(i->second == NULL){
+		if(i->second == nullptr){
 			channels.erase(i++);
 		}
 		else{
-			if(relative != NULL && i->second->source != NULL){
+			if(relative != nullptr && i->second->source != nullptr){
 				Entity* e0 = relative;
 				const Entity* e1 = i->second->source;
 				float d = math::distance(

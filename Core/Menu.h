@@ -27,7 +27,7 @@ public:
 	float leftOffset = 0.0f;
 	float rightOffset = 0.0f;
 
-	TexBar* background = NULL;
+	TexBar* background = nullptr;
 
 	MenuType type = VERTICAL;
 

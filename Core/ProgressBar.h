@@ -12,8 +12,8 @@ public:
 	Vector position;
 	Vector size;
 
-	TexBar* background = NULL;
-	TexBar* progressbar = NULL;
+	TexBar* background = nullptr;
+	TexBar* progressbar = nullptr;
 
 	sf::Color bgColor;
 	sf::Color pbColor;

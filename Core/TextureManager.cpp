@@ -83,7 +83,7 @@ const SubTexture* TextureManager::getUndefinedTexture(){
 
 Texture* TextureManager::getBackground(const std::string& name){
 	if (backgrounds_.count(name) == 0){
-		return NULL;
+		return nullptr;
 	}
 	return backgrounds_[name];
 }

@@ -15,6 +15,10 @@ namespace gc{
 
 	extern bool developerMode;
 
+	extern float zoomLevel;
+
+	extern float textFadeDuration;
+
 	extern int inventorySize;
 	extern int stackSizePennicillin;
 	extern int stackSizeForceps;
@@ -26,6 +30,7 @@ namespace gc{
 
 	extern bool useWhileTimer;
 	extern bool useTimerReset;
+	extern float stressIncreaseUseTime;
 	extern float useTimePennicillin;
 	extern float useTimeForceps;
 	extern float useTimeAlcohol;
@@ -68,6 +73,7 @@ namespace gc{
 	extern float armyScreamVolume;
 	extern float injuredVoiceVolume;
 	extern float bagVolume;
+	extern float boxVolume;
 
 	extern std::vector<std::string> levelProgression;
 

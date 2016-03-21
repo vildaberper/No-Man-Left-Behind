@@ -10,7 +10,7 @@ CursorSet::CursorSet(Manager* manager){
 }
 
 CursorSet::~CursorSet(){
-	gi::cursor = NULL;
+	gi::cursor = nullptr;
 	delete main_;
 	delete box_;
 	delete hand_;

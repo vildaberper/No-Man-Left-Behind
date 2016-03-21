@@ -34,7 +34,7 @@ bool Brush::paint(const float& x, const float& y, const float& radius, const flo
 	d->position.y = y_ - (d->cb.offset.y + d->cb.size.y / 2.0f) * s->h() * d->scale;
 
 	if(layer == LAYER0){
-		if(world->background != NULL){
+		if(world->background != nullptr){
 			int w = world->background->getSize().x;
 			int h = world->background->getSize().y;
 			float x = d->position.x - float(w);

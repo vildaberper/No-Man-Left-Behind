@@ -48,7 +48,7 @@ private:
 	bool draggingRight = false;
 	bool draggingLeft = false;
 	bool targeting = false;
-	Target* target = NULL;
+	Target* target = nullptr;
 
 	std::string fileSelectBackground = "";
 	bool saveOnExit = false;
@@ -56,11 +56,11 @@ private:
 	CoreSprite* fileselect;
 	Menu* worldMenu;
 
-	std::string* selectedWorld = NULL;
+	std::string* selectedWorld = nullptr;
 
-	std::string* selectedBackground = NULL;
+	std::string* selectedBackground = nullptr;
 
-	std::string* selectedString = NULL;
+	std::string* selectedString = nullptr;
 	Layer selectedLayer = LAYER0;
 	MenuItem* layerMenu;
 
@@ -79,5 +79,5 @@ private:
 	float brushRadius = 1000.0f;
 	float brushDensity = 150.0f;
 	std::map<std::string, Brush*> brushes;
-	std::string* selectedBrush = NULL;
+	std::string* selectedBrush = nullptr;
 };

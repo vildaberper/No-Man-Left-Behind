@@ -17,7 +17,7 @@ namespace gi{
 	float cameraTargetX;
 	float cameraTargetY;
 
-	Vector* relative = NULL;
+	Vector* relative = nullptr;
 
 	bool logAlwaysActive = false;
 
@@ -31,13 +31,13 @@ namespace gi{
 
 	bool showCursor = true;
 	bool hasCursor = false;
-	drawable::Drawable* cursor = NULL;
+	drawable::Drawable* cursor = nullptr;
 
 	bool defaultCursor = true;
 
 	Vector relativeOffset;
 
-	InputManager* inputManager = NULL;
+	InputManager* inputManager = nullptr;
 
 	sf::Clock clock;
 
@@ -313,12 +313,12 @@ namespace gi{
 
 	void draw(const MenuItem* item, const sf::Time& time, const float& x, const float& y, const float& w, const float& h, const bool& drawElementBackgrounds){
 		if(drawElementBackgrounds){
-			if(item->background != NULL && item->background->isValid()){
+			if(item->background != nullptr && item->background->isValid()){
 				draw(item->background, x, y, w, h,
 					item->highlight
 					|| (
 						item->darkenOnMouseOver
-						&& (inputManager != NULL
+						&& (inputManager != nullptr
 							&& sf::FloatRect(x, y, w, h).contains(float(inputManager->mouseX()), float(inputManager->mouseY())))
 						)
 					);
@@ -328,7 +328,7 @@ namespace gi{
 				rs.setPosition(x, y);
 				rs.setSize(sf::Vector2f(w, h));
 
-				if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
+				if(item->highlight || (item->toggle != nullptr && !item->toggle->hidden)){
 					rs.setFillColor(sf::Color(55, 55, 0, 255));
 				}
 				else{
@@ -341,7 +341,7 @@ namespace gi{
 		}
 
 		if(item->highlight){
-			if(item->background == NULL || !item->background->isValid()){
+			if(item->background == nullptr || !item->background->isValid()){
 				sf::RectangleShape rs;
 				rs.setPosition(x, y);
 				rs.setSize(sf::Vector2f(w, h));
@@ -354,7 +354,7 @@ namespace gi{
 		float tw = w;
 		switch(item->type){
 		case TEXTURE:
-			if(item->sprite == NULL){
+			if(item->sprite == nullptr){
 				break;
 			}
 			sf::Sprite* s = item->sprite->sprite();
@@ -364,7 +364,7 @@ namespace gi{
 			s->scale(sc, sc);
 			s->setPosition(x + w - s->getGlobalBounds().width, y);
 
-			if(item->highlight || (item->toggle != NULL && !item->toggle->hidden)){
+			if(item->highlight || (item->toggle != nullptr && !item->toggle->hidden)){
 				int c = int(205 + 50 * sin(time.asMilliseconds() / 100.0f));
 				s->setColor(sf::Color(c, c, c, 255));
 			}
@@ -421,7 +421,7 @@ namespace gi{
 		float dx_ = menu->size.x * dxiz();
 		float dy_ = menu->size.y * dyiz();
 
-		if(menu->background != NULL && menu->background->isValid()){
+		if(menu->background != nullptr && menu->background->isValid()){
 			draw(menu->background, x, y, dx_, dy_);
 		}
 
@@ -458,7 +458,7 @@ namespace gi{
 		float pw = w * progressbar->progress;
 		float h = progressbar->size.y * dyiz();
 
-		if(progressbar->background != NULL && progressbar->background->isValid()){
+		if(progressbar->background != nullptr && progressbar->background->isValid()){
 			draw(progressbar->background, x, y, w, h);
 		}
 		else{
@@ -477,7 +477,7 @@ namespace gi{
 			renderWindow->draw(rs);
 		}
 
-		if(progressbar->progressbar != NULL && progressbar->progressbar->isValid()){
+		if(progressbar->progressbar != nullptr && progressbar->progressbar->isValid()){
 			draw(progressbar->progressbar, x, y, pw, h);
 		}
 		else{
@@ -496,7 +496,7 @@ namespace gi{
 	}
 
 	void draw(TexBar* texbar, const float& x, const float& y, const float& w, const float& h, const bool& darken){
-		if(texbar->left == NULL || texbar->right == NULL){
+		if(texbar->left == nullptr || texbar->right == nullptr){
 			sf::Sprite s = sf::Sprite(*texbar->middle);
 
 			s.setPosition(x, y);
@@ -595,6 +595,32 @@ namespace gi{
 			renderWindow->draw(rs);
 		}
 	}
+	void drawWhite(const std::vector<std::string>& text, const float& x, const float& y, const float& w, const float& h, const sf::Font& font){
+		float dh = std::min(20.0f, h / float(text.size()));
+		float dhh = dh + 10.0f;
+		for(size_t i = 0; i < text.size(); i++){
+			sf::Text title = sf::Text();
+			title.setFont(font);
+			title.setColor(sf::Color(255, 255, 255, 255));
+			title.setString(text[i]);
+			title.setCharacterSize(30);
+			float sc = std::min(0.6f, w / (title.getGlobalBounds().width + 10));
+			title.scale(sc, sc);
+			title.setOrigin(0, 0);
+			title.setPosition(x + 5 * dxiz(), y + i * dhh * dyiz() - 5 * dyiz());
+			renderWindow->draw(title);
+		}
+
+		if(collisionBoxes){
+			sf::RectangleShape rs;
+			rs.setPosition(x, y);
+			rs.setSize(sf::Vector2f(w, h));
+			rs.setFillColor(sf::Color(0, 0, 0, 0));
+			rs.setOutlineColor(sf::Color(255, 0, 0, 255));
+			rs.setOutlineThickness(1);
+			renderWindow->draw(rs);
+		}
+	}
 
 	void darken(const float& darkness){
 		if(darkness > 1.0f){
@@ -652,13 +678,13 @@ namespace gi{
 	// endOfFrame
 	bool endOfFrame(){
 		if(showCursor){
-			if(cursor != NULL){
+			if(cursor != nullptr){
 				if(defaultCursor){
 					renderWindow->setMouseCursorVisible(defaultCursor = false);
 				}
 				cursor->position = sf::Mouse::getPosition(*renderWindow);
-				cursor->position.x /= dx();
-				cursor->position.y /= dy();
+				cursor->position.x /= dxiz();
+				cursor->position.y /= dyiz();
 				CoreSprite* cs = cursor->getSprite(clock.getElapsedTime());
 				cs->sprite()->setPosition(
 					cs->sprite()->getPosition().x - cursor->cb.offset.x * cs->w() * cursor->scale,

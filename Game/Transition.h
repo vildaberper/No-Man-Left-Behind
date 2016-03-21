@@ -22,6 +22,12 @@ public:
 	float stress;
 	std::string diary;
 	bool showStressMeter = true;
+
+	bool showOnlyDiary = false;
+
+	sf::Texture* background = nullptr;
+
+	sf::Time renderTime;
 };
 
 class Transition : public InputListener{
@@ -42,14 +48,23 @@ public:
 
 	void reset();
 
-	void end(const float& stress);
+	void end(const std::string& diary);
 
-	void addPage(Level* level, const float& timeBonus, const float& stress, const size_t& resourceBonus, const std::string& diary);
+	void addPage(Level* level, const float& timeBonus, const float& stress, const size_t& resourceBonus, const std::string& diaryId);
 
-	void render();
+	void render(const float& dt);
 
 	bool hidden = true;
 private:
+	std::vector<std::string> totalSaved;
+	std::vector<std::string> totalLost;
+
+	float ba = 1.0f;
+	float bat = 0.0f;
+	float bas = 4.0f;
+	sf::Texture* background;
+	sf::Texture* nextBackground;
+
 	size_t currentRestart = 0;
 	std::vector<std::vector<std::string>> restarts;
 
@@ -60,8 +75,10 @@ private:
 	std::string* hc;
 	unsigned long listenerId;
 
-	CoreSprite* skull;
-	float skullScale = 0.25f;
+	CoreSprite* meter;
+	CoreSprite* brain;
+	CoreSprite* fill;
+	float meterScale = 1.0f;
 
 	CoreSprite* book;
 	float bookScale = 1.4f;
@@ -72,6 +89,8 @@ private:
 	std::map<std::string, std::vector<std::string>> diaries;
 
 	void stressMeter(const float& stress, const sf::Color& c);
+
+	void paragraphFade(const std::vector<std::string>& text, const sf::Time& time);
 
 	std::string getDiary(const std::string& diary);
 };

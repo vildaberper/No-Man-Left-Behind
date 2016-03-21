@@ -8,6 +8,7 @@ Handbook::Handbook(Manager* m){
 	setAnimationType(STATES, 4);
 	applyAnimation(m, "handbook");
 	viewRelative = true;
+	scaleRelative = false;
 	currentAnimation = nextAnimation = CLOSED;
 	position.x = gi::TARGET_WIDTH / 2.0f;
 	position.y = gi::TARGET_HEIGHT / 2.0f;
@@ -58,9 +59,9 @@ Handbook::Handbook(Manager* m){
 	closeMenu->hidden = true;
 	closeMenu->type = HORIZONTAL;
 	closeMenu->background = new TexBar(
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("book.close"),
-		NULL
+		nullptr
 		);
 	closeMenu->drawElementBackgrounds = false;
 	manager->menuManager->menus["handbookclose"] = closeMenu;
@@ -75,9 +76,9 @@ Handbook::Handbook(Manager* m){
 	leftMenu->hidden = true;
 	leftMenu->type = HORIZONTAL;
 	leftMenu->background = new TexBar(
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("book.turnleft"),
-		NULL
+		nullptr
 		);
 	leftMenu->drawElementBackgrounds = false;
 	manager->menuManager->menus["handbookleft"] = leftMenu;
@@ -92,9 +93,9 @@ Handbook::Handbook(Manager* m){
 	rightMenu->hidden = true;
 	rightMenu->type = HORIZONTAL;
 	rightMenu->background = new TexBar(
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("book.turnright"),
-		NULL
+		nullptr
 		);
 	rightMenu->drawElementBackgrounds = false;
 	manager->menuManager->menus["handbookright"] = rightMenu;
@@ -112,6 +113,9 @@ Handbook::~Handbook(){
 	}
 	manager->inputManager->unregisterListener(listenerId);
 	manager->menuManager->menus.erase("handbookopen");
+	manager->menuManager->menus.erase("handbookclose");
+	manager->menuManager->menus.erase("handbookleft");
+	manager->menuManager->menus.erase("handbookright");
 	delete hc;
 }
 
@@ -152,7 +156,7 @@ void Handbook::open(){
 	currentAnimation = OPENING;
 	nextAnimation = OPENED;
 	startTime = clock.getElapsedTime();
-	si::playSound(NULL, "interface.handbook_open");
+	si::playSound(nullptr, "interface.handbook_open");
 }
 void Handbook::close(){
 	if (!isOpen()){

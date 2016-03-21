@@ -30,9 +30,9 @@ ResourceBox::ResourceBox(Controller* controller, Manager* manager, const unsigne
 		/*manager->spriteManager->getTexture("box.left"),
 		manager->spriteManager->getTexture("box.middle"),
 		manager->spriteManager->getTexture("box.right")*/
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("box.full"),
-		NULL
+		nullptr
 		);
 	menu->drawElementBackgrounds = false;
 	menu->topOffset = 5.0f;
@@ -71,6 +71,9 @@ void ResourceBox::on(MouseButtonEvent& event){
 			size_t index = 0;
 			if((index = pressed->find_first_of(':')) != std::string::npos && pressed->substr(0, index) == id){
 				unsigned char c = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';'))));
+				if(pi->itemInHand.amount > 0){
+					si::playRandomSoundV(nullptr, "bag", gc::bagVolume);
+				}
 				if(pi->itemInHand.amount > 0 && pi->itemInHand.item.type == at(c).item.type){
 					put(pi->itemInHand, selectedSlot = c);
 				}

@@ -235,7 +235,7 @@ void Editor::run(){
 	backgroundMenu->type = TEXTURE;
 	if(world->backgroundName.length() > 0){
 		backgroundMenu->title = world->backgroundName;
-		if(world->background != NULL){
+		if(world->background != nullptr){
 			backgroundMenu->sprite = new CoreSprite(world->background);
 		}
 	}
@@ -284,7 +284,7 @@ void Editor::run(){
 
 			if(manager->inputManager->isPressed(sf::Keyboard::Key::Z)){
 				gi::zoom(gi::cameraZ + gi::cameraZ * world->dt());
-				if(target != NULL){
+				if(target != nullptr){
 					target->dx += target->dx * world->dt();
 					target->dy += target->dy * world->dt();
 				}
@@ -292,7 +292,7 @@ void Editor::run(){
 			}
 			if(manager->inputManager->isPressed(sf::Keyboard::Key::X)){
 				gi::zoom(gi::cameraZ - gi::cameraZ * world->dt());
-				if(target != NULL){
+				if(target != nullptr){
 					target->dx -= target->dx * world->dt();
 					target->dy -= target->dy * world->dt();
 				}
@@ -307,10 +307,10 @@ void Editor::run(){
 					first = true;
 				}
 				if((first || deleteClock.getElapsedTime() >= deleteTime)){
-					if(target != NULL){
+					if(target != nullptr){
 						target->drawable->kill();
 						delete target;
-						target = NULL;
+						target = nullptr;
 						targeting = false;
 					}
 					if(usingBrush){
@@ -406,9 +406,9 @@ void Editor::on(KeyboardEvent& event){
 					world->save(file);
 				}
 				world->cleanAll(true);
-				if(target != NULL){
+				if(target != nullptr){
 					delete target;
-					target = NULL;
+					target = nullptr;
 				}
 				targeting = false;
 				draggingLeft = draggingRight = false;
@@ -439,12 +439,12 @@ void Editor::on(KeyboardEvent& event){
 			}
 			break;
 		case Keyboard::Add:
-			if(target != NULL){
+			if(target != nullptr){
 				target->drawable->scale *= 1.2f;
 			}
 			break;
 		case Keyboard::Subtract:
-			if(target != NULL){
+			if(target != nullptr){
 				target->drawable->scale *= (5.0f / 6.0f);
 			}
 			break;
@@ -456,10 +456,10 @@ void Editor::on(KeyboardEvent& event){
 		case Keyboard::B:
 			if(event.first()){
 				if(usingBrush = !usingBrush){
-					if(target != NULL){
+					if(target != nullptr){
 						target->drawable->highlight = false;
 						delete target;
-						target = NULL;
+						target = nullptr;
 					}
 					targeting = false;
 				}
@@ -469,7 +469,7 @@ void Editor::on(KeyboardEvent& event){
 			}
 			break;
 		case Keyboard::H:
-			if(target != NULL){
+			if(target != nullptr){
 				target->drawable->hideUnderCamera = !target->drawable->hideUnderCamera;
 			}
 			break;
@@ -489,16 +489,16 @@ void Editor::on(KeyboardEvent& event){
 			else{
 				selectedLayer = Layer(event.key() - 26);
 			}
-			if(target != NULL && targeting){
+			if(target != nullptr && targeting){
 				world->changeLayer(target->drawable, target->layer, selectedLayer);
 				target->layer = selectedLayer;
 			}
 			else{
 				targeting = false;
-				if(target != NULL){
+				if(target != nullptr){
 					target->drawable->highlight = false;
 					delete target;
-					target = NULL;
+					target = nullptr;
 				}
 			}
 			layerMenu->title = layerToString(selectedLayer);
@@ -535,7 +535,7 @@ void Editor::on(MouseButtonEvent& event){
 		draggingRight = event.pressed();
 		break;
 	case Mouse::Button::Middle:
-		if(event.pressed() && target != NULL){
+		if(event.pressed() && target != nullptr){
 			*selectedString = target->drawable->reference;
 			if(selectedString->length() > 0){
 				spriteMenu->title = *selectedString;
@@ -545,10 +545,10 @@ void Editor::on(MouseButtonEvent& event){
 		break;
 	case Mouse::Button::Left:
 		draggingLeft = event.pressed();
-		targeting = target != NULL && event.pressed();
+		targeting = target != nullptr && event.pressed();
 
 		if(!usingBrush && !targeting && event.pressed()){
-			if(selectedString != NULL && selectedString->length() > 0){
+			if(selectedString != nullptr && selectedString->length() > 0){
 				CoreSprite* s = manager->spriteManager->getSprite(*selectedString);
 				drawable::Drawable* d = new drawable::Drawable();
 				drawable::Animation* a = new drawable::Animation();
@@ -557,7 +557,7 @@ void Editor::on(MouseButtonEvent& event){
 				a->timing = milliseconds(0);
 				d->animations["default"] = a;
 				d->currentAnimation = d->nextAnimation = "default";
-				if(target != NULL){
+				if(target != nullptr){
 					delete target;
 				}
 				targeting = true;
@@ -586,8 +586,8 @@ void Editor::on(MouseMoveEvent& event){
 	if(!targeting){
 		if(!usingBrush){
 			Target* nt;
-			if((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != NULL){
-				if(target != NULL){
+			if((nt = world->drawableAt(float(event.x()), float(event.y()), selectedLayer)) != nullptr){
+				if(target != nullptr){
 					target->drawable->highlight = false;
 					delete target;
 				}
@@ -595,13 +595,13 @@ void Editor::on(MouseMoveEvent& event){
 				target->drawable->highlight = true;
 			}
 			else{
-				if(target != NULL){
+				if(target != nullptr){
 					target->drawable->highlight = false;
 					delete target;
-					target = NULL;
+					target = nullptr;
 				}
 			}
-			if(target == NULL && selectedLayer == LAYER0 && manager->inputManager->isPressed(Keyboard::N)){
+			if(target == nullptr && selectedLayer == LAYER0 && manager->inputManager->isPressed(Keyboard::N)){
 				on(MouseButtonEvent(Mouse::Left, true, false, event.x(), event.y()));
 				targeting = false;
 			}
@@ -609,7 +609,7 @@ void Editor::on(MouseMoveEvent& event){
 	}
 	else{
 		if(target->layer == LAYER0 || manager->inputManager->isPressed(sf::Keyboard::Key::G)){
-			if(world->background != NULL){
+			if(world->background != nullptr){
 				int w = world->background->getSize().x;
 				int h = world->background->getSize().y;
 				float x = gi::wx(float(event.x())) - float(w);

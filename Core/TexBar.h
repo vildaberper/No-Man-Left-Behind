@@ -12,7 +12,7 @@ public:
 
 	bool isValid();
 
-	sf::Texture* left = NULL;
-	sf::Texture* middle = NULL;
-	sf::Texture* right = NULL;
+	sf::Texture* left = nullptr;
+	sf::Texture* middle = nullptr;
+	sf::Texture* right = nullptr;
 };

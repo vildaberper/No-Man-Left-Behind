@@ -37,6 +37,7 @@ void Injured::initialize(Manager* manager, const std::string& animation, Journal
 	deathBar.bgColor = sf::Color(185, 185, 185, 155);
 	deathBar.oColor = sf::Color(5, 5, 5, 255);
 	deathBar.size = Vector(250.0f, 40.0f);
+	lastState = injuredState();
 }
 
 void Injured::tick(const sf::Time& time, const float& dt){
@@ -65,7 +66,17 @@ void Injured::tick(const sf::Time& time, const float& dt){
 }
 
 void Injured::updateAnimation(){
-	deathBar.pbColor = injuredState() == 1 ? sf::Color(10, 10, 10, 255) : sf::Color(104, 24, 24, 255);
+	unsigned char iState = injuredState();
+	if(lastState == 1 && iState == 2){
+		lastState = 3;
+		customJournal->deathTimer *= 2.0f;
+		timer = sf::milliseconds(0);
+	}
+	else if(iState > 2){
+		customJournal->deathTimer = sf::milliseconds(0);
+	}
+
+	deathBar.pbColor = iState == 1 ? sf::Color(10, 10, 10, 255) : sf::Color(104, 24, 24, 255);
 	customJournal->lines.clear();
 	for(size_t i = 0; i < journal->lines.size(); i++){
 		std::string line = journal->lines[i];
@@ -73,7 +84,7 @@ void Injured::updateAnimation(){
 
 		if((index = line.find("%state%")) != std::string::npos){
 			std::string state;
-			switch(injuredState()){
+			switch(iState){
 			case 0:
 				state = "Dead";
 				break;
@@ -108,7 +119,7 @@ void Injured::updateAnimation(){
 		customJournal->lines.push_back("");
 		customJournal->lines.push_back("Patient is dead.");
 	}
-	setAnimation(state(isDead() ? 0 : (INJURED_STATES - 1 + progress - journal->requirements.size())));
+	setAnimation(state(iState));
 }
 
 unsigned char Injured::injuredState(){
@@ -124,7 +135,7 @@ bool Injured::isDead(){
 }
 
 bool Injured::hasTimer(){
-	return !isDead() && !isHealed() && customJournal->deathTimer != sf::milliseconds(0);
+	return !isDead() && customJournal->deathTimer != sf::milliseconds(0);
 }
 
 bool Injured::survived(){
@@ -171,14 +182,8 @@ bool Injured::use(ItemStack& is){
 
 		applied.push_back(pair);
 		if(pair.second){
+			lastState = injuredState();
 			progress++;
-			if(injuredState() < 3){
-				customJournal->deathTimer *= 2.0f;
-				timer = sf::milliseconds(0);
-			}
-			else{
-				customJournal->deathTimer = sf::milliseconds(0);
-			}
 		}
 		is.amount--;
 		si::playSound(this, "resources." + resourceToString(is.item.type));

@@ -1,7 +1,7 @@
 #include "Constants.h"
 
 namespace c{
-	Configuration* config = NULL;
+	Configuration* config = nullptr;
 
 	File baseDir;
 	File textureDir;
@@ -32,7 +32,7 @@ namespace c{
 	const void initialize(){
 		sf::Clock cl;
 
-		if(config != NULL){
+		if(config != nullptr){
 			delete config;
 		}
 

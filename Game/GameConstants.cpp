@@ -12,6 +12,10 @@ namespace gc{
 
 	bool developerMode;
 
+	float zoomLevel;
+
+	float textFadeDuration;
+
 	int inventorySize;
 	int stackSizePennicillin;
 	int stackSizeForceps;
@@ -23,6 +27,7 @@ namespace gc{
 
 	bool useWhileTimer;
 	bool useTimerReset;
+	float stressIncreaseUseTime;
 	float useTimePennicillin;
 	float useTimeForceps;
 	float useTimeAlcohol;
@@ -66,6 +71,7 @@ namespace gc{
 	float armyScreamVolume;
 	float injuredVoiceVolume;
 	float bagVolume;
+	float boxVolume;
 
 	std::vector<std::string> levelProgression;
 
@@ -86,6 +92,10 @@ namespace gc{
 
 		developerMode = config.boolValue("general.developerMode");
 
+		zoomLevel = config.floatValue("general.zoomLevel");
+
+		textFadeDuration = config.floatValue("general.textFadeDuration");
+
 		inventorySize = config.intValue("general.inventorySize");
 		stackSizePennicillin = config.intValue("general.stackSizePennicillin");
 		stackSizeForceps = config.intValue("general.stackSizeForceps");
@@ -97,6 +107,7 @@ namespace gc{
 
 		useWhileTimer = config.boolValue("general.useWhileTimer");
 		useTimerReset = config.boolValue("general.useTimerReset");
+		stressIncreaseUseTime = config.floatValue("general.stressIncreaseUseTime");
 		useTimePennicillin = config.floatValue("general.useTimePennicillin");
 		useTimeForceps = config.floatValue("general.useTimeForceps");
 		useTimeAlcohol = config.floatValue("general.useTimeAlcohol");
@@ -133,6 +144,7 @@ namespace gc{
 		armyScreamVolume = config.floatValue("sound.armyScreamVolume");
 		injuredVoiceVolume = config.floatValue("sound.injuredVoiceVolume");
 		bagVolume = config.floatValue("sound.bagVolume");
+		boxVolume = config.floatValue("sound.boxVolume");
 
 		levelProgression = config.stringVector("levels.progression");
 

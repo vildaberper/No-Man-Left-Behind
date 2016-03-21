@@ -75,7 +75,7 @@ public:
 	sf::Time resourceUsedTime;
 	sf::Time resourceUsedTimer;
 	ProgressBar* resourceUseBar;
-	Injured* resourceUseInjured = NULL;
+	Injured* resourceUseInjured = nullptr;
 
 	std::string musicIntro;
 	std::string musicMain;
@@ -104,7 +104,7 @@ public:
 	std::vector<std::string> journals;
 	std::set<std::string> usedJournals;
 
-	Player* player = NULL;
+	Player* player = nullptr;
 	PlayerInventory* playerInventory;
 
 	Handbook* handBook;
@@ -114,10 +114,10 @@ public:
 	float fadeValue;
 
 	std::vector<Injured*> injured;
-	Injured* closest = NULL;
+	Injured* closest = nullptr;
 
 	std::vector<ResourceBox*> resourceBoxes;
-	ResourceBox* closestBox = NULL;
+	ResourceBox* closestBox = nullptr;
 
 	std::vector<ResourcePair> resources;
 

@@ -124,7 +124,7 @@ void CollisionEditor::run(){
 }
 
 void CollisionEditor::update(){
-	if(d != NULL){
+	if(d != nullptr){
 		d->kill();
 	}
 
@@ -186,7 +186,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 		if(event.button() == Mouse::Button::Left && event.pressed()){
 			if(selectedString->length() > 0){
 				if(manager->inputManager->isPressed(Keyboard::LShift)){
-					if(current->length() > 0 && d != NULL){
+					if(current->length() > 0 && d != nullptr){
 						CollisionBox* cbc = manager->collisionManager->getCollisionBoxReference(*selectedString);
 						CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 						cb->offset = cbc->offset;
@@ -208,7 +208,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 	case Mouse::Button::Left:
 	{
 		if(event.pressed()){
-			if(current->length() > 0 && d != NULL){
+			if(current->length() > 0 && d != nullptr){
 				FloatRect fr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
@@ -232,7 +232,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 	case Mouse::Button::Right:
 	{
 		if(event.pressed()){
-			if(current->length() > 0 && d != NULL){
+			if(current->length() > 0 && d != nullptr){
 				FloatRect fr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 				CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 
@@ -250,7 +250,7 @@ void CollisionEditor::on(MouseButtonEvent& event){
 
 void CollisionEditor::on(MouseMoveEvent& event){
 	if(dragging){
-		if(current->length() > 0 && d != NULL){
+		if(current->length() > 0 && d != nullptr){
 			FloatRect fr = d->getSprite(world->time())->sprite()->getGlobalBounds();
 			CollisionBox* cb = manager->collisionManager->getCollisionBoxReference(*current);
 

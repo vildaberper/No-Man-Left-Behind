@@ -25,13 +25,13 @@ public:
 	CoreSprite* sprite;
 	MenuItemType type = TEXT;
 	bool alternativeText = false;
-	Menu* toggle = NULL;
+	Menu* toggle = nullptr;
 	bool closeOnClick;
 	bool highlight = false;
 	bool darkenOnMouseOver = false;
 
-	TexBar* background = NULL;
+	TexBar* background = nullptr;
 
 	std::string selectedPrefix;
-	std::string* selectedString = NULL;
+	std::string* selectedString = nullptr;
 };

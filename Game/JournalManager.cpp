@@ -12,7 +12,7 @@ JournalManager::~JournalManager(){
 	for(auto &ent : journals){
 		for(auto &ent0 : ent.second){
 			delete ent0.second;
-			ent0.second = NULL;
+			ent0.second = nullptr;
 		}
 	}
 	journals.clear();

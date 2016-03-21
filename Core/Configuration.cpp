@@ -50,6 +50,7 @@ int h(string& s){
 	}
 	string::size_type i = s.find_first_not_of(' ');
 	if(i == string::npos){
+		s = "";
 		return 0;
 	}
 	s = s.substr(i);
@@ -72,9 +73,9 @@ public:
 	static const char SEPARATOR = ',';
 
 	Type type = TYPEUNDEFINED;
-	void* value = NULL;
+	void* value = nullptr;
 
-	std::map<std::string, ConfigurationNode*>* nodes = NULL;
+	std::map<std::string, ConfigurationNode*>* nodes = nullptr;
 
 	ConfigurationNode(){
 		nodes = new std::map<std::string, ConfigurationNode*>();
@@ -82,16 +83,16 @@ public:
 
 	~ConfigurationNode(){
 		unset();
-		if(nodes != NULL){
+		if(nodes != nullptr){
 			for(auto &ent : *nodes){
-				if(ent.second != NULL){
+				if(ent.second != nullptr){
 					delete ent.second;
-					ent.second = NULL;
+					ent.second = nullptr;
 				}
 			}
 			nodes->clear();
 			delete nodes;
-			nodes = NULL;
+			nodes = nullptr;
 		}
 	}
 
@@ -120,7 +121,7 @@ public:
 			break;
 		}
 		type = TYPEUNDEFINED;
-		value = NULL;
+		value = nullptr;
 	}
 
 	void ConfigurationNode::set(const bool& value){
@@ -399,7 +400,7 @@ public:
 			return (*nodes)[sub]->remove(path.substr(index + 1));
 		}
 		delete (*nodes)[path];
-		(*nodes)[path] = NULL;
+		(*nodes)[path] = nullptr;
 		nodes->erase(path);
 	}
 
@@ -418,7 +419,7 @@ public:
 	}
 };
 
-ConfigurationNode* root = NULL;
+ConfigurationNode* root = nullptr;
 
 Configuration::Configuration(){
 	root = new ConfigurationNode();

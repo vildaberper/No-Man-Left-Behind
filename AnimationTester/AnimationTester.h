@@ -27,8 +27,8 @@ private:
 
 	World* world;
 
-	drawable::Drawable* d = NULL;
-	drawable::Animation* a = NULL;
+	drawable::Drawable* d = nullptr;
+	drawable::Animation* a = nullptr;
 
 	File pngFile;
 	File txtFile;

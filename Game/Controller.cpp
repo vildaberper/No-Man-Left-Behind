@@ -92,7 +92,7 @@ bool Controller::isPressed(const Command& c){
 		return isFirstPressed(0, 1);
 		break;
 	case SKIP:
-		return isPressed(PAUSE) || isPressed(BACK) || isPressed(INTERACT) || im->isFirstPressed(sf::Keyboard::Return);
+		return isPressed(PAUSE) || isPressed(BACK) || isPressed(INTERACT) || im->isFirstPressed(sf::Keyboard::Return) || im->isFirstPressed(sf::Keyboard::Space);
 		break;
 	}
 	return false;

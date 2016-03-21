@@ -127,7 +127,7 @@ void Game::run(){
 			unchecked = manager->spriteManager->getSprite("menu.unchecked");
 
 			itemFullscreen = new MenuItem();
-			itemFullscreen->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.fullscreen"), NULL);
+			itemFullscreen->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.fullscreen"), nullptr);
 			itemFullscreen->type = TEXTURE;
 			itemFullscreen->selectedPrefix = "options.fullscreen";
 			itemFullscreen->selectedString = menuCommand;
@@ -135,7 +135,7 @@ void Game::run(){
 			optionsMenu->items.push_back(itemFullscreen);
 
 			itemVsync = new MenuItem();
-			itemVsync->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.vsync"), NULL);
+			itemVsync->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.vsync"), nullptr);
 			itemVsync->type = TEXTURE;
 			itemVsync->selectedPrefix = "options.vsync";
 			itemVsync->selectedString = menuCommand;
@@ -143,14 +143,14 @@ void Game::run(){
 			optionsMenu->items.push_back(itemVsync);
 
 			MenuItem* mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.apply"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.apply"), nullptr);
 			mi->selectedPrefix = "options.apply";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
 			optionsMenu->items.push_back(mi);
 
 			mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.back"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.back"), nullptr);
 			mi->selectedPrefix = "options.back";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
@@ -159,14 +159,14 @@ void Game::run(){
 			//
 
 			mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.continue"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.continue"), nullptr);
 			mi->selectedPrefix = "continue";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
 			pauseMenu->items.push_back(mi);
 
 			mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.new game"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.new game"), nullptr);
 			mi->selectedPrefix = "new game";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
@@ -174,7 +174,7 @@ void Game::run(){
 			pauseMenu->items.push_back(mi);
 
 			mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.options"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.options"), nullptr);
 			mi->selectedPrefix = "options";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
@@ -182,7 +182,7 @@ void Game::run(){
 			pauseMenu->items.push_back(mi);
 
 			mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.credits"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.credits"), nullptr);
 			mi->selectedPrefix = "credits";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
@@ -190,7 +190,7 @@ void Game::run(){
 			pauseMenu->items.push_back(mi);
 
 			mi = new MenuItem();
-			mi->background = new TexBar(NULL, manager->spriteManager->getTexture("menu.quit"), NULL);
+			mi->background = new TexBar(nullptr, manager->spriteManager->getTexture("menu.quit"), nullptr);
 			mi->selectedPrefix = "quit";
 			mi->selectedString = menuCommand;
 			mi->darkenOnMouseOver = true;
@@ -220,7 +220,7 @@ void Game::run(){
 		Time time = clock.getElapsedTime();
 		float dt = (time - lastTime).asSeconds();
 
-		manager->tick(gi::renderWindow, time, (level == NULL || level->world == NULL) ? dt : level->world->dt());
+		manager->tick(gi::renderWindow, time, (level == nullptr || level->world == nullptr) ? dt : level->world->dt());
 
 		if(a > at && a > 0.0f){
 			a -= dt * as;
@@ -431,7 +431,7 @@ void Game::run(){
 					stress = savedS / totalS;
 
 					lastItemInHand = playerInventory->itemInHand;
-					if(lastContent != NULL){
+					if(lastContent != nullptr){
 						delete[] lastContent;
 					}
 					lastContent = new ItemStack[playerInventory->getSize()];
@@ -440,14 +440,16 @@ void Game::run(){
 					}
 					lastExtraResources = level->savedGeneral * gc::resourcesFromGenerals;
 
-					transition->addPage(level, timeBonus, stress, lastExtraResources, std::to_string(currentLevel) + (stress >= gc::stressForA ? "a" : (stress >= gc::stressForB ? "b" : "c")));
-
 					if(currentLevel >= gc::levelProgression.size()){
-						transition->end(stress);
+						transition->addPage(level, timeBonus, stress, lastExtraResources, "-" + std::to_string(currentLevel));
+						transition->end(std::to_string(currentLevel) + (stress >= gc::stressForA ? "a" : (stress >= gc::stressForB ? "b" : "c")));
+					}
+					else{
+						transition->addPage(level, timeBonus, stress, lastExtraResources, std::to_string(currentLevel) + (stress >= gc::stressForA ? "a" : (stress >= gc::stressForB ? "b" : "c")));
 					}
 				}
 				else{
-					if(lastContent != NULL){
+					if(lastContent != nullptr){
 						playerInventory->itemInHand = lastItemInHand;
 						for(size_t i = 0; i < playerInventory->getSize(); i++){
 							playerInventory->content[i] = ItemStack(lastContent[i].item, lastContent[i].amount);
@@ -491,7 +493,7 @@ void Game::run(){
 				if(controller->isPressed(Command::RB)){
 					transition->turnRight();
 				}
-				transition->render();
+				transition->render(dt);
 			}
 			manager->menuManager->draw(time);
 			if(transtionDone && a >= 1.0f){
@@ -502,12 +504,12 @@ void Game::run(){
 				}
 				if(currentLevel >= gc::levelProgression.size()){
 					delete level;
-					level = NULL;
+					level = nullptr;
 					state = COMPLETE;
 					continue;
 				}
 				else{
-					if(level != NULL){
+					if(level != nullptr){
 						delete level;
 					}
 					gi::darken(1.0f);
@@ -685,9 +687,7 @@ void Game::run(){
 			break;
 		}
 
-		if(a > 0.0f){
-			gi::darken(a);
-		}
+		gi::darken(a);
 
 		gi::drawLog();
 
@@ -708,7 +708,7 @@ void Game::newGame(){
 	lastExtraResources = 0;
 	lastItemInHand.amount = 0;
 	delete[] lastContent;
-	lastContent = NULL;
+	lastContent = nullptr;
 
 	totalCivil = 0;
 	totalSoldier = 0;

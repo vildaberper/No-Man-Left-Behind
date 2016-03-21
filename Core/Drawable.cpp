@@ -11,7 +11,7 @@ Drawable::Drawable(){
 Drawable::~Drawable(){
 	for(auto &ent : animations){
 		delete ent.second;
-		ent.second = NULL;
+		ent.second = nullptr;
 	}
 	animations.clear();
 }
@@ -63,8 +63,8 @@ CoreSprite* Drawable::getSprite(const sf::Time& time){
 
 	if(viewRelative){
 		s->sprite()->setPosition(
-			round((position.x) * gi::dx()) + 0.375f,
-			round((position.y) * gi::dy()) + 0.375f
+			round((position.x) * gi::dxiz()) + 0.375f,
+			round((position.y) * gi::dyiz()) + 0.375f
 			);
 	}
 	else{
@@ -88,8 +88,8 @@ CoreSprite* Drawable::getSprite(const sf::Time& time){
 	}
 	else{
 		s->sprite()->scale(
-			(1.0f / s->sprite()->getScale().x) * scale,
-			(1.0f / s->sprite()->getScale().y) * scale
+			(1.0f / s->sprite()->getScale().x) * scale * gi::dxiz(),
+			(1.0f / s->sprite()->getScale().y) * scale * gi::dyiz()
 			);
 	}
 	if(hideUnderCamera){

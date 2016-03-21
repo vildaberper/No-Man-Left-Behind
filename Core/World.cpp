@@ -156,7 +156,7 @@ void World::tick(){
 
 
 const void World::renderBackground(){
-	if(background != NULL){
+	if(background != nullptr){
 		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::WIDTH + 3 * background->getSize().x), int(gi::HEIGHT + 3 * background->getSize().y)));
 		float x = (-gi::cameraX + gi::WIDTH / 2) * gi::dx();
 		float y = (-gi::cameraY + gi::HEIGHT / 2) * gi::dy();
@@ -368,7 +368,7 @@ Target* World::drawableAt(const float& x, const float& y, const Layer& layer){
 				);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 unsigned int save_helper(Configuration& c, std::vector<drawable::Drawable*>& ds, std::string layer){

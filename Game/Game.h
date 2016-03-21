@@ -66,9 +66,9 @@ private:
 	bool playingMenuMusic = false;
 	bool shouldPlayMenuMusic = true;
 
-	Level* level = NULL;
+	Level* level = nullptr;
 	ItemStack lastItemInHand;
-	ItemStack* lastContent = NULL;
+	ItemStack* lastContent = nullptr;
 	size_t lastExtraResources = 0;
 
 	int totalCivil = 0;

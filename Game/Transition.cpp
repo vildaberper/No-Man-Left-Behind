@@ -29,7 +29,10 @@ Transition::Transition(Manager* manager){
 	restarts.push_back(restart);
 	delete lines;
 
-	skull = manager->spriteManager->getSprite("timer.skull");
+	meter = manager->spriteManager->getSprite("stress.meter");
+	brain = manager->spriteManager->getSprite("stress.brain");
+	fill = manager->spriteManager->getSprite("stress.fill");
+
 	book = manager->spriteManager->getSprite("handbook.state1", "0");
 	reset();
 	hc = new std::string();
@@ -40,9 +43,9 @@ Transition::Transition(Manager* manager){
 	closeMenu->hidden = true;
 	closeMenu->type = HORIZONTAL;
 	closeMenu->background = new TexBar(
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("book.close"),
-		NULL
+		nullptr
 		);
 	closeMenu->drawElementBackgrounds = false;
 	manager->menuManager->menus["transitionclose"] = closeMenu;
@@ -57,9 +60,9 @@ Transition::Transition(Manager* manager){
 	leftMenu->hidden = true;
 	leftMenu->type = HORIZONTAL;
 	leftMenu->background = new TexBar(
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("book.turnleft"),
-		NULL
+		nullptr
 		);
 	leftMenu->drawElementBackgrounds = false;
 	manager->menuManager->menus["transitionleft"] = leftMenu;
@@ -74,9 +77,9 @@ Transition::Transition(Manager* manager){
 	rightMenu->hidden = true;
 	rightMenu->type = HORIZONTAL;
 	rightMenu->background = new TexBar(
-		NULL,
+		nullptr,
 		manager->spriteManager->getTexture("book.turnright"),
-		NULL
+		nullptr
 		);
 	rightMenu->drawElementBackgrounds = false;
 	manager->menuManager->menus["transitionright"] = rightMenu;
@@ -147,11 +150,13 @@ void Transition::setHidden(const bool& hidden){
 void Transition::turnLeft(){
 	if(current > 0){
 		current--;
+		nextBackground = pages[current]->background;
 	}
 }
 void Transition::turnRight(){
 	if(current < pages.size() - 1){
 		current++;
+		nextBackground = pages[current]->background;
 	}
 }
 
@@ -160,28 +165,38 @@ void Transition::reset(){
 		delete p;
 	}
 	pages.clear();
-	
+
 	TPage* p = new TPage();
 	p->lines.push_back("intro");
 	p->diary = getDiary("0a");
 	p->showStressMeter = false;
+	p->showOnlyDiary = true;
 	pages.push_back(p);
+
+	background = nextBackground = nullptr;
+	bat = ba = 0.0f;
 
 	current = 0;
+	totalSaved.clear();
 }
 
-void Transition::end(const float& stress){
+void Transition::end(const std::string& diary){
 	TPage* p = new TPage();
 	p->lines.push_back("outro");
-	pages.push_back(p);
+	p->diary = getDiary(diary);
 	p->showStressMeter = false;
+	p->showOnlyDiary = true;
+	pages.push_back(p);
 
 	current = pages.size() - 1;
+	nextBackground = p->background;
 }
 
-void Transition::addPage(Level* level, const float& timeBonus, const float& stress, const size_t& resourceBonus, const std::string& diary){
+void Transition::addPage(Level* level, const float& timeBonus, const float& stress, const size_t& resourceBonus, const std::string& diaryId){
 	TPage* p = new TPage();
 	p->stress = stress;
+
+	p->background = level->world->background;
 
 	std::vector<std::string> saved;
 	std::vector<std::string> lost;
@@ -190,10 +205,70 @@ void Transition::addPage(Level* level, const float& timeBonus, const float& stre
 		Injured* inj = level->injured[i];
 		if(inj->survived()){
 			saved.push_back(inj->name);
+			totalSaved.push_back(inj->name);
 		}
 		else{
 			lost.push_back(inj->name);
+			totalLost.push_back(inj->name);
 		}
+	}
+
+	std::string diary = diaryId;
+
+	if(diaryId.at(0) == '-'){
+		diary = diary.substr(1);
+
+		std::vector<std::string> end;
+		std::string line = "   ";
+		bool first = true;
+
+		end.push_back("");
+		end.push_back("Summary");
+
+		if(totalSaved.size() > 0){
+			end.push_back("");
+			end.push_back("Saved:");
+			for(std::string name : totalSaved){
+				if(line.length() + 2 + name.length() <= 70){
+					line += (first ? "" : ", ") + name;
+				}
+				else{
+					end.push_back(line);
+					line = "   " + name;
+				}
+				first = false;
+			}
+			end.push_back(line + ".");
+		}
+
+
+		if(totalLost.size() > 0){
+			end.push_back("");
+			end.push_back("Lost:");
+			line = "   ";
+			first = true;
+			for(std::string name : totalLost){
+				if(line.length() + 2 + name.length() <= 70){
+					line += (first ? "" : ", ") + name;
+				}
+				else{
+					end.push_back(line);
+					line = "   " + name;
+				}
+				first = false;
+			}
+			end.push_back(line + ".");
+		}
+		diaries["end"] = end;
+		p->diary = "end";
+	}
+	else{
+		p->diary = getDiary(diary);
+	}
+
+	if(diary.length() > 0){
+		p->lines.push_back("");
+		p->lines.push_back("Year " + diary.substr(0, 1));
 	}
 
 	std::string line = "   ";
@@ -244,92 +319,185 @@ void Transition::addPage(Level* level, const float& timeBonus, const float& stre
 		p->lines.push_back("Bonus resources: " + std::to_string(resourceBonus));
 	}
 
-	p->diary = getDiary(diary);
-
 	pages.push_back(p);
 	current = pages.size() - 1;
+	background = nullptr;
+	nextBackground = p->background;
 }
 
-void Transition::render(){
-	/*float t = start.getElapsedTime().asSeconds();
-
-	if(t > 1.0f){
-		leftMenu->hidden = current == 0;
-		rightMenu->hidden = current >= pages.size() - 1;
-		closeMenu->hidden = false;
-	}*/
+void Transition::render(const float& dt){
 	leftMenu->hidden = hidden || current == 0;
 	rightMenu->hidden = hidden || current >= pages.size() - 1;
-	closeMenu->hidden = hidden || false;
+	closeMenu->hidden = hidden || pages[current]->showOnlyDiary;
 
-	sf::Color c = sf::Color(255, 255, 255, 255);
-	book->sprite()->setPosition(
-		(gi::TARGET_WIDTH / 2.0f - (book->w() * bookScale / 2.0f)) * gi::dxiz(),
-		(gi::TARGET_HEIGHT / 2.0f - (book->h() * bookScale / 2.0f)) * gi::dyiz()
-		);
-	book->sprite()->scale(
-		(1.0f / book->sprite()->getScale().x) * bookScale * gi::dxiz(),
-		(1.0f / book->sprite()->getScale().y) * bookScale * gi::dyiz()
-		);
-	book->sprite()->setColor(c);
-	gi::renderWindow->draw(*book->sprite());
+	TPage* p = pages[current];
 
-	gi::draw(
-		pages[current]->lines,
-		290.0f * gi::dxiz(),
-		100.0f * gi::dyiz(),
-		640.0f * gi::dxiz(),
-		750.0f * gi::dyiz()
-		);
+	p->renderTime += sf::seconds(dt);
 
-	gi::draw(
-				diaries[pages[current]->diary],
-				990.0f * gi::dxiz(),
-				100.0f * gi::dyiz(),
-				640.0f * gi::dxiz(),
-				750.0f * gi::dyiz()
-				);
+	if(ba > bat && ba > 0.0f){
+		ba -= dt * bas;
+	}
+	else if(ba < bat && ba < 1.0f){
+		ba += dt * bas;
+	}
+	if(ba < 0.0f){
+		ba = 0.0f;
+	}
+	else if(ba > 1.0f){
+		ba = 1.0f;
+	}
 
-	if(pages[current]->showStressMeter){
-		stressMeter(pages[current]->stress, c);
+	if(background != nextBackground){
+		bat = 1.0f;
+		if(background == nullptr){
+			ba = 1.0f;
+		}
+		if(ba >= 1.0f && bat >= 1.0f){
+			background = nextBackground;
+		}
+	}
+	else{
+		bat = 0.0f;
+	}
+
+	if(background != nullptr){
+		sf::Sprite s = sf::Sprite(*background, sf::IntRect(0, 0, int(gi::WIDTH + 3 * background->getSize().x), int(gi::HEIGHT + 3 * background->getSize().y)));
+		float x = (-gi::cameraX + gi::WIDTH / 2) * gi::dx();
+		float y = (-gi::cameraY + gi::HEIGHT / 2) * gi::dy();
+		x = fmod(x, background->getSize().x * gi::dx());
+		y = fmod(y, background->getSize().y * gi::dy());
+		s.setPosition(x - background->getSize().x * gi::dx(), y - background->getSize().y * gi::dy());
+		s.scale(gi::dx(), gi::dy());
+		gi::draw(s);
+
+		gi::darken(ba);
+	}
+
+	if(pages[current]->showOnlyDiary){
+		paragraphFade(
+			diaries[p->diary], p->renderTime);
+	}
+	else{
+		sf::Color c = sf::Color(255, 255, 255, 255);
+		book->sprite()->setPosition(
+			(gi::TARGET_WIDTH / 2.0f - (book->w() * bookScale / 2.0f)) * gi::dxiz(),
+			(gi::TARGET_HEIGHT / 2.0f - (book->h() * bookScale / 2.0f)) * gi::dyiz()
+			);
+		book->sprite()->scale(
+			(1.0f / book->sprite()->getScale().x) * bookScale * gi::dxiz(),
+			(1.0f / book->sprite()->getScale().y) * bookScale * gi::dyiz()
+			);
+
+		book->sprite()->setColor(c);
+		gi::renderWindow->draw(*book->sprite());
+
+		gi::draw(
+			p->lines,
+			290.0f * gi::dxiz(),
+			100.0f * gi::dyiz(),
+			640.0f * gi::dxiz(),
+			750.0f * gi::dyiz()
+			);
+
+		gi::draw(
+			diaries[p->diary],
+			990.0f * gi::dxiz(),
+			100.0f * gi::dyiz(),
+			640.0f * gi::dxiz(),
+			750.0f * gi::dyiz()
+			);
+
+		if(p->showStressMeter){
+			float sm = (p->renderTime.asSeconds() / 2.0f);
+			sm = sm > 1.0f ? 1.0f : sm;
+			sm = 1.0f - sm + p->stress;
+			sm = sm > 1.0f ? 1.0f : (sm < 0.0f ? 0.0f : sm);
+
+			stressMeter(sm, c);
+		}
 	}
 }
 
 void Transition::stressMeter(const float& stress, const sf::Color& c){
-	float v = 1.0f - stress;
-	if(v < 0.0f){
-		v = 0.0f;
-	}
-	else if(v > 1.0f){
-		v = 1.0f;
-	}
-	float w = 150 * gi::dxiz();
-	float h = 75 * gi::dyiz();
-	sf::ConvexShape t;
-	t.setPosition(750 * gi::dxiz(), 750 * gi::dyiz());
-	t.setFillColor(sf::Color(255, 255, 255, c.a));
-	t.setOutlineColor(sf::Color(0, 0, 0, c.a));
-	t.setOutlineThickness(7 * gi::dxiz());
-	t.setPointCount(3);
-	t.setPoint(0, sf::Vector2f(0, 0));
-	t.setPoint(1, sf::Vector2f(w, 0));
-	t.setPoint(2, sf::Vector2f(0, h));
-	gi::renderWindow->draw(t);
+	float x = 750 * gi::dxiz();
+	float y = 750 * gi::dyiz();
+	float sx = meterScale * gi::dxiz();
+	float sy = meterScale * gi::dyiz();
 
-	t.setFillColor(sf::Color(104, 24, 24, c.a));
-	t.setPoint(0, sf::Vector2f(0, h * (1.0f - v)));
-	t.setPoint(1, sf::Vector2f(w * v, h * (1.0f - v)));
-	t.setPoint(2, sf::Vector2f(0, h));
-	gi::renderWindow->draw(t);
+	float fillStart = 46.0f / 500.0f;
+	float fillEnd = 322.0f / 500.0f;
+	float fillProgress = (fillStart + (fillEnd - fillStart) * stress);
 
-	skull->sprite()->setPosition(t.getPosition());
-	skull->sprite()->move(-25.0f * gi::dxiz(), 4.0f * gi::dyiz());
-	skull->sprite()->scale(
-		(1.0f / skull->sprite()->getScale().x) * skullScale * gi::dxiz(),
-		(1.0f / skull->sprite()->getScale().y) * skullScale * gi::dyiz()
+	brain->sprite()->setPosition(x, y);
+	sf::Uint8 bru = sf::Uint8(int(255.0f * stress));
+	sf::Color brc(bru, bru, bru, 255);
+	brain->sprite()->setColor(brc);
+	brain->sprite()->scale(
+		(1.0f / brain->sprite()->getScale().x) * sx,
+		(1.0f / brain->sprite()->getScale().y) * sy
 		);
-	skull->sprite()->setColor(c);
-	gi::renderWindow->draw(*skull->sprite());
+	gi::renderWindow->draw(*brain->sprite());
+
+	fill->sprite()->setPosition(x, y + (fill->h() * fillProgress) * sy);
+	fill->sprite()->setTextureRect(sf::IntRect(0, int(fill->h() * fillProgress), fill->w(), int(fill->h() * (1.0f - fillProgress))));
+	fill->sprite()->scale(
+		(1.0f / fill->sprite()->getScale().x) * sx,
+		(1.0f / fill->sprite()->getScale().y) * sy
+		);
+	gi::renderWindow->draw(*fill->sprite());
+
+	meter->sprite()->setPosition(x, y);
+	meter->sprite()->scale(
+		(1.0f / meter->sprite()->getScale().x) * sx,
+		(1.0f / meter->sprite()->getScale().y) * sy
+		);
+	gi::renderWindow->draw(*meter->sprite());
+}
+
+void Transition::paragraphFade(const std::vector<std::string>& text, const sf::Time& time){
+	float x = (gi::TARGET_WIDTH / 2.0f - 320.0f) * gi::dxiz();
+	float y = 200.0f * gi::dyiz();
+	float w = 640.0f * gi::dxiz();
+	float h = 750.0f * gi::dyiz();
+
+	float dh = std::min(20.0f, h / float(text.size()));
+	float dhh = dh + 10.0f;
+
+	size_t ps = 0;
+	size_t mps = size_t(floor(time.asSeconds() / gc::textFadeDuration));
+
+	float ca = 1.0f;
+	float cf = fmod(time.asSeconds() / gc::textFadeDuration, 1.0f);
+
+	for(size_t i = 0; i < text.size() && ps <= mps; i++){
+		std::string s = text[i];
+
+		size_t index;
+		if((index = s.find("%saved%")) != std::string::npos){
+			s.replace(index, 7, std::to_string(totalSaved.size()));
+		}
+
+		if(text[i].length() == 0){
+			ps++;
+			if(ps == mps){
+				ca = cf;
+			}
+			else{
+				ca = 1.0f;
+			}
+		}
+
+		sf::Text title = sf::Text();
+		title.setFont(gi::textFont);
+		title.setColor(sf::Color(255, 255, 255, sf::Uint8(int(255.0f * ca))));
+		title.setString(s);
+		title.setCharacterSize(30);
+		float sc = std::min(0.6f, w / (title.getGlobalBounds().width + 10));
+		title.scale(sc, sc);
+		title.setOrigin(0, 0);
+		title.setPosition(x + 5 * gi::dxiz(), y + i * dhh * gi::dyiz() - 5 * gi::dyiz());
+		gi::renderWindow->draw(title);
+	}
 }
 
 std::string Transition::getDiary(const std::string& diary){

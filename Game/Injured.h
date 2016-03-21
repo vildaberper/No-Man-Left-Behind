@@ -37,6 +37,8 @@ public:
 
 	unsigned char injuredState();
 
+	unsigned char lastState;
+
 	bool isHealed();
 	bool isDead();
 

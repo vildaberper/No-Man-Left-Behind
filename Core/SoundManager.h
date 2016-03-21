@@ -23,7 +23,7 @@ namespace soundmanager{
 			delete sound;
 		}
 		sf::Sound* sound;
-		const Entity* source = NULL;
+		const Entity* source = nullptr;
 		bool hasVolume = false;
 		float volume;
 	};
@@ -49,7 +49,7 @@ public:
 	void setSoundV(const unsigned long& id, const float& volume);
 	void stop(const unsigned long& id);
 
-	Entity* relative = NULL;
+	Entity* relative = nullptr;
 	float minDistance = 1500.0f;
 private:
 	std::map<std::string, std::map<std::string, sf::SoundBuffer*>> soundBoard;

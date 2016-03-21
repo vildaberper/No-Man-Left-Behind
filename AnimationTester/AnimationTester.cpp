@@ -52,7 +52,7 @@ void AnimationTester::load(){
 		return;
 	}
 
-	if (world != NULL){
+	if (world != nullptr){
 		delete world;
 	}
 	world = new World(manager);
@@ -106,7 +106,7 @@ void AnimationTester::load(){
 
 void AnimationTester::save(){
 	Configuration c;
-	if (a == NULL){
+	if (a == nullptr){
 		logger::warning("There is no timing to save!");
 		return;
 	}
@@ -140,7 +140,7 @@ void AnimationTester::on(KeyboardEvent& event){
 			load();
 			break;
 		case Keyboard::P:
-			if (d != NULL && event.first()){
+			if (d != nullptr && event.first()){
 				if (repeat){
 					if (d->nextAnimation == "idle"){
 						d->nextAnimation = "animation";
@@ -163,7 +163,7 @@ void AnimationTester::on(KeyboardEvent& event){
 			logger::info("Repeating: " + string(repeat ? "yes" : "no"));
 			break;
 		case Keyboard::Add:
-			if (a != NULL){
+			if (a != nullptr){
 				if (manager->inputManager->isPressed(sf::Keyboard::Key::LShift)){
 					a->timing += sf::milliseconds(10);
 				}
@@ -177,7 +177,7 @@ void AnimationTester::on(KeyboardEvent& event){
 			}
 			break;
 		case Keyboard::Subtract:
-			if (a != NULL){
+			if (a != nullptr){
 				if (manager->inputManager->isPressed(sf::Keyboard::Key::LShift)){
 					a->timing -= sf::milliseconds(10);
 				}
@@ -197,7 +197,7 @@ void AnimationTester::on(MouseWheelEvent& event){
 	if (event.isCancelled()){
 		return;
 	}
-	if (d != NULL){
+	if (d != nullptr){
 		if (event.delta() > 0){
 			d->scale *= 1.2f;
 		}

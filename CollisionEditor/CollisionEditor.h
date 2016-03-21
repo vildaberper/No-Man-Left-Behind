@@ -23,10 +23,10 @@ private:
 
 	World* world;
 
-	drawable::Drawable* d = NULL;
+	drawable::Drawable* d = nullptr;
 
 	bool dragging = false;
 
-	std::string* current = NULL;
-	std::string* selectedString = NULL;
+	std::string* current = nullptr;
+	std::string* selectedString = nullptr;
 };

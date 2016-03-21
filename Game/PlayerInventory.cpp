@@ -61,8 +61,8 @@ void PlayerInventory::render(){
 		(gi::TARGET_HEIGHT - 115.0f - handle->h() / 2.0f) * gi::dyiz()
 		);
 	handle->sprite()->scale(
-		(1.0f / handle->sprite()->getScale().x) * 1.0f * gi::dx(),
-		(1.0f / handle->sprite()->getScale().y) * 1.0f * gi::dy()
+		(1.0f / handle->sprite()->getScale().x) * 1.0f * gi::dxiz(),
+		(1.0f / handle->sprite()->getScale().y) * 1.0f * gi::dyiz()
 		);
 	gi::draw(*handle->sprite());
 	if(itemInHand.amount > 0){
@@ -86,6 +86,9 @@ void PlayerInventory::on(MouseButtonEvent& event){
 			size_t index = 0;
 			if((index = pressed->find_first_of(':')) != std::string::npos && pressed->substr(0, index) == id){
 				unsigned char c = unsigned char(stoi(pressed->substr(index + 1, pressed->find_first_of(';'))));
+				if(itemInHand.amount > 0){
+					si::playRandomSoundV(nullptr, "bag", gc::bagVolume);
+				}
 				if(itemInHand.amount > 0 && itemInHand.item.type == at(c).item.type){
 					put(itemInHand, selectedSlot = c);
 				}
